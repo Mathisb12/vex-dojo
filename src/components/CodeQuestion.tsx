@@ -85,7 +85,7 @@ export function CodeQuestion({ exercise, onComplete }: Props) {
       {/* Prompt */}
       <div className="bg-vex-surface border border-vex-border rounded-2xl p-5">
         <div className="text-xs text-vex-orange font-mono uppercase tracking-widest mb-2">{t('code.title')}</div>
-        <p className="text-vex-text text-sm">{exercise.prompt}</p>
+        <p className="text-vex-text text-base font-medium">{exercise.prompt}</p>
       </div>
 
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">

@@ -126,7 +126,7 @@ export function FillBlankQuestion({ exercise, onComplete }: Props) {
       {/* Instructions */}
       <div className="bg-vex-surface border border-vex-border rounded-2xl p-5">
         <div className="text-xs text-vex-orange font-mono uppercase tracking-widest mb-2">{t('fill.title')}</div>
-        <p className="text-vex-text text-sm">{exercise.title}</p>
+        <p className="text-vex-text text-base font-medium">{exercise.title}</p>
       </div>
 
       {/* Code block — with live 3D preview side-by-side when available */}
