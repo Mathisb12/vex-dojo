@@ -280,6 +280,17 @@ export const FR_EXERCISES: Record<string, ExTranslation> = {
     explanation: '`@ptnum` est l\'index du point en cours de traitement. Il commence à 0 et va jusqu\'à `@numpt - 1`.',
     choices: ['@ptnum', '@index', '@id', 'pointnum()'],
   },
+  'intro-4': {
+    title: 'Affiche la progression du point courant',
+    codeLines: ['// Affiche l\'index du point courant et le total', 'printf("Point %d sur %d\\n", ___, ___);'],
+    hints: ['Index du point courant', 'Nombre total de points'],
+    explanation: '`printf` permet d\'afficher des valeurs de debug dans la console. `@ptnum` est l\'index courant, `@numpt` est le total — ensemble ils montrent la progression dans la boucle.',
+  },
+  'intro-5': {
+    title: 'Un wrangle tourne sur une grille de 50 points. Que vaut `@numpt` pour chaque point ?',
+    explanation: '`@numpt` est identique pour chaque point — le total ne change jamais pendant la boucle. Seul `@ptnum` change, de 0 à 49.',
+    choices: ['50', '49', '0', 'Ça varie selon le point'],
+  },
   // ── variables ──
   'var-1': {
     title: 'Quelle déclaration est du VEX valide ?',
@@ -308,6 +319,17 @@ export const FR_EXERCISES: Record<string, ExTranslation> = {
     choices: ['v.y', 'v[1]', 'v->y', 'getcomp(v, 1)'],
     choiceExplanations: { 1: 'Ça fonctionne aussi en VEX, mais .y est plus lisible.', 3: 'Ça fonctionne mais c\'est verbeux — .y est la méthode standard.' },
   },
+  'var-5': {
+    title: 'Déclare un float',
+    codeLines: ['// Déclare un float nommé "speed" avec la valeur 2.5', '___ speed = ___;'],
+    hints: ['Mot-clé de type pour les nombres décimaux', 'La valeur'],
+    explanation: '`float speed = 2.5;` — `float` est le type pour les nombres décimaux, comme `int` pour les entiers.',
+  },
+  'var-6': {
+    title: 'Qu\'est-ce qui ne va pas avec `vector pos = 1.0;` ?',
+    explanation: 'Un `vector` regroupe toujours trois floats : `{x, y, z}`. Assigner un seul float directement est une erreur de type — il faut `vector pos = {1.0, 1.0, 1.0};` ou similaire.',
+    choices: ['Un vecteur a besoin de 3 valeurs entre accolades, ex. {1.0, 0.0, 0.0}', 'Rien — c\'est du VEX valide', '"vector" devrait être en majuscule', '1.0 devrait être écrit comme un int'],
+  },
   // ── attributes ──
   'attr-1': {
     title: 'Que représente @Cd ?',
@@ -331,6 +353,17 @@ export const FR_EXERCISES: Record<string, ExTranslation> = {
     prompt: 'Ajoute exactement **1.0** à la position Y de chaque point. La sphère devrait visiblement monter.',
     checks: ['Chaque point Y > 0 (décalé vers le haut)', 'Le décalage est proche de 1.0 (pas plus de 2.0)'],
     explanation: '`@P.y += 1.0;` ajoute 1 à la composante Y de chaque point. `+=` est un raccourci pour `@P.y = @P.y + 1.0`.',
+  },
+  'attr-5': {
+    title: 'Lequel de ces attributs est en lecture seule ?',
+    explanation: '`@ptnum` et `@numpt` sont en lecture seule — ils décrivent juste la boucle elle-même. `@P`, `@Cd` et `@N` peuvent tous être modifiés.',
+    choices: ['@ptnum', '@P', '@Cd', '@N'],
+  },
+  'attr-6': {
+    title: 'Écris un seul canal',
+    codeLines: ['// Mets uniquement le canal rouge au max, laisse vert et bleu intacts', '@Cd.___ = ___;'],
+    hints: ['Quelle composante est le rouge ?', 'Valeur de rouge plein'],
+    explanation: '`@Cd.x = 1;` écrit uniquement le canal rouge via la notation par point — pas besoin de réécrire tout le vecteur avec `{}`.',
   },
   // ── arithmetic ──
   'arith-1': {
