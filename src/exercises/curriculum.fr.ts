@@ -39,11 +39,12 @@ export const FR_LEARN_CARDS: Record<string, { title: string; body: string; keyPo
   },
   'learn-intro-2': {
     title: 'Le Geometry Wrangle',
-    body: "Dans Houdini, on écrit du VEX dans un nœud **Geometry Wrangle**. Quand le nœud se calcule, ton code s'exécute **une fois pour chaque point** de la géométrie en entrée.\n\nDeux variables intégrées indiquent où tu te situes :\n- `@ptnum` — l'index du point **courant** (0, 1, 2 …)\n- `@numpt` — le nombre **total** de points\n\nC'est comme une boucle `for` que Houdini exécute pour toi.",
+    body: "Dans Houdini, on écrit du VEX dans un nœud **Geometry Wrangle**. Quand le nœud se calcule, ton code s'exécute **une fois pour chaque point** de la géométrie en entrée.\n\nDeux variables intégrées indiquent où tu te situes :\n- `@ptnum` — l'index du point **courant** (0, 1, 2 …)\n- `@numpt` — le nombre **total** de points\n\nC'est comme une boucle `for` que Houdini exécute pour toi.\n\nPour inspecter des valeurs pendant que tu codes, utilise `printf(\"...\", ...)` — ça affiche du texte dans la console de Houdini. `%d` est un **espace réservé** remplacé par la valeur suivante que tu donnes (dans l'ordre), et `\\n` veut juste dire \"passe à la ligne\". Donc `printf(\"Point %d of %d\\n\", @ptnum, @numpt)` affiche quelque chose comme `Point 3 of 200`.",
     keyPoints: [
       '@ptnum = index du point courant (lecture seule)',
       '@numpt = nombre total de points (lecture seule)',
       'Le code tourne une fois par point — pas besoin de boucle explicite',
+      'printf("...%d...", valeur) affiche du texte de debug — %d est remplacé par valeur',
     ],
   },
   'learn-var-1': {
