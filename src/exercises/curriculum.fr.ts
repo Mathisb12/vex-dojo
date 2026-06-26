@@ -39,12 +39,11 @@ export const FR_LEARN_CARDS: Record<string, { title: string; body: string; keyPo
   },
   'learn-intro-2': {
     title: 'Le Geometry Wrangle',
-    body: "Dans Houdini, on écrit du VEX dans un nœud **Geometry Wrangle**. Quand le nœud se calcule, ton code s'exécute **une fois pour chaque point** de la géométrie en entrée.\n\nDeux variables intégrées indiquent où tu te situes :\n- `@ptnum` — l'index du point **courant** (0, 1, 2 …)\n- `@numpt` — le nombre **total** de points\n\nC'est comme une boucle `for` que Houdini exécute pour toi.\n\nPour inspecter des valeurs pendant que tu codes, utilise `printf(\"...\", ...)` — ça affiche du texte dans la console de Houdini. `%d` est un **espace réservé** remplacé par la valeur suivante que tu donnes (dans l'ordre), et `\\n` veut juste dire \"passe à la ligne\". Donc `printf(\"Point %d of %d\\n\", @ptnum, @numpt)` affiche quelque chose comme `Point 3 of 200`.",
+    body: "Dans Houdini, on écrit du VEX dans un nœud **Geometry Wrangle**. Quand le nœud se calcule, ton code s'exécute **une fois pour chaque point** de la géométrie en entrée.\n\nDeux variables intégrées indiquent où tu te situes :\n- `@ptnum` — l'index du point **courant** (0, 1, 2 …)\n- `@numpt` — le nombre **total** de points\n\nC'est comme une boucle `for` que Houdini exécute pour toi.\n\nL'exemple de code ci-dessous utilise `printf` pour afficher ces valeurs dans la console — ne t'inquiète pas de sa syntaxe pour l'instant, on y reviendra plus tard. Remarque juste que `@ptnum` et `@numpt` sont les deux valeurs affichées.",
     keyPoints: [
       '@ptnum = index du point courant (lecture seule)',
       '@numpt = nombre total de points (lecture seule)',
       'Le code tourne une fois par point — pas besoin de boucle explicite',
-      'printf("...%d...", valeur) affiche du texte de debug — %d est remplacé par valeur',
     ],
   },
   'learn-var-1': {
@@ -282,12 +281,6 @@ export const FR_EXERCISES: Record<string, ExTranslation> = {
     choices: ['@ptnum', '@index', '@id', 'pointnum()'],
   },
   'intro-4': {
-    title: 'Affiche la progression du point courant',
-    codeLines: ['// Affiche l\'index du point courant et le total', 'printf("Point %d sur %d\\n", ___, ___);'],
-    hints: ['Index du point courant', 'Nombre total de points'],
-    explanation: '`printf` permet d\'afficher des valeurs de debug dans la console. `@ptnum` est l\'index courant, `@numpt` est le total — ensemble ils montrent la progression dans la boucle.',
-  },
-  'intro-5': {
     title: 'Un wrangle tourne sur une grille de 50 points. Que vaut `@numpt` pour chaque point ?',
     explanation: '`@numpt` est identique pour chaque point — le total ne change jamais pendant la boucle. Seul `@ptnum` change, de 0 à 49.',
     choices: ['50', '49', '0', 'Ça varie selon le point'],
@@ -297,6 +290,16 @@ export const FR_EXERCISES: Record<string, ExTranslation> = {
     title: 'Quelle déclaration est du VEX valide ?',
     explanation: 'VEX exige un mot-clé de type explicite avant le nom de la variable : `float myVar = 3.14;`',
     choices: ['float myVar = 3.14;', 'var myVar = 3.14;', 'myVar: float = 3.14;', 'let myVar = 3.14;'],
+  },
+  'var-7': {
+    title: 'Sauvegarde des valeurs intégrées dans tes propres variables',
+    codeLines: [
+      "// Copie l'index du point et le total dans des variables locales",
+      'int idx   = ___;',
+      'int total = ___;',
+    ],
+    hints: ['Index du point courant', 'Nombre total de points'],
+    explanation: '`int idx = @ptnum;` copie la valeur de `@ptnum` dans une variable locale que tu as nommée toi-même. Les variables locales (sans `@`) n\'existent que pendant que le wrangle tourne sur ce point — contrairement aux attributs, elles ne sont jamais sauvegardées sur la géométrie.',
   },
   'var-2': {
     title: 'Déclare un entier',

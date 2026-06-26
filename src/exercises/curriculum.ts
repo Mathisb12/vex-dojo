@@ -34,13 +34,12 @@ export const CURRICULUM: Module[] = [
             kind: 'learn',
             id: 'learn-intro-2',
             title: 'The Geometry Wrangle',
-            body: 'In Houdini, you write VEX inside a **Geometry Wrangle** node. When the node cooks, your code executes **once for every point** in the input geometry.\n\nTwo built-in variables tell you where you are:\n- `@ptnum` — the index of the **current** point (0, 1, 2 …)\n- `@numpt` — the **total** number of points\n\nThink of it like a `for` loop that Houdini runs for you.\n\nTo peek at values while you work, use `printf("...", ...)` — it prints text to Houdini\'s console. `%d` is a **placeholder** that gets replaced by the next value you pass in (in order), and `\\n` just means "start a new line". So `printf("Point %d of %d\\n", @ptnum, @numpt)` prints something like `Point 3 of 200`.',
+            body: 'In Houdini, you write VEX inside a **Geometry Wrangle** node. When the node cooks, your code executes **once for every point** in the input geometry.\n\nTwo built-in variables tell you where you are:\n- `@ptnum` — the index of the **current** point (0, 1, 2 …)\n- `@numpt` — the **total** number of points\n\nThink of it like a `for` loop that Houdini runs for you.\n\nThe code example below uses `printf` to print those values to the console — don\'t worry about its syntax yet, we\'ll come back to it later. Just notice that `@ptnum` and `@numpt` are the two values being printed.',
             codeExample: '// @ptnum goes from 0 to @numpt-1\nprintf("Point %d of %d\\n", @ptnum, @numpt);',
             keyPoints: [
               '@ptnum = current point index (read-only)',
               '@numpt = total point count (read-only)',
               'Code runs once per point — no explicit loop needed',
-              'printf("...%d...", value) prints debug text — %d is replaced by value',
             ],
           },
         ],
@@ -85,21 +84,8 @@ export const CURRICULUM: Module[] = [
             xp: 10,
           },
           {
-            kind: 'fill',
-            id: 'intro-4',
-            title: 'Print the current point\'s progress',
-            codeLines: [
-              '// Print the current point index and the total count',
-              'printf("Point %d of %d\\n", ___, ___);',
-            ],
-            answers: ['@ptnum', '@numpt'],
-            hints: ['Current point index', 'Total point count'],
-            explanation: '`printf` lets you print debug values to the console. `@ptnum` is the current index, `@numpt` is the total — together they show progress through the loop.',
-            xp: 15,
-          },
-          {
             kind: 'mcq',
-            id: 'intro-5',
+            id: 'intro-4',
             title: 'A wrangle runs on a grid of 50 points. What is `@numpt` for every single point?',
             explanation: '`@numpt` is the same for every point — the total count never changes during the loop. Only `@ptnum` changes, from 0 to 49.',
             choices: [
@@ -199,6 +185,20 @@ export const CURRICULUM: Module[] = [
               { text: 'getcomp(v, 1)', correct: false, explanation: 'Works but verbose — .y is the standard way.' },
             ],
             xp: 10,
+          },
+          {
+            kind: 'fill',
+            id: 'var-7',
+            title: 'Save built-in values into your own variables',
+            codeLines: [
+              '// Copy the built-in point index and total into local variables',
+              'int idx   = ___;',
+              'int total = ___;',
+            ],
+            answers: ['@ptnum', '@numpt'],
+            hints: ['Current point index', 'Total point count'],
+            explanation: '`int idx = @ptnum;` copies the value of `@ptnum` into a plain local variable you named yourself. Local variables (no `@`) only exist while the wrangle runs on that point — unlike attributes, they\'re never saved to the geometry.',
+            xp: 15,
           },
           {
             kind: 'fill',
