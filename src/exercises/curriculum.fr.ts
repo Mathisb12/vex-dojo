@@ -339,9 +339,9 @@ export const FR_EXERCISES: Record<string, ExTranslation> = {
     choices: ['{3, 0, 0}', '3.0', '{1, 0, 0}', 'Erreur — impossible de mélanger vecteur et float'],
   },
   'arith-2': {
-    title: 'Double chaque position',
+    title: 'Double chaque position — utilise l\'opérateur raccourci `*=` (pas `= @P *`)',
     codeLines: ['// Multiplie @P par 2 — agrandit la géométrie', '@P ___ 2.0;'],
-    hints: ['Opérateur multiplier-et-affecter'],
+    hints: ['Opérateur multiplier-et-affecter : écris *= , pas = @P *'],
     explanation: '`@P *= 2.0;` multiplie chaque composante de la position par 2, doublant l\'échelle de la géométrie.',
   },
   'arith-3': {

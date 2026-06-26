@@ -118,6 +118,7 @@ export function CodeQuestion({ exercise, onComplete }: Props) {
                 padding: { top: 8, bottom: 8 },
                 tabSize: 4,
                 quickSuggestions: { other: true, comments: false, strings: false },
+                fixedOverflowWidgets: true,
               }}
             />
           </div>

@@ -347,13 +347,13 @@ export const CURRICULUM: Module[] = [
           {
             kind: 'fill',
             id: 'arith-2',
-            title: 'Double every position',
+            title: 'Double every position — use the `*=` shorthand operator (not `= @P *`)',
             codeLines: [
               '// Multiply @P by 2 — scale the geometry up',
               '@P ___ 2.0;',
             ],
             answers: ['*='],
-            hints: ['Multiply-and-assign operator'],
+            hints: ['Multiply-and-assign operator: write *= , not = @P *'],
             explanation: '`@P *= 2.0;` multiplies each component of position by 2, doubling the scale of the geometry.',
             pointShape: 'sphere',
             pointCount: 150,

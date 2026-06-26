@@ -30,12 +30,13 @@ function XPBar({ xp, total }: { xp: number; total: number }) {
 // ─── Lesson Card ─────────────────────────────────────────────────────────────
 
 function LessonCard({
-  lesson, moduleId, completedIds, onStart,
+  lesson, moduleId, completedIds, onStart, locked,
 }: {
   lesson: Lesson & { moduleId: string }
   moduleId: string
   completedIds: Set<string>
   onStart: () => void
+  locked: boolean
 }) {
   const done = lesson.exercises.filter(e => completedIds.has(e.id)).length
   const total = lesson.exercises.length
@@ -44,30 +45,35 @@ function LessonCard({
 
   return (
     <button
-      onClick={onStart}
+      disabled={locked}
+      onClick={() => !locked && onStart()}
       className={`w-full text-left p-4 rounded-xl border transition-all duration-150 group ${
-        complete
-          ? 'border-vex-green/40 bg-vex-green/5 hover:bg-vex-green/10'
-          : 'border-vex-border bg-vex-surface hover:border-vex-orange/50 hover:bg-vex-surface/60'
+        locked
+          ? 'border-vex-border bg-vex-surface/40 opacity-50 cursor-not-allowed'
+          : complete
+            ? 'border-vex-green/40 bg-vex-green/5 hover:bg-vex-green/10'
+            : 'border-vex-border bg-vex-surface hover:border-vex-orange/50 hover:bg-vex-surface/60'
       }`}
     >
       <div className="flex items-center gap-3 mb-2">
-        <span className="text-2xl">{lesson.icon}</span>
+        <span className="text-2xl">{locked ? '🔒' : lesson.icon}</span>
         <div className="flex-1 min-w-0">
           <div className="text-vex-text font-semibold text-sm truncate">{lesson.title}</div>
           <div className="text-vex-muted text-xs">{lesson.description}</div>
         </div>
-        {complete && <span className="text-vex-green text-lg">✓</span>}
+        {complete && !locked && <span className="text-vex-green text-lg">✓</span>}
       </div>
-      <div className="flex items-center gap-2">
-        <div className="flex-1 bg-vex-bg rounded-full h-1.5">
-          <div
-            className={`h-full rounded-full transition-all duration-300 ${complete ? 'bg-vex-green' : 'bg-vex-orange'}`}
-            style={{ width: `${pct}%` }}
-          />
+      {!locked && (
+        <div className="flex items-center gap-2">
+          <div className="flex-1 bg-vex-bg rounded-full h-1.5">
+            <div
+              className={`h-full rounded-full transition-all duration-300 ${complete ? 'bg-vex-green' : 'bg-vex-orange'}`}
+              style={{ width: `${pct}%` }}
+            />
+          </div>
+          <span className="text-vex-muted text-xs">{done}/{total}</span>
         </div>
-        <span className="text-vex-muted text-xs">{done}/{total}</span>
-      </div>
+      )}
     </button>
   )
 }
@@ -198,9 +204,29 @@ function LessonPlayer({
   )
 }
 
-// ─── Sidebar ─────────────────────────────────────────────────────────────────
+// ─── Cascading lock helpers ───────────────────────────────────────────────────
 
-const TIER2_XP_UNLOCK = 100
+function isLessonComplete(lesson: Lesson, completedIds: Set<string>): boolean {
+  return lesson.exercises.length > 0 && lesson.exercises.every(e => completedIds.has(e.id))
+}
+
+function isModuleComplete(mod: Module, completedIds: Set<string>): boolean {
+  return mod.lessons.every(l => isLessonComplete(l, completedIds))
+}
+
+// Lessons unlock one at a time within a module — must finish lesson N to reach N+1.
+function isLessonLocked(mod: Module, lessonIdx: number, completedIds: Set<string>): boolean {
+  if (lessonIdx === 0) return false
+  return !isLessonComplete(mod.lessons[lessonIdx - 1], completedIds)
+}
+
+// Modules unlock one at a time within their tier list — must finish module N to reach N+1.
+function isModuleLocked(tierModules: Module[], modIdx: number, completedIds: Set<string>): boolean {
+  if (modIdx === 0) return false
+  return !isModuleComplete(tierModules[modIdx - 1], completedIds)
+}
+
+// ─── Sidebar ─────────────────────────────────────────────────────────────────
 
 function Sidebar({
   modules,
@@ -222,41 +248,47 @@ function Sidebar({
   const { t, lang, toggleLang } = useLang()
   const tier1Modules = modules.filter(m => m.tier === 1)
   const tier2Modules = modules.filter(m => m.tier === 2)
-  const tier2Locked = xp < TIER2_XP_UNLOCK
+  const tier1Complete = tier1Modules.every(mod => isModuleComplete(mod, completedIds))
+  const tier2Locked = !tier1Complete
 
-  const renderModule = (mod: Module, locked: boolean) => {
+  const renderModule = (mod: Module, tierModules: Module[], modIdxInTier: number) => {
+    const moduleLocked = isModuleLocked(tierModules, modIdxInTier, completedIds)
     const modDone = mod.lessons.flatMap(l => l.exercises).filter(e => completedIds.has(e.id)).length
     const modTotal = mod.lessons.flatMap(l => l.exercises).length
 
     return (
-      <div key={mod.id} className={`mb-4 ${locked ? 'opacity-50 pointer-events-none select-none' : ''}`}>
+      <div key={mod.id} className={`mb-4 ${moduleLocked ? 'opacity-50 pointer-events-none select-none' : ''}`}>
         <div className="flex items-center gap-2 px-4 py-1.5">
-          <span>{mod.icon}</span>
+          <span>{moduleLocked ? '🔒' : mod.icon}</span>
           <span className="text-vex-text font-semibold text-sm">{mod.title}</span>
           <span className="ml-auto text-vex-muted text-xs">{modDone}/{modTotal}</span>
         </div>
         <div className="flex flex-col gap-1.5 px-3">
-          {mod.lessons.map(lesson => {
+          {mod.lessons.map((lesson, lessonIdx) => {
             const done = lesson.exercises.filter(e => completedIds.has(e.id)).length
             const total = lesson.exercises.length
             const complete = done === total
+            const lessonLocked = moduleLocked || isLessonLocked(mod, lessonIdx, completedIds)
             return (
               <button
                 key={lesson.id}
-                onClick={() => !locked && onSelectLesson(lesson, mod.id)}
+                disabled={lessonLocked}
+                onClick={() => !lessonLocked && onSelectLesson(lesson, mod.id)}
                 className={`w-full text-left px-3 py-2.5 rounded-xl border transition-all duration-150 text-sm ${
-                  complete
-                    ? 'border-vex-green/30 bg-vex-green/5 text-vex-green'
-                    : mod.tier === 2
-                      ? 'border-vex-purple/30 bg-vex-surface hover:border-vex-purple/60 hover:bg-vex-surface/80 text-vex-text'
-                      : 'border-vex-border bg-vex-surface hover:border-vex-orange/40 hover:bg-vex-surface/80 text-vex-text'
+                  lessonLocked
+                    ? 'border-vex-border bg-vex-surface/40 text-vex-muted cursor-not-allowed'
+                    : complete
+                      ? 'border-vex-green/30 bg-vex-green/5 text-vex-green'
+                      : mod.tier === 2
+                        ? 'border-vex-purple/30 bg-vex-surface hover:border-vex-purple/60 hover:bg-vex-surface/80 text-vex-text'
+                        : 'border-vex-border bg-vex-surface hover:border-vex-orange/40 hover:bg-vex-surface/80 text-vex-text'
                 }`}
               >
                 <div className="flex items-center gap-2">
-                  <span>{lesson.icon}</span>
+                  <span>{lessonLocked ? '🔒' : lesson.icon}</span>
                   <span className="flex-1 truncate">{lesson.title}</span>
                   <span className={`text-xs ${complete ? 'text-vex-green' : 'text-vex-muted'}`}>
-                    {complete ? '✓' : `${done}/${total}`}
+                    {lessonLocked ? '' : complete ? '✓' : `${done}/${total}`}
                   </span>
                 </div>
               </button>
@@ -301,7 +333,7 @@ function Sidebar({
           <span className="text-vex-orange text-xs font-mono font-semibold uppercase tracking-widest">{t('tier.1')}</span>
           <div className="h-px flex-1 bg-vex-orange/30" />
         </div>
-        {tier1Modules.map(mod => renderModule(mod, false))}
+        {tier1Modules.map((mod, i) => renderModule(mod, tier1Modules, i))}
 
         {/* ── Tier 2 divider ── */}
         <div className="flex items-center gap-2 px-4 py-1.5 mt-3 mb-1">
@@ -316,18 +348,21 @@ function Sidebar({
           <div className="mx-3 p-3 rounded-xl border border-vex-purple/20 bg-vex-purple/5 text-center">
             <div className="text-2xl mb-1">🔒</div>
             <div className="text-vex-muted text-xs">
-              {t('tier.2.unlockAt')} <span className="text-vex-purple font-semibold">{TIER2_XP_UNLOCK} XP</span> {t('tier.2.toUnlock')}
+              {t('tier.2.unlockAt')} <span className="text-vex-purple font-semibold">{t('tier.1.full')}</span> {t('tier.2.toUnlock')}
+              {' '}({tier1Modules.filter(m => isModuleComplete(m, completedIds)).length}/{tier1Modules.length})
             </div>
             <div className="mt-2 bg-vex-surface rounded-full h-1.5">
               <div
                 className="h-full bg-vex-purple rounded-full transition-all duration-500"
-                style={{ width: `${Math.min(xp / TIER2_XP_UNLOCK * 100, 100)}%` }}
+                style={{ width: `${Math.min((tier1Modules.filter(m => isModuleComplete(m, completedIds)).length / Math.max(tier1Modules.length, 1)) * 100, 100)}%` }}
               />
             </div>
-            <div className="text-vex-muted text-xs mt-1">{xp} / {TIER2_XP_UNLOCK} XP</div>
+            <div className="text-vex-muted text-xs mt-1">
+              {tier1Modules.filter(m => isModuleComplete(m, completedIds)).length} / {tier1Modules.length}
+            </div>
           </div>
         ) : (
-          tier2Modules.map(mod => renderModule(mod, false))
+          tier2Modules.map((mod, i) => renderModule(mod, tier2Modules, i))
         )}
       </div>
 
@@ -351,17 +386,17 @@ function TierSection({
   modules,
   completedIds,
   onSelectLesson,
-  xp,
 }: {
   tier: 1 | 2
   modules: Module[]
   completedIds: Set<string>
   onSelectLesson: (lesson: Lesson, moduleId: string) => void
-  xp: number
 }) {
   const { t } = useLang()
+  const tier1Modules = modules.filter(m => m.tier === 1)
   const tierModules = modules.filter(m => m.tier === tier)
-  const locked = tier === 2 && xp < TIER2_XP_UNLOCK
+  const tier1Done = tier1Modules.filter(m => isModuleComplete(m, completedIds)).length
+  const locked = tier === 2 && tier1Done < tier1Modules.length
 
   return (
     <section className="mb-10">
@@ -378,7 +413,7 @@ function TierSection({
         </div>
         {tier === 2 && locked && (
           <span className="text-vex-muted text-xs">
-            {t('tier.2.unlockNote')} <span className="text-vex-purple">{TIER2_XP_UNLOCK} XP</span> · {t('tier.2.youHave')} {xp} XP
+            {t('tier.2.unlockNote')} <span className="text-vex-purple">{t('tier.1.full')}</span> {t('tier.2.youHave')} {tier1Done}/{tier1Modules.length}
           </span>
         )}
       </div>
@@ -388,39 +423,43 @@ function TierSection({
           <div className="text-4xl mb-3">🔒</div>
           <div className="text-vex-text font-semibold mb-1">{t('tier.2.full')}</div>
           <div className="text-vex-muted text-sm mb-4">
-            {t('tier.2.complete')} {TIER2_XP_UNLOCK - xp} {t('tier.2.remaining')}
+            {t('tier.2.complete')} {tier1Modules.length - tier1Done} {t('tier.2.remaining')}
           </div>
           <div className="max-w-xs mx-auto bg-vex-surface rounded-full h-2 border border-vex-border">
             <div
               className="h-full bg-vex-purple rounded-full transition-all"
-              style={{ width: `${Math.min(xp / TIER2_XP_UNLOCK * 100, 100)}%` }}
+              style={{ width: `${Math.min((tier1Done / Math.max(tier1Modules.length, 1)) * 100, 100)}%` }}
             />
           </div>
-          <div className="text-vex-muted text-xs mt-2">{xp} / {TIER2_XP_UNLOCK} XP</div>
+          <div className="text-vex-muted text-xs mt-2">{tier1Done} / {tier1Modules.length}</div>
           <div className="mt-5 text-vex-muted text-xs">
             {t('tier.2.preview')}
           </div>
         </div>
       ) : (
-        tierModules.map(mod => (
-          <div key={mod.id} className="mb-7">
-            <div className="flex items-center gap-2 mb-3 px-1">
-              <span className="text-xl">{mod.icon}</span>
-              <h2 className="text-vex-text font-bold text-lg">{mod.title}</h2>
+        tierModules.map((mod, modIdxInTier) => {
+          const moduleLocked = isModuleLocked(tierModules, modIdxInTier, completedIds)
+          return (
+            <div key={mod.id} className={`mb-7 ${moduleLocked ? 'opacity-50' : ''}`}>
+              <div className="flex items-center gap-2 mb-3 px-1">
+                <span className="text-xl">{moduleLocked ? '🔒' : mod.icon}</span>
+                <h2 className="text-vex-text font-bold text-lg">{mod.title}</h2>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {mod.lessons.map((lesson, lessonIdx) => (
+                  <LessonCard
+                    key={lesson.id}
+                    lesson={{ ...lesson, moduleId: mod.id }}
+                    moduleId={mod.id}
+                    completedIds={completedIds}
+                    onStart={() => onSelectLesson(lesson, mod.id)}
+                    locked={moduleLocked || isLessonLocked(mod, lessonIdx, completedIds)}
+                  />
+                ))}
+              </div>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              {mod.lessons.map(lesson => (
-                <LessonCard
-                  key={lesson.id}
-                  lesson={{ ...lesson, moduleId: mod.id }}
-                  moduleId={mod.id}
-                  completedIds={completedIds}
-                  onStart={() => onSelectLesson(lesson, mod.id)}
-                />
-              ))}
-            </div>
-          </div>
-        ))
+          )
+        })
       )}
     </section>
   )
@@ -430,12 +469,10 @@ function WelcomeScreen({
   modules,
   completedIds,
   onSelectLesson,
-  xp,
 }: {
   modules: Module[]
   completedIds: Set<string>
   onSelectLesson: (lesson: Lesson, moduleId: string) => void
-  xp: number
 }) {
   const { t } = useLang()
   return (
@@ -449,8 +486,8 @@ function WelcomeScreen({
           </p>
         </div>
 
-        <TierSection tier={1} modules={modules} completedIds={completedIds} onSelectLesson={onSelectLesson} xp={xp} />
-        <TierSection tier={2} modules={modules} completedIds={completedIds} onSelectLesson={onSelectLesson} xp={xp} />
+        <TierSection tier={1} modules={modules} completedIds={completedIds} onSelectLesson={onSelectLesson} />
+        <TierSection tier={2} modules={modules} completedIds={completedIds} onSelectLesson={onSelectLesson} />
       </div>
     </div>
   )
@@ -516,7 +553,6 @@ function AppInner() {
             modules={curriculum}
             completedIds={state.completedExercises}
             onSelectLesson={handleSelectLesson}
-            xp={state.xp}
           />
         )}
       </main>
