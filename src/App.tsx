@@ -445,7 +445,7 @@ function TierSection({
                 <span className="text-xl">{moduleLocked ? '🔒' : mod.icon}</span>
                 <h2 className="text-vex-text font-bold text-lg">{mod.title}</h2>
               </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="flex flex-col gap-3 max-w-xl">
                 {mod.lessons.map((lesson, lessonIdx) => (
                   <LessonCard
                     key={lesson.id}

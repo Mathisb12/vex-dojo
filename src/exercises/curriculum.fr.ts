@@ -14,7 +14,8 @@ export const FR_MODULES: Record<string, { title: string }> = {
 
 export const FR_LESSONS: Record<string, { title: string; description: string }> = {
   intro: { title: "Qu'est-ce que VEX ?", description: 'Comprendre la place de VEX dans Houdini' },
-  variables: { title: 'Variables et types', description: 'Déclarer des variables int, float, vector et string' },
+  variables: { title: 'Nombres et texte', description: 'Déclarer des variables int, float et string' },
+  'vector-intro': { title: 'Vecteurs', description: 'Déclarer et manipuler des valeurs vector' },
   attributes: { title: 'Attributs', description: 'Lire et écrire les attributs de points avec @' },
   arithmetic: { title: 'Arithmétique', description: 'Maths de base avec floats et vecteurs' },
   vectors: { title: 'Maths vectorielles', description: 'length, normalize, dot, cross' },
@@ -47,11 +48,11 @@ export const FR_LEARN_CARDS: Record<string, { title: string; body: string; keyPo
     ],
   },
   'learn-var-1': {
-    title: 'Les quatre types de base',
-    body: "VEX t'oblige à déclarer le **type** de chaque variable. Il y a quatre types que tu utiliseras constamment :\n\n- `int` — nombres entiers : `0`, `-3`, `42`\n- `float` — nombres décimaux : `0.5`, `3.14`, `-1.0`\n- `vector` — trois floats regroupés : `{x, y, z}`\n- `string` — texte : `\"hello\"`\n\nLe mot-clé de type vient toujours **avant** le nom de la variable.",
+    title: 'Les types de base',
+    body: "VEX t'oblige à déclarer le **type** de chaque variable. Voici les trois que tu utiliseras pour des valeurs simples :\n\n- `int` — nombres entiers : `0`, `-3`, `42`\n- `float` — nombres décimaux : `0.5`, `3.14`, `-1.0`\n- `string` — texte : `\"hello\"`\n\nLe mot-clé de type vient toujours **avant** le nom de la variable. (Il existe un quatrième type, `vector`, pour les valeurs 3D comme les positions et les couleurs — il a sa propre leçon juste après celle-ci.)",
     keyPoints: [
-      'Toujours déclarer le type : int, float, vector, string',
-      'Les vecteurs utilisent des accolades : {x, y, z}',
+      'Toujours déclarer le type : int, float, string (vector dans la leçon suivante)',
+      'Le mot-clé de type vient avant le nom de la variable',
       'Chaque instruction se termine par un point-virgule ;',
     ],
   },
@@ -59,9 +60,9 @@ export const FR_LEARN_CARDS: Record<string, { title: string; body: string; keyPo
     title: 'Les vecteurs sont partout',
     body: "En 3D, presque tout est un vecteur : positions, couleurs, directions, normales.\n\nUn vecteur `{x, y, z}` regroupe trois floats. Tu peux accéder à chaque composante avec un **point** : `v.x`, `v.y`, `v.z`.\n\nLes couleurs utilisent le même type — le rouge c'est `.x`, le vert `.y`, le bleu `.z`.\n\nIl existe une seconde façon de construire un vecteur : la fonction `set(x, y, z)`. Elle fait exactement la même chose que `{x, y, z}` — utilise celle qui te semble la plus lisible selon le contexte.",
     keyPoints: [
+      'vector regroupe 3 floats : {x, y, z}',
       'Les vecteurs ont des composantes .x .y .z',
-      'Les couleurs sont des vecteurs : .x=R, .y=G, .z=B',
-      "Les maths sur les vecteurs s'appliquent aux 3 composantes à la fois",
+      'Les couleurs sont aussi des vecteurs : .x=R, .y=G, .z=B',
       'set(x, y, z) construit un vecteur — identique à {x, y, z}',
     ],
   },
@@ -307,6 +308,18 @@ export const FR_EXERCISES: Record<string, ExTranslation> = {
     hints: ['Mot-clé de type pour les nombres entiers', 'La valeur'],
     explanation: '`int count = 42;` — le mot-clé de type `int` vient d\'abord, puis le nom, puis la valeur.',
   },
+  'var-8': {
+    title: 'Déclare une string',
+    codeLines: ['// Déclare une string nommée "label" avec le texte "tip"', '___ label = ___;'],
+    hints: ['Mot-clé de type pour le texte', 'La valeur texte — n\'oublie pas les guillemets'],
+    explanation: '`string label = "tip";` — les strings contiennent du texte et doivent être entourées de guillemets `"..."`.',
+  },
+  'var-5': {
+    title: 'Déclare un float',
+    codeLines: ['// Déclare un float nommé "speed" avec la valeur 2.5', '___ speed = ___;'],
+    hints: ['Mot-clé de type pour les nombres décimaux', 'La valeur'],
+    explanation: '`float speed = 2.5;` — `float` est le type pour les nombres décimaux, comme `int` pour les entiers.',
+  },
   'var-3': {
     title: 'Déclare un vecteur pointant vers le haut',
     codeLines: [
@@ -317,22 +330,41 @@ export const FR_EXERCISES: Record<string, ExTranslation> = {
     hints: ['Valeur sur l\'axe X', 'Valeur sur l\'axe Y — c\'est la direction "haut"', 'Valeur sur l\'axe Z'],
     explanation: 'En 3D, l\'axe Y est "le haut". Un vecteur unitaire pointant vers le haut est `{0, 1, 0}` — zéro sur X et Z, un sur Y.',
   },
+  'var-9': {
+    title: 'Déclare un vecteur avec des valeurs personnalisées',
+    codeLines: [
+      '// Déclare un vecteur nommé "velocity" : vers la droite (x=1.5),',
+      '// légèrement vers le bas (y=-0.5), et rien sur z.',
+      'vector velocity = {___, ___, ___};',
+    ],
+    hints: ['Composante X', 'Composante Y — négatif veut dire vers le bas', 'Composante Z'],
+    explanation: '`vector velocity = {1.5, -0.5, 0};` — un vecteur peut contenir n\'importe quelle valeur float, y compris des négatifs et des zéros, pas seulement des 0 et des 1.',
+  },
   'var-4': {
     title: 'Comment accéder à la composante Y d\'un vecteur `v` ?',
     explanation: 'La notation par point accède aux composantes d\'un vecteur : `v.x`, `v.y`, `v.z`. Cela fonctionne sur n\'importe quel vecteur, y compris les attributs comme `@P.y`.',
     choices: ['v.y', 'v[1]', 'v->y', 'getcomp(v, 1)'],
     choiceExplanations: { 1: 'Ça fonctionne aussi en VEX, mais .y est plus lisible.', 3: 'Ça fonctionne mais c\'est verbeux — .y est la méthode standard.' },
   },
-  'var-5': {
-    title: 'Déclare un float',
-    codeLines: ['// Déclare un float nommé "speed" avec la valeur 2.5', '___ speed = ___;'],
-    hints: ['Mot-clé de type pour les nombres décimaux', 'La valeur'],
-    explanation: '`float speed = 2.5;` — `float` est le type pour les nombres décimaux, comme `int` pour les entiers.',
+  'var-10': {
+    title: 'Réécris une seule composante',
+    codeLines: [
+      '// Tu as déjà déclaré ce vecteur — mets juste sa première composante à 1',
+      'vector col = {0.2, 0.4, 0.6};',
+      'col.___ = ___;',
+    ],
+    hints: ['La première composante', 'La nouvelle valeur'],
+    explanation: '`col.x = 1;` réécrit uniquement la composante X via la notation par point — la même astuce fonctionne sur n\'importe quel vecteur, pas seulement `@Cd`.',
   },
   'var-6': {
     title: 'Qu\'est-ce qui ne va pas avec `vector pos = 1.0;` ?',
     explanation: 'Un `vector` regroupe toujours trois floats : `{x, y, z}`. Assigner un seul float directement est une erreur de type — il faut `vector pos = {1.0, 1.0, 1.0};` ou similaire.',
     choices: ['Un vecteur a besoin de 3 valeurs entre accolades, ex. {1.0, 0.0, 0.0}', 'Rien — c\'est du VEX valide', '"vector" devrait être en majuscule', '1.0 devrait être écrit comme un int'],
+  },
+  'var-11': {
+    title: 'Que stocke réellement `int x = 3.9;` dans `x` ?',
+    explanation: 'Assigner un float à un `int` tronque (coupe) la partie décimale — ça ne fait pas d\'arrondi. `int x = 3.9;` donne `x = 3`, et `int x = -3.9;` donne `x = -3`.',
+    choices: ['3 — la partie décimale est tronquée', '4 — ça arrondit au plus proche', '3.9 — int peut aussi contenir des décimales', 'Une erreur de compilation'],
   },
   // ── attributes ──
   'attr-1': {
