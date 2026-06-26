@@ -415,7 +415,7 @@ export const FR_EXERCISES: Record<string, ExTranslation> = {
   },
   'arith-3': {
     title: 'Dégradé de hauteur',
-    prompt: 'Colore les points selon leur hauteur (position Y).\n\nLa sphère a des valeurs Y d\'environ -1 à +1. Utilise `fit()` pour remapper ça vers une plage de 0–1, puis assigne le résultat au **canal rouge** de `@Cd`. Le bas devrait être sombre, le haut rouge vif.',
+    prompt: 'Colore les points selon leur hauteur (position Y).\n\nIl te faut un dégradé de noir vers rouge : le bas doit être sombre, le haut rouge vif.\n\nAttention : la sphère est centrée, donc ses valeurs Y vont d\'environ -1 à +1 — pas de 0 à 1.',
     checks: [
       'Les canaux vert et bleu sont proches de zéro — un vrai dégradé rouge',
       'Le canal rouge reste entre 0 et 1 (fit() remappe correctement -1..1)',

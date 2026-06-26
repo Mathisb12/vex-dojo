@@ -63,7 +63,7 @@ export function LearnCardView({ card, onContinue, current, total }: Props) {
                 return <div key={i} className="text-vex-muted">{line}</div>
               }
               // Highlight @attr, keywords, strings
-              const parts = line.split(/(@\w+|"[^"]*"|\b(int|float|vector|string|if|else|for|while|return)\b)/g)
+              const parts = line.split(/(@\w+|"[^"]*"|\b(?:int|float|vector|string|if|else|for|while|return)\b)/g)
               return (
                 <div key={i}>
                   {parts.map((part, j) => {

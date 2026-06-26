@@ -510,7 +510,7 @@ export const CURRICULUM: Module[] = [
             kind: 'code',
             id: 'arith-3',
             title: 'Height gradient',
-            prompt: 'Color points based on their height (Y position).\n\nThe sphere has Y values from about -1 to +1. Use `fit()` to map this into a 0–1 range, then assign it to the **red channel** of `@Cd`. The bottom should be dark, the top bright red.',
+            prompt: 'Color the points based on their height (Y position).\n\nYou need a gradient from black to red: the bottom should be dark, the top bright red.\n\nWatch out: the sphere is centered, so its Y values range from about -1 to +1 — not 0 to 1.',
             starterCode: '// Use fit() to remap @P.y from (-1..1) to (0..1)\n// Then assign the result to @Cd.x\n// Set @Cd.y and @Cd.z to 0\n',
             solutionCode: 'float t = fit(@P.y, -1.0, 1.0, 0.0, 1.0);\n@Cd = {t, 0.0, 0.0};\n',
             checks: [

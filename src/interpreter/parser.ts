@@ -78,7 +78,7 @@ class Parser {
 
     // Expression statement (assignment, call, increment, etc.)
     const expr = this.parseExpr()
-    this.match('SEMI')
+    this.expect('SEMI')
     return { kind: 'ExprStmt', expr } as ExprStmt
   }
 
@@ -90,7 +90,7 @@ class Parser {
     if (this.match('EQ')) {
       init = this.parseExpr()
     }
-    this.match('SEMI')
+    this.expect('SEMI')
     return { kind: 'VarDecl', type, name, init }
   }
 
@@ -127,11 +127,11 @@ class Parser {
         const name = this.expect('IDENT').value
         let initExpr: Expr | null = null
         if (this.match('EQ')) initExpr = this.parseExpr()
-        this.match('SEMI')
+        this.expect('SEMI')
         init = { kind: 'VarDecl', type, name, init: initExpr }
       } else {
         const expr = this.parseExpr()
-        this.match('SEMI')
+        this.expect('SEMI')
         init = { kind: 'ExprStmt', expr }
       }
     } else {
@@ -140,7 +140,7 @@ class Parser {
 
     let cond: Expr | null = null
     if (!this.check('SEMI')) cond = this.parseExpr()
-    this.match('SEMI')
+    this.expect('SEMI')
 
     let update: Expr | null = null
     if (!this.check('RPAREN')) update = this.parseExpr()
@@ -163,7 +163,7 @@ class Parser {
     this.advance()
     let value: Expr | null = null
     if (!this.check('SEMI')) value = this.parseExpr()
-    this.match('SEMI')
+    this.expect('SEMI')
     return { kind: 'ReturnStmt', value }
   }
 
