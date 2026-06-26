@@ -1,0 +1,64 @@
+CONTEXTE POUR CLAUDE — VEX DOJO
+================================
+(à copier-coller en premier message dans une nouvelle session ouverte sur ce dossier)
+
+VEX Dojo est une web app type Duolingo pour apprendre le VEX de Houdini (langage de
+script). C'est un projet perso de Mathis (TheGreedyCat / Mathisb12 sur GitHub),
+sans lien avec career-ops. Construit de zéro avec Claude Code.
+
+STACK
+-----
+React + Vite + TypeScript + Tailwind. Three.js pour un viewer 3D de points en
+direct. Monaco Editor pour les exercices de code. Pas de backend — la progression
+est en localStorage, c'est un site 100% statique.
+
+Interpréteur VEX écrit à la main (pas le vrai Houdini) dans src/interpreter/ :
+lexer.ts -> parser.ts (descente récursive) -> evaluator.ts, plus builtins.ts
+(~35 fonctions VEX : sin, noise, rand, fit, lerp, length, normalize, set...) et
+signatures.ts (métadonnées de signature, alimente l'autocomplétion/aide Monaco
+dans components/vexMonacoLanguage.ts — façon Houdini, montre les paramètres
+quand on tape "rand(").
+
+CURRICULUM
+----------
+src/exercises/curriculum.ts = contenu canonique en anglais. 7 modules (4 en
+Tier 1 "Beginner", 3 en Tier 2 "Intermediate" débloqués à 100 XP).
+Types d'exercices : mcq, fill (texte à trous — réponses exactes/alternatives/
+plage numérique via BlankAnswer, preview 3D live optionnelle via pointShape/
+pointCount), code (éditeur Monaco libre, démarre vide avec un placeholder,
+bouton "Voir l'indice" séparé du bouton "Voir la solution", solution = moitié XP).
+
+src/exercises/curriculum.fr.ts = traduction FR en overlay (par id, pas une
+duplication complète) — fusionnée par une fonction localize() dans curriculum.ts.
+Les textes d'UI (boutons, labels) sont dans src/i18n/ui.ts, consommés via
+src/i18n/LanguageContext.tsx (hook useLang(), bouton FR/EN persisté en localStorage).
+
+DÉPLOIEMENT (tout fonctionne déjà)
+-----------------------------------
+- Web : https://vex-dojo.vercel.app — redeployer avec : npx vercel --prod --yes
+- GitHub : https://github.com/Mathisb12/vex-dojo (branche main). Identité git
+  locale à ce repo (pas globale) : nom "TheGreedyCat", email mbalmayer@orange.fr
+- .exe desktop : npm run electron:build (utilise @electron/packager, PAS
+  electron-builder — electron-builder plante systématiquement sur cette machine
+  Windows avec une erreur EPERM pendant l'extraction du binaire Electron,
+  probablement un verrou Defender/OneDrive). Sortie : release/VEX Dojo-win32-x64/
+  electron/main.cjs a déjà app.disableHardwareAcceleration() et --no-sandbox
+  (nécessaire car l'app a été testée depuis un lecteur réseau d'école, qui fait
+  planter le sandbox Chromium avec "launch-failed" exitCode 18).
+
+PIÈGES CONNUS SUR CETTE MACHINE
+---------------------------------
+- L'outil PowerShell direct n'est pas dispo dans Claude Code ici — passer par
+  Bash en appelant powershell.exe via son chemin complet.
+- Créer un .zip directement dans Documents\VEX_DOJO échoue (verrou OneDrive) —
+  créer le zip dans C:\Users\mbalm\ d'abord, puis le déplacer avec Node.js.
+- La redirection bash (echo >, touch) échoue parfois mystérieusement dans ce
+  dossier alors que Node.js (fs.writeFileSync) et les vrais binaires (git, npm,
+  7z) fonctionnent — préférer un one-liner Node si bash dit "No such file or
+  directory" sans raison apparente.
+
+ÉTAT ACTUEL
+-----------
+Tout est fonctionnel et déployé, premier commit poussé sur GitHub. Aucun bug
+connu en attente. Demande à Mathis ce qu'il veut faire ensuite plutôt que de
+supposer.
