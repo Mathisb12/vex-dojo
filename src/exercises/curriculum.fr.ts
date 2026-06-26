@@ -39,7 +39,7 @@ export const FR_LEARN_CARDS: Record<string, { title: string; body: string; keyPo
   },
   'learn-intro-2': {
     title: 'Le Geometry Wrangle',
-    body: "Dans Houdini, on écrit du VEX dans un nœud **Geometry Wrangle**. Quand le nœud se calcule, ton code s'exécute **une fois pour chaque point** de la géométrie en entrée.\n\nDeux variables intégrées indiquent où tu te situes :\n- `@ptnum` — l'index du point **courant** (0, 1, 2 …)\n- `@numpt` — le nombre **total** de points\n\nC'est comme une boucle `for` que Houdini exécute pour toi.\n\nL'exemple de code ci-dessous utilise `printf` pour afficher ces valeurs dans la console — ne t'inquiète pas de sa syntaxe pour l'instant, on y reviendra plus tard. Remarque juste que `@ptnum` et `@numpt` sont les deux valeurs affichées.",
+    body: "Dans Houdini, on écrit du VEX dans un nœud **Geometry Wrangle**. Quand le nœud se calcule, ton code s'exécute **une fois pour chaque point** de la géométrie en entrée.\n\nDeux variables intégrées indiquent où tu te situes :\n- `@ptnum` — l'index du point **courant** (0, 1, 2 …)\n- `@numpt` — le nombre **total** de points\n\nC'est comme une boucle `for` que Houdini exécute pour toi.",
     keyPoints: [
       '@ptnum = index du point courant (lecture seule)',
       '@numpt = nombre total de points (lecture seule)',

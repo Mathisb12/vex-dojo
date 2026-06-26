@@ -34,8 +34,8 @@ export const CURRICULUM: Module[] = [
             kind: 'learn',
             id: 'learn-intro-2',
             title: 'The Geometry Wrangle',
-            body: 'In Houdini, you write VEX inside a **Geometry Wrangle** node. When the node cooks, your code executes **once for every point** in the input geometry.\n\nTwo built-in variables tell you where you are:\n- `@ptnum` — the index of the **current** point (0, 1, 2 …)\n- `@numpt` — the **total** number of points\n\nThink of it like a `for` loop that Houdini runs for you.\n\nThe code example below uses `printf` to print those values to the console — don\'t worry about its syntax yet, we\'ll come back to it later. Just notice that `@ptnum` and `@numpt` are the two values being printed.',
-            codeExample: '// @ptnum goes from 0 to @numpt-1\nprintf("Point %d of %d\\n", @ptnum, @numpt);',
+            body: 'In Houdini, you write VEX inside a **Geometry Wrangle** node. When the node cooks, your code executes **once for every point** in the input geometry.\n\nTwo built-in variables tell you where you are:\n- `@ptnum` — the index of the **current** point (0, 1, 2 …)\n- `@numpt` — the **total** number of points\n\nThink of it like a `for` loop that Houdini runs for you.',
+            codeExample: '// Point 0 → @ptnum is 0\n// Point 1 → @ptnum is 1\n// Point 2 → @ptnum is 2\n// ...\n// Last point → @ptnum is @numpt - 1',
             keyPoints: [
               '@ptnum = current point index (read-only)',
               '@numpt = total point count (read-only)',
