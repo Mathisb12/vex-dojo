@@ -62,6 +62,9 @@ export interface FillBlankExercise {
   // codeLines and run through the VEX interpreter as the player types.
   pointShape?: PointShape
   pointCount?: number
+  // Optional live arrow preview for exercises where the first 3 blanks
+  // are a vector's x/y/z components — shows the vector as it's typed.
+  vectorPreview?: boolean
 }
 
 export interface CodeExercise {

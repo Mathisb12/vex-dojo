@@ -236,6 +236,7 @@ export const CURRICULUM: Module[] = [
             answers: ['0', '1', '0'],
             hints: ['X axis value', 'Y axis value — this is the "up" direction', 'Z axis value'],
             explanation: 'In 3D, the Y axis is "up". A unit vector pointing up is `{0, 1, 0}` — zero on X and Z, one on Y.',
+            vectorPreview: true,
             xp: 20,
           },
           {
@@ -250,6 +251,7 @@ export const CURRICULUM: Module[] = [
             answers: ['1.5', '-0.5', '0'],
             hints: ['X component', 'Y component — negative means downward', 'Z component'],
             explanation: '`vector velocity = {1.5, -0.5, 0};` — vectors can hold any float values, including negatives and zero, not just 0s and 1s.',
+            vectorPreview: true,
             xp: 20,
           },
           {
@@ -268,7 +270,7 @@ export const CURRICULUM: Module[] = [
           {
             kind: 'fill',
             id: 'var-10',
-            title: 'Overwrite a single component',
+            title: 'Set this vector\'s first component to 1',
             codeLines: [
               '// You already declared this vector — now set only its first component to 1',
               'vector col = {0.2, 0.4, 0.6};',

@@ -2,6 +2,7 @@ import { useState, useRef, useEffect, useMemo } from 'react'
 import type { FillBlankExercise, BlankAnswer } from '../exercises/types'
 import { useLang } from '../i18n/LanguageContext'
 import { PointCloudViewer } from '../visualization/PointCloudViewer'
+import { VectorArrowPreview } from './VectorArrowPreview'
 import { runVex, makeDefaultPoints, type PointAttrs } from '../interpreter/evaluator'
 
 interface Props {
@@ -9,10 +10,22 @@ interface Props {
   onComplete: (xp: number) => void
 }
 
+// Matches numeric literals the way C-like languages parse them, so
+// equivalent spellings (.5, 0.5, -.5, 1., 1.0) all count as the same value.
+const NUMERIC_LITERAL = /^[+-]?(\d+\.?\d*|\.\d+)$/
+
+function matchesSingle(input: string, expected: string): boolean {
+  if (input === expected) return true
+  if (NUMERIC_LITERAL.test(input) && NUMERIC_LITERAL.test(expected)) {
+    return parseFloat(input) === parseFloat(expected)
+  }
+  return false
+}
+
 function matchesAnswer(userInput: string, expected: BlankAnswer): boolean {
   const input = userInput.trim().toLowerCase()
-  if (typeof expected === 'string') return input === expected.trim().toLowerCase()
-  if (Array.isArray(expected)) return expected.some(e => input === e.trim().toLowerCase())
+  if (typeof expected === 'string') return matchesSingle(input, expected.trim().toLowerCase())
+  if (Array.isArray(expected)) return expected.some(e => matchesSingle(input, e.trim().toLowerCase()))
   // numeric range
   const num = parseFloat(input)
   return !Number.isNaN(num) && num >= expected.min && num <= expected.max
@@ -39,6 +52,7 @@ export function FillBlankQuestion({ exercise, onComplete }: Props) {
     hasPreview ? makeDefaultPoints(exercise.pointCount ?? 200, exercise.pointShape) : []
   )
   const [previewPoints, setPreviewPoints] = useState<PointAttrs[]>(basePoints.current)
+  const hasVectorPreview = !!exercise.vectorPreview && exercise.answers.length === 3
 
   const blankCount = exercise.answers.length
 
@@ -129,11 +143,16 @@ export function FillBlankQuestion({ exercise, onComplete }: Props) {
         <p className="text-vex-text text-base font-medium">{exercise.title}</p>
       </div>
 
-      {/* Code block — with live 3D preview side-by-side when available */}
+      {/* Code block — with live 3D preview or vector arrow side-by-side when available */}
       {hasPreview ? (
         <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
           {codeBlock}
           <PointCloudViewer points={previewPoints} height={260} />
+        </div>
+      ) : hasVectorPreview ? (
+        <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
+          {codeBlock}
+          <VectorArrowPreview xRaw={answers[0] ?? ''} yRaw={answers[1] ?? ''} zRaw={answers[2] ?? ''} />
         </div>
       ) : (
         codeBlock

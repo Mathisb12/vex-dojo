@@ -347,7 +347,7 @@ export const FR_EXERCISES: Record<string, ExTranslation> = {
     choiceExplanations: { 1: 'Ça fonctionne aussi en VEX, mais .y est plus lisible.', 3: 'Ça fonctionne mais c\'est verbeux — .y est la méthode standard.' },
   },
   'var-10': {
-    title: 'Réécris une seule composante',
+    title: 'Mets la première composante de ce vecteur à 1',
     codeLines: [
       '// Tu as déjà déclaré ce vecteur — mets juste sa première composante à 1',
       'vector col = {0.2, 0.4, 0.6};',
