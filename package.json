@@ -1,0 +1,62 @@
+{
+  "name": "vex-dojo",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "main": "electron/main.cjs",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview",
+    "electron:preview": "npm run build && electron .",
+    "electron:build": "npm run build && electron-packager . \"VEX Dojo\" --platform=win32 --arch=x64 --out=release --overwrite --ignore=node_modules --ignore=src --ignore=.git --ignore=release --ignore=\\.zip$ --ignore=\\.claude"
+  },
+  "build": {
+    "appId": "io.vexdojo.app",
+    "productName": "VEX Dojo",
+    "files": [
+      "dist/**/*",
+      "electron/**/*"
+    ],
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ]
+    },
+    "nsis": {
+      "oneClick": true,
+      "perMachine": false,
+      "createDesktopShortcut": true
+    },
+    "directories": {
+      "output": "release"
+    }
+  },
+  "dependencies": {
+    "@monaco-editor/react": "^4.6.0",
+    "framer-motion": "^11.0.0",
+    "lucide-react": "^0.344.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "three": "^0.162.0"
+  },
+  "devDependencies": {
+    "@electron/packager": "^20.0.1",
+    "@types/react": "^18.3.1",
+    "@types/react-dom": "^18.3.1",
+    "@types/three": "^0.162.0",
+    "@vitejs/plugin-react": "^4.3.1",
+    "autoprefixer": "^10.4.19",
+    "electron": "^42.3.3",
+    "electron-builder": "^26.15.2",
+    "postcss": "^8.4.38",
+    "tailwindcss": "^3.4.3",
+    "typescript": "^5.4.5",
+    "vite": "^5.2.10"
+  }
+}
