@@ -106,11 +106,12 @@ export const FR_LEARN_CARDS: Record<string, { title: string; body: string; keyPo
   },
   'learn-vec-1': {
     title: 'length() et normalize()',
-    body: "`length(v)` retourne la **magnitude** d'un vecteur — la distance entre l'origine et la pointe.\n\nFormule : `sqrt(x² + y² + z²)`\n\n`normalize(v)` retourne un vecteur de **même direction** mais de longueur exactement 1. Un vecteur de longueur 1 s'appelle un **vecteur unitaire**, essentiel pour les directions, normales et produits scalaires.",
+    body: "`length(v)` retourne la **magnitude** d'un vecteur — la distance entre l'origine et la pointe.\n\nFormule : `sqrt(x² + y² + z²)`\n\n`normalize(v)` retourne un vecteur de **même direction** mais de longueur exactement 1. Un vecteur de longueur 1 s'appelle un **vecteur unitaire**, essentiel pour les directions, normales et produits scalaires.\n\nUne autre fonction bien utile : `clamp(x, min, max)` force une valeur à rester dans une plage donnée — tout ce qui est sous `min` devient `min`, tout ce qui est au-dessus de `max` devient `max`. C'est le moyen le plus simple de ramener une distance dans une plage propre de 0 à 1 avant de l'utiliser comme couleur.",
     keyPoints: [
       'length(v) = magnitude = sqrt(x²+y²+z²)',
       'normalize(v) = vecteur unitaire (longueur = 1)',
       "length(@P) = distance depuis l'origine",
+      'clamp(x, min, max) garde une valeur dans [min, max]',
     ],
   },
   'learn-vec-2': {
@@ -447,7 +448,7 @@ export const FR_EXERCISES: Record<string, ExTranslation> = {
   },
   'vec-4': {
     title: 'Colore par distance',
-    prompt: 'Colore chaque point selon sa distance depuis l\'origine.\n\n- Calcule `dist = length(@P)`\n- Normalise-le entre 0–1 avec `clamp(dist, 0, 1)`\n- Utilise `lerp()` pour mélanger deux couleurs différentes selon cette valeur\n\nLes deux couleurs sont ton choix — assure-toi juste que les points proches et lointains soient visuellement différents.',
+    prompt: 'Ces points sont dispersés autour de l\'origine du monde `{0,0,0}`, à des distances variées. Colore chaque point selon sa distance depuis l\'origine.\n\n- Calcule `dist = length(@P)`\n- Normalise-le entre 0–1 avec `clamp(dist, 0, 1)`\n- Utilise `lerp()` pour mélanger deux couleurs différentes selon cette valeur\n\nLes deux couleurs sont ton choix — assure-toi juste que les points proches et lointains soient visuellement différents.',
     checks: ['Les points proches (dist < 0.3) ont une couleur différente des points lointains (dist > 0.7)', 'Les couleurs ne sont pas uniformes (pas toutes identiques)'],
     explanation: '`lerp(a, b, t)` mélange en douceur deux couleurs. Combiné avec `clamp(length(@P), 0, 1)`, on obtient un dégradé radial.',
   },

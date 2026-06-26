@@ -553,12 +553,13 @@ export const CURRICULUM: Module[] = [
             kind: 'learn',
             id: 'learn-vec-1',
             title: 'length() and normalize()',
-            body: '`length(v)` returns the **magnitude** of a vector — the distance from the origin to the tip.\n\nFormula: `sqrt(x² + y² + z²)`\n\n`normalize(v)` returns a vector with the **same direction** but length exactly 1. A vector with length 1 is called a **unit vector** and is essential for directions, normals, and dot products.',
-            codeExample: 'vector v = {3, 4, 0};\nfloat  l = length(v);      // 5.0\nvector n = normalize(v);   // {0.6, 0.8, 0.0}\n\n// Distance from origin to current point\nfloat dist = length(@P);',
+            body: '`length(v)` returns the **magnitude** of a vector — the distance from the origin to the tip.\n\nFormula: `sqrt(x² + y² + z²)`\n\n`normalize(v)` returns a vector with the **same direction** but length exactly 1. A vector with length 1 is called a **unit vector** and is essential for directions, normals, and dot products.\n\nOne more handy function: `clamp(x, min, max)` forces a value to stay inside a range — anything below `min` becomes `min`, anything above `max` becomes `max`. It\'s the easiest way to squeeze a distance into a clean 0–1 range before using it as a color.',
+            codeExample: 'vector v = {3, 4, 0};\nfloat  l = length(v);      // 5.0\nvector n = normalize(v);   // {0.6, 0.8, 0.0}\n\n// Distance from origin to current point\nfloat dist = length(@P);\nfloat t    = clamp(dist, 0.0, 1.0); // force into 0..1',
             keyPoints: [
               'length(v) = magnitude = sqrt(x²+y²+z²)',
               'normalize(v) = unit vector (length = 1)',
               'length(@P) = distance from the origin',
+              'clamp(x, min, max) keeps a value inside [min, max]',
             ],
           },
           {
@@ -622,7 +623,7 @@ export const CURRICULUM: Module[] = [
             kind: 'code',
             id: 'vec-4',
             title: 'Color by distance',
-            prompt: 'Color each point based on its distance from the origin.\n\n- Compute `dist = length(@P)`\n- Normalize it to 0–1 with `clamp(dist, 0, 1)`\n- Use `lerp()` to blend between two different colors based on that value\n\nThe two colors are your choice — just make sure near and far points look different.',
+            prompt: 'These points are scattered around the world origin `{0,0,0}`, at varying distances. Color each point based on its distance from the origin.\n\n- Compute `dist = length(@P)`\n- Normalize it to 0–1 with `clamp(dist, 0, 1)`\n- Use `lerp()` to blend between two different colors based on that value\n\nThe two colors are your choice — just make sure near and far points look different.',
             starterCode: 'float dist = length(@P);\nfloat t = clamp(dist, 0.0, 1.0);\n// lerp(colorA, colorB, t)\n@Cd = lerp(___, ___, t);\n',
             solutionCode: 'float dist = length(@P);\nfloat t = clamp(dist, 0.0, 1.0);\n@Cd = lerp({0, 0.3, 1}, {1, 0.4, 0}, t);\n',
             checks: [
@@ -638,9 +639,13 @@ export const CURRICULUM: Module[] = [
                     return d > 0.7
                   })
                   if (near.length < 2 || far.length < 2) return false
-                  const avgNear = near.reduce((s, p) => s + p.Cd.x + p.Cd.y + p.Cd.z, 0) / near.length
-                  const avgFar  = far.reduce((s, p) => s + p.Cd.x + p.Cd.y + p.Cd.z, 0) / far.length
-                  return Math.abs(avgNear - avgFar) > 0.1
+                  // Compare colors as vectors (not summed channels) — a hue swap like
+                  // blue→red keeps R+G+B roughly constant even though it's clearly different.
+                  const avg = (arr: typeof pts, c: 'x' | 'y' | 'z') => arr.reduce((s, p) => s + p.Cd[c], 0) / arr.length
+                  const dx = avg(near, 'x') - avg(far, 'x')
+                  const dy = avg(near, 'y') - avg(far, 'y')
+                  const dz = avg(near, 'z') - avg(far, 'z')
+                  return Math.sqrt(dx * dx + dy * dy + dz * dz) > 0.3
                 },
               },
               {
@@ -655,8 +660,8 @@ export const CURRICULUM: Module[] = [
                 },
               },
             ],
-            pointShape: 'sphere',
-            pointCount: 200,
+            pointShape: 'random',
+            pointCount: 500,
             explanation: '`lerp(a, b, t)` blends smoothly between two colors. Combined with `clamp(length(@P), 0, 1)` you get a radial gradient.',
             xp: 25,
           },
