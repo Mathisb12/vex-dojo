@@ -72,9 +72,14 @@ export function vexDiv(a: VexValue, b: VexValue): VexValue {
 }
 
 export function vexMod(a: VexValue, b: VexValue): VexValue {
+  const av = toFloat(a)
   const bv = toFloat(b)
   if (bv === 0) return mkInt(0)
-  return mkFloat(toFloat(a) % bv)
+  // VEX docs (lang.html, operator precedence table): "the sign of the result
+  // is from the second argument" — opposite of JS/C's native %, which takes
+  // the dividend's sign. Floored division gives that divisor-sign behavior:
+  // -7 % 3 is 2 in VEX (sign of 3), not -1 (sign of -7, what JS % would give).
+  return mkFloat(av - bv * Math.floor(av / bv))
 }
 
 // ─── AST Node Types ──────────────────────────────────────────────────────────

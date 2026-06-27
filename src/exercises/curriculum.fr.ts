@@ -102,12 +102,12 @@ export const FR_LEARN_CARDS: Record<string, { title: string; body: string; keyPo
   },
   'learn-fit-1': {
     title: 'Remapper des valeurs avec fit()',
-    body: "`fit(x, omin, omax, nmin, nmax)` est l'une des fonctions VEX les plus utiles.\n\nElle **remappe** une valeur d'une plage vers une autre. Si `x` est dans `[omin, omax]`, le résultat est dans `[nmin, nmax]`.\n\nExemple : la position Y va de -1 à 1. Tu veux l'utiliser comme couleur (0 à 1). `fit(@P.y, -1, 1, 0, 1)` fait exactement ça.\n\nDeux raccourcis existent pour les cas courants : `fit01(x, nmin, nmax)` suppose que ton entrée est déjà entre 0 et 1 (et la limite à cette plage d'abord), `fit10(x, nmin, nmax)` fait la même chose mais inversée — pratique pour inverser un dégradé sans retourner tes calculs.",
+    body: "`fit(x, omin, omax, nmin, nmax)` est l'une des fonctions VEX les plus utiles.\n\nElle **remappe** une valeur d'une plage vers une autre. Si `x` est dans `[omin, omax]`, le résultat est dans `[nmin, nmax]`.\n\nExemple : la position Y va de -1 à 1. Tu veux l'utiliser comme couleur (0 à 1). `fit(@P.y, -1, 1, 0, 1)` fait exactement ça.\n\nDeux raccourcis existent pour le cas courant où l'entrée est déjà entre 0 et 1 : `fit01(x, nmin, nmax)` est exactement `fit(x, 0, 1, nmin, nmax)`, `fit10(x, nmin, nmax)` fait pareil mais avec la direction d'entrée inversée. **Aucune des deux ne limite la valeur** — si `x` sort de la plage supposée, le résultat extrapole simplement hors de `[nmin, nmax]`. Si tu veux forcer l'entrée dans la plage d'abord, combine avec `clamp()`.",
     keyPoints: [
       'fit(x, omin, omax, nmin, nmax) remappe une plage',
       'Utile pour transformer des positions en valeurs de couleur',
-      'fit01(x, nmin, nmax) suppose une entrée déjà entre 0 et 1',
-      'fit10(x, nmin, nmax) est fit01 mais inversée',
+      'fit01(x, nmin, nmax) est exactement fit(x, 0, 1, nmin, nmax)',
+      'fit/fit01/fit10 ne limitent jamais — combine avec clamp() si besoin',
     ],
   },
   'learn-vec-1': {
@@ -122,7 +122,7 @@ export const FR_LEARN_CARDS: Record<string, { title: string; body: string; keyPo
   },
   'learn-clamp-lerp-1': {
     title: 'clamp() et lerp()',
-    body: "`clamp(x, min, max)` force une valeur à rester dans une plage donnée — tout ce qui est sous `min` devient `min`, tout ce qui est au-dessus de `max` devient `max`. C'est le moyen le plus simple de ramener une distance (ou n'importe quelle valeur non bornée) dans une plage propre de 0 à 1 avant de l'utiliser comme couleur.\n\n`lerp(a, b, t)` **interpole** entre deux valeurs. À `t=0` on obtient `a`, à `t=1` on obtient `b`, entre les deux un mélange. Fonctionne sur les floats et les vecteurs. Contrairement à `fit01`, `lerp()` ne limite **pas** `t` — si tu passes `t=1.5`, ça dépasse `b`.",
+    body: "`clamp(x, min, max)` force une valeur à rester dans une plage donnée — tout ce qui est sous `min` devient `min`, tout ce qui est au-dessus de `max` devient `max`. C'est le moyen le plus simple de ramener une distance (ou n'importe quelle valeur non bornée) dans une plage propre de 0 à 1 avant de l'utiliser comme couleur.\n\n`lerp(a, b, t)` **interpole** entre deux valeurs. À `t=0` on obtient `a`, à `t=1` on obtient `b`, entre les deux un mélange. Fonctionne sur les floats et les vecteurs. Comme `fit()`/`fit01()`, `lerp()` ne limite **pas** `t` — si tu passes `t=1.5`, ça dépasse `b`. `clamp()` est la seule de ces fonctions qui force vraiment une valeur dans une plage.",
     keyPoints: [
       'clamp(x, min, max) garde une valeur dans [min, max]',
       'lerp(a, b, t) → interpole entre a et b',
@@ -506,13 +506,13 @@ export const FR_EXERCISES: Record<string, ExTranslation> = {
     explanation: '`fit01(x, nmin, nmax)` est un raccourci pour `fit(x, 0, 1, nmin, nmax)` — utilise-la quand l\'entrée est déjà connue pour être entre 0 et 1.',
   },
   'fit-4': {
-    title: 'Quelle est la vraie différence entre `fit01(x, 0.2, 0.9)` et `fit(x, 0, 1, 0.2, 0.9)` ?',
-    explanation: 'Elles calculent le même remappage, mais `fit01` **limite** en plus `x` à 0–1 d\'abord. `fit()` seule ne limite pas — si `x` sort de `[omin, omax]`, le résultat extrapole hors de `[nmin, nmax]`.',
+    title: 'Que retourne `fit01(1.5, 0, 10)` ?',
+    explanation: '`fit01()` ne limite **pas** son entrée — elle suppose juste que tu lui passes du 0–1 et remappe de façon linéaire quoi qu\'il arrive. Avec `x=1.5` (déjà au-delà de la plage supposée), le résultat extrapole aussi hors de la plage cible : `0 + 1.5 × (10-0) = 15`. Si tu veux forcer l\'entrée dans 0–1 d\'abord, combine avec `clamp()`.',
     choices: [
-      'fit01 limite x à 0–1 d\'abord ; fit() peut extrapoler hors de la plage',
-      'Elles sont exactement identiques dans tous les cas',
-      'fit01 ne fonctionne que sur des vecteurs',
-      'fit01 est juste une version plus rapide du même calcul',
+      '15 — fit01 extrapole hors de la plage cible, elle ne limite pas',
+      '10 — fit01 limite x à 1 d\'abord',
+      '0 — fit01 limite x à 0 d\'abord',
+      'Une erreur d\'exécution, puisque x sort de 0–1',
     ],
   },
   'fit-5': {
@@ -599,7 +599,7 @@ export const FR_EXERCISES: Record<string, ExTranslation> = {
   },
   'cl-5': {
     title: 'Est-ce que `lerp(a, b, 1.5)` limite automatiquement t entre a et b ?',
-    explanation: 'Non — `lerp()` applique toujours le calcul tel quel. `t=1.5` dépasse `b`. Si tu veux que le résultat reste dans `[a, b]`, applique `clamp()` toi-même (ou utilise `fit01`, qui limite).',
+    explanation: 'Non — `lerp()` applique toujours le calcul tel quel. `t=1.5` dépasse `b`. Si tu veux que le résultat reste dans `[a, b]`, applique `clamp()` toi-même — aucune des fonctions de remap de VEX (`fit`/`fit01`/`fit10`/`lerp`) ne limite d\'elle-même.',
     choices: [
       'Non — ça dépasse b. Combine avec clamp() si tu veux rester dans la plage',
       'Oui — t est toujours limité à 0–1 automatiquement',

@@ -54,12 +54,16 @@ export const BUILTINS: Record<string, BuiltinFn> = {
     const t = ohi === olo ? 0 : (ox - olo) / (ohi - olo)
     return mkFloat(nlo + t * (nhi - nlo))
   },
+  // Real VEX docs (fit01.html): "Takes the value in the range (0, 1) and
+  // shifts it..." — it assumes 0-1, it does not clamp to it. Same for fit10.
+  // Extrapolates past the target range just like fit() does; use clamp()
+  // first if you actually want the input forced into range.
   fit01: ([x, nmin, nmax]) => {
-    const t = Math.min(Math.max(num(x), 0), 1)
+    const t = num(x)
     return mkFloat(num(nmin) + t * (num(nmax) - num(nmin)))
   },
   fit10: ([x, nmin, nmax]) => {
-    const t = 1 - Math.min(Math.max(num(x), 0), 1)
+    const t = 1 - num(x)
     return mkFloat(num(nmin) + t * (num(nmax) - num(nmin)))
   },
   lerp: ([a, b, t]) => {
