@@ -758,13 +758,13 @@ export const FR_EXERCISES: Record<string, ExTranslation> = {
   'loop-3': {
     title: 'Surface ondulée',
     prompt: 'Crée un effet de vague sur la grille en déplaçant la position Y de chaque point avec `sin()`.\n\n- Le déplacement doit varier par point (utilise `@ptnum` ou `@P.x`)\n- La vague doit avoir des crêtes et des creux visibles\n- Donne aussi une jolie couleur aux points',
-    checks: ['Les positions Y varient (la vague a des crêtes et des creux)', 'Le déplacement n\'est pas uniforme (pas tous le même Y)'],
+    checks: ['Le déplacement Y varie par point (une vraie vague, pas une absence de code ou un décalage uniforme)', 'La couleur a été changée par rapport au gris par défaut'],
     explanation: '`sin(@ptnum * 0.3) * 0.4` — la fréquence 0.3 contrôle la "tension" de la vague, l\'amplitude 0.4 contrôle la hauteur. Une grille montre mieux les vagues.',
   },
   'loop-4': {
     title: 'Superpose des vagues avec une boucle for',
     prompt: 'Cette fois, utilise une vraie boucle `for` : additionne 3 ondes sinusoïdales de fréquence croissante (multiplie la fréquence par le compteur de boucle `i`), puis utilise le total pour déplacer `@P.y`.',
-    checks: ['Utilise une boucle for', 'Les positions Y varient (la vague superposée a des crêtes et des creux)'],
+    checks: ['Utilise une boucle for', 'Le déplacement Y varie par point dans la grille (une vraie vague superposée, pas une absence de code)'],
     explanation: 'La boucle `for` tourne 3 fois, ajoutant chaque fois une onde sinusoïdale de fréquence plus élevée (`0.15 * i`). Additionner des ondes comme ça, c\'est la base d\'effets plus complexes comme le bruit FBM, que tu verras plus tard.',
   },
   'loop-5': {

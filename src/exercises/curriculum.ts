@@ -1360,19 +1360,23 @@ export const CURRICULUM: Module[] = [
             solutionCode: '@P.y += sin(@ptnum * 0.3) * 0.4;\n@Cd = {0.3, 0.8, 1.0};\n',
             checks: [
               {
-                description: 'Y positions vary (wave has peaks and troughs)',
+                // The grid's rows already span Y from -1 to 1 before any code runs, so checking
+                // the WHOLE grid's Y range passes trivially even with an empty wrangle. Instead,
+                // compare points within a single row — they all start at the SAME Y, so only a
+                // real per-point displacement (not a no-op or uniform shift) can split them apart.
+                description: 'Y displacement varies per point (a real wave, not a no-op or uniform shift)',
                 test: (pts) => {
-                  const ys = pts.map(p => p.P.y)
-                  const range = Math.max(...ys) - Math.min(...ys)
-                  return range > 0.2
+                  const side = Math.ceil(Math.sqrt(pts.length))
+                  const row = pts.slice(0, side)
+                  const range = Math.max(...row.map(p => p.P.y)) - Math.min(...row.map(p => p.P.y))
+                  return range > 0.15
                 },
               },
               {
-                description: 'Displacement is not uniform (not all same Y)',
-                test: (pts) => {
-                  const first = pts[0]?.P.y ?? 0
-                  return pts.slice(1, 20).some(p => Math.abs(p.P.y - first) > 0.05)
-                },
+                description: 'Color was changed from the default grey',
+                test: (pts) => pts.every(p =>
+                  Math.abs(p.Cd.x - 0.4) > 0.05 || Math.abs(p.Cd.y - 0.8) > 0.05 || Math.abs(p.Cd.z - 1.0) > 0.05
+                ),
               },
             ],
             pointShape: 'grid',
@@ -1393,11 +1397,16 @@ export const CURRICULUM: Module[] = [
                 test: (_pts, _out, code) => /\bfor\s*\(/.test(code),
               },
               {
-                description: 'Y positions vary (the layered wave has peaks and troughs)',
+                // Same trap as loop-3: the grid's rows already span Y from -1 to 1 before any
+                // code runs, so a whole-grid range check passes even on an empty loop body.
+                // Points within a single row all start at the same Y, so only a real per-point
+                // displacement can split them apart.
+                description: 'Y displacement varies per point within the grid (a real layered wave, not a no-op)',
                 test: (pts) => {
-                  const ys = pts.map(p => p.P.y)
-                  const range = Math.max(...ys) - Math.min(...ys)
-                  return range > 0.2
+                  const side = Math.ceil(Math.sqrt(pts.length))
+                  const row = pts.slice(0, side)
+                  const range = Math.max(...row.map(p => p.P.y)) - Math.min(...row.map(p => p.P.y))
+                  return range > 0.15
                 },
               },
             ],
