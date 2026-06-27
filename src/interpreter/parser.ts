@@ -5,7 +5,7 @@ import type {
   ASTNode, Expr, Program, Block, VarDecl, AssignStmt, ExprStmt,
   IfStmt, ForStmt, WhileStmt, ReturnStmt,
   Literal, Identifier, AttrAccess, VectorLiteral,
-  BinaryExpr, UnaryExpr, CallExpr, MemberExpr, IndexExpr, AssignExpr,
+  BinaryExpr, UnaryExpr, CallExpr, MemberExpr, IndexExpr, AssignExpr, UpdateExpr,
   AssignTarget, AssignOp, BinaryOp, TypeName,
 } from './types'
 
@@ -71,6 +71,8 @@ class Parser {
         case 'for': return this.parseFor()
         case 'while': return this.parseWhile()
         case 'return': return this.parseReturn()
+        case 'break': this.advance(); this.expect('SEMI'); return { kind: 'BreakStmt' }
+        case 'continue': this.advance(); this.expect('SEMI'); return { kind: 'ContinueStmt' }
       }
     }
 
@@ -99,7 +101,7 @@ class Parser {
     this.expect('LPAREN')
     const cond = this.parseExpr()
     this.expect('RPAREN')
-    const then = this.parseBlock()
+    const then = this.parseBlockOrStatement()
     let elseBranch: Block | null = null
     if (this.check('KEYWORD', 'else')) {
       this.advance()
@@ -108,7 +110,7 @@ class Parser {
         const nested = this.parseIf()
         elseBranch = { kind: 'Block', body: [nested] }
       } else {
-        elseBranch = this.parseBlock()
+        elseBranch = this.parseBlockOrStatement()
       }
     }
     return { kind: 'IfStmt', cond, then, else: elseBranch }
@@ -146,7 +148,7 @@ class Parser {
     if (!this.check('RPAREN')) update = this.parseExpr()
     this.expect('RPAREN')
 
-    const body = this.parseBlock()
+    const body = this.parseBlockOrStatement()
     return { kind: 'ForStmt', init, cond, update, body }
   }
 
@@ -155,7 +157,7 @@ class Parser {
     this.expect('LPAREN')
     const cond = this.parseExpr()
     this.expect('RPAREN')
-    const body = this.parseBlock()
+    const body = this.parseBlockOrStatement()
     return { kind: 'WhileStmt', cond, body }
   }
 
@@ -165,6 +167,13 @@ class Parser {
     if (!this.check('SEMI')) value = this.parseExpr()
     this.expect('SEMI')
     return { kind: 'ReturnStmt', value }
+  }
+
+  // VEX, like C, allows a single statement instead of a {} block after
+  // if/for/while — e.g. `if (x) break;` with no braces at all.
+  private parseBlockOrStatement(): Block {
+    if (this.check('LBRACE')) return this.parseBlock()
+    return { kind: 'Block', body: [this.parseStatement()] }
   }
 
   private parseBlock(): Block {
@@ -266,6 +275,14 @@ class Parser {
       this.advance()
       return { kind: 'UnaryExpr', op: '!', operand: this.parseUnary() } as UnaryExpr
     }
+    if (this.check('PLUSPLUS') || this.check('MINUSMINUS')) {
+      const opTok = this.advance()
+      const op = opTok.value as '++' | '--'
+      const operand = this.parseUnary()
+      const target = exprToTarget(operand)
+      if (!target) throw new ParseError(`++/-- needs a variable or attribute, not an expression`, opTok.line, opTok.col)
+      return { kind: 'UpdateExpr', op, target, prefix: true } as UpdateExpr
+    }
     return this.parsePostfix()
   }
 
@@ -282,16 +299,11 @@ class Parser {
         const index = this.parseExpr()
         this.expect('RBRACKET')
         expr = { kind: 'IndexExpr', object: expr, index } as IndexExpr
-      } else if (this.check('PLUSPLUS')) {
-        // i++ → i += 1 (sugar)
-        this.advance()
+      } else if (this.check('PLUSPLUS') || this.check('MINUSMINUS')) {
+        // i++ / i-- — postfix: evaluates to the value BEFORE updating.
+        const op = this.advance().value as '++' | '--'
         const target = exprToTarget(expr)
-        if (target) return { kind: 'AssignExpr', target, op: '+=', value: { kind: 'Literal', value: 1, type: 'int' } as Literal } as AssignExpr
-        break
-      } else if (this.check('MINUSMINUS')) {
-        this.advance()
-        const target = exprToTarget(expr)
-        if (target) return { kind: 'AssignExpr', target, op: '-=', value: { kind: 'Literal', value: 1, type: 'int' } as Literal } as AssignExpr
+        if (target) return { kind: 'UpdateExpr', op, target, prefix: false } as UpdateExpr
         break
       } else {
         break

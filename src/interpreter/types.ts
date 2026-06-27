@@ -96,6 +96,8 @@ export type ASTNode =
   | WhileStmt
   | Block
   | ReturnStmt
+  | BreakStmt
+  | ContinueStmt
   | Expr
 
 export type Expr =
@@ -109,6 +111,7 @@ export type Expr =
   | MemberExpr
   | IndexExpr
   | AssignExpr
+  | UpdateExpr
 
 export interface Program { kind: 'Program'; body: ASTNode[] }
 export interface VarDecl { kind: 'VarDecl'; type: TypeName; name: string; init: Expr | null }
@@ -119,6 +122,8 @@ export interface ForStmt { kind: 'ForStmt'; init: VarDecl | AssignStmt | ExprStm
 export interface WhileStmt { kind: 'WhileStmt'; cond: Expr; body: Block }
 export interface Block { kind: 'Block'; body: ASTNode[] }
 export interface ReturnStmt { kind: 'ReturnStmt'; value: Expr | null }
+export interface BreakStmt { kind: 'BreakStmt' }
+export interface ContinueStmt { kind: 'ContinueStmt' }
 
 export interface Literal { kind: 'Literal'; value: number | string; type: 'int' | 'float' | 'string' }
 export interface Identifier { kind: 'Identifier'; name: string }
@@ -130,6 +135,9 @@ export interface CallExpr { kind: 'CallExpr'; name: string; args: Expr[] }
 export interface MemberExpr { kind: 'MemberExpr'; object: Expr; prop: string }
 export interface IndexExpr { kind: 'IndexExpr'; object: Expr; index: Expr }
 export interface AssignExpr { kind: 'AssignExpr'; target: AssignTarget; op: AssignOp; value: Expr }
+// i++ / i-- (postfix: returns the value before updating) and ++i / --i
+// (prefix: returns the value after updating) — real C/VEX distinguishes these.
+export interface UpdateExpr { kind: 'UpdateExpr'; op: '++' | '--'; target: AssignTarget; prefix: boolean }
 
 export type AssignTarget =
   | { kind: 'IdentTarget'; name: string }

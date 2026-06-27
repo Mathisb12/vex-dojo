@@ -6,7 +6,7 @@ import type {
   ASTNode, Expr, Program, Block, VarDecl, ExprStmt, AssignStmt,
   IfStmt, ForStmt, WhileStmt, ReturnStmt,
   Literal, Identifier, AttrAccess, VectorLiteral,
-  BinaryExpr, UnaryExpr, CallExpr, MemberExpr, IndexExpr, AssignExpr,
+  BinaryExpr, UnaryExpr, CallExpr, MemberExpr, IndexExpr, AssignExpr, UpdateExpr,
   AssignTarget, AssignOp, TypeName,
 } from './types'
 import {
@@ -88,6 +88,8 @@ class Evaluator {
         const val = n.value ? this.evalExpr(n.value, env) : mkVoid
         throw new ReturnSignal(val)
       }
+      case 'BreakStmt': throw new BreakSignal()
+      case 'ContinueStmt': throw new ContinueSignal()
       default: return mkVoid
     }
   }
@@ -161,6 +163,7 @@ class Evaluator {
       case 'MemberExpr': return this.evalMember(expr as MemberExpr, env)
       case 'IndexExpr': return this.evalIndex(expr as IndexExpr, env)
       case 'AssignExpr': return this.evalAssignExpr(expr as AssignExpr, env)
+      case 'UpdateExpr': return this.evalUpdate(expr as UpdateExpr, env)
       default: return mkVoid
     }
   }
@@ -284,6 +287,30 @@ class Evaluator {
 
   private evalAssignExpr(node: AssignExpr, env: Environment): VexValue {
     return this.doAssign(node.target, node.op, this.evalExpr(node.value, env), env)
+  }
+
+  // i++ / i-- return the pre-update value; ++i / --i return the post-update
+  // value. Both perform the same write via doAssign — only the return differs.
+  private evalUpdate(node: UpdateExpr, env: Environment): VexValue {
+    const old = this.readTarget(node.target, env)
+    const op: AssignOp = node.op === '++' ? '+=' : '-='
+    const updated = this.doAssign(node.target, op, mkInt(1), env)
+    return node.prefix ? updated : old
+  }
+
+  private readTarget(target: AssignTarget, env: Environment): VexValue {
+    if (target.kind === 'IdentTarget') {
+      return env.has(target.name) ? env.get(target.name) : mkFloat(0)
+    }
+    if (target.kind === 'AttrTarget') {
+      return this.evalAttr({ kind: 'AttrAccess', attr: target.attr, comp: target.comp, attrType: target.attrType })
+    }
+    if (target.kind === 'MemberTarget') {
+      const obj = this.evalExpr(target.object, env)
+      if (obj.kind !== 'vector') return mkFloat(0)
+      return mkFloat(obj[target.prop as keyof VexVector] as number)
+    }
+    return mkFloat(0)
   }
 
   // ─── Assignment ────────────────────────────────────────────────────────────
