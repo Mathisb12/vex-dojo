@@ -14,7 +14,9 @@ function dominantKind(lesson: Lesson): StepKind {
 }
 
 // Home-screen main panel — replaces the old WelcomeScreen/TierSection/LessonCard
-// grid with a single connected vertical path (see LessonTimeline).
+// grid with a single connected vertical path (see LessonTimeline). Two divider
+// levels (tier, then module) keep module boundaries visible in the timeline,
+// matching the grouping the sidebar already shows.
 export function LessonPath({
   modules,
   completedIds,
@@ -39,9 +41,16 @@ export function LessonPath({
     for (const tier of [1, 2] as const) {
       const tierModules = modules.filter(m => m.tier === tier)
       if (tierModules.length === 0) continue
-      result.push({ type: 'chapter-divider', key: `tier-${tier}`, tierKey: tier === 1 ? 'tier.1' : 'tier.2' })
+      result.push({ type: 'tier-divider', key: `tier-${tier}`, tierKey: tier === 1 ? 'tier.1' : 'tier.2' })
       tierModules.forEach((mod, modIdxInTier) => {
         const moduleLocked = isModuleLocked(tierModules, modIdxInTier, completedIds)
+        result.push({
+          type: 'module-divider',
+          key: `mod-${mod.id}`,
+          icon: mod.icon,
+          title: mod.title,
+          accent: tier === 1 ? 'orange' : 'purple',
+        })
         mod.lessons.forEach((lesson, lessonIdx) => {
           const lessonLocked = moduleLocked || isLessonLocked(mod, lessonIdx, completedIds)
           const done = lesson.exercises.filter(e => completedIds.has(e.id)).length
@@ -66,18 +75,18 @@ export function LessonPath({
   }, [modules, completedIds, onSelectLesson])
 
   return (
-    <div className="flex-1 overflow-y-auto p-6 md:p-10">
-      <div className="max-w-3xl mx-auto">
+    <div className="flex-1 overflow-y-auto px-10 py-[46px]">
+      <div className="max-w-[780px] mx-auto">
         <div className="flex items-start justify-between mb-8 gap-4">
           <div>
             <div className="text-vex-orange text-xs font-mono font-semibold uppercase tracking-widest mb-2">
               {t('sidebar.programLabel')} · {chapterCount} {t('path.chapters')}
             </div>
-            <h1 className="text-3xl font-bold text-vex-text mb-2">{t('path.title')}</h1>
+            <h1 className="text-3xl font-extrabold text-vex-text mb-2 tracking-tight">{t('path.title')}</h1>
             <p className="text-vex-muted text-base max-w-md">{t('path.subtitle')}</p>
           </div>
           <div className="text-right flex-shrink-0">
-            <div className="text-3xl font-bold text-vex-text">{donePct}%</div>
+            <div className="text-3xl font-bold text-vex-text font-mono">{donePct}%</div>
             <div className="text-vex-muted text-xs">{t('path.completed')}</div>
           </div>
         </div>

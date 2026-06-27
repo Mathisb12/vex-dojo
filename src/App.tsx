@@ -5,6 +5,7 @@ import { CodeQuestion } from './components/CodeQuestion'
 import { LearnCardView } from './components/LearnCardView'
 import { LessonPath } from './components/LessonPath'
 import { KIND_BADGE_STYLE } from './components/KindBadge'
+import { GrainOverlay } from './components/GrainOverlay'
 import { useProgress } from './hooks/useProgress'
 import { getLocalizedCurriculum, getTotalXP } from './exercises/curriculum'
 import type { Exercise, Lesson, LearnCard, Module } from './exercises/types'
@@ -396,7 +397,11 @@ function AppInner() {
   }
 
   return (
-    <div className="flex h-screen overflow-hidden bg-vex-bg text-vex-text">
+    <div
+      className="flex h-screen overflow-hidden text-vex-text"
+      style={{ background: 'radial-gradient(130% 100% at 82% -15%, #141b27 0%, #0d1117 52%)' }}
+    >
+      <GrainOverlay />
       <Sidebar
         modules={curriculum}
         completedIds={state.completedExercises}
