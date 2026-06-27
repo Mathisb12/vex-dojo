@@ -277,13 +277,22 @@ function Sidebar({
             <div className="text-vex-text font-bold text-lg leading-tight">VEX Dojo</div>
             <div className="text-vex-muted text-xs">{t('app.tagline')}</div>
           </div>
-          <button
-            onClick={toggleLang}
-            title={lang === 'en' ? 'Passer en français' : 'Switch to English'}
-            className="px-2 py-1 rounded-lg border border-vex-border text-vex-muted hover:border-vex-orange/50 hover:text-vex-orange text-xs font-mono transition-colors flex-shrink-0"
-          >
-            {t('lang.switch')}
-          </button>
+          <div className="flex items-center rounded-lg border border-vex-border bg-vex-bg p-0.5 text-xs font-mono flex-shrink-0">
+            <button
+              onClick={() => lang !== 'fr' && toggleLang()}
+              title="Passer en français"
+              className={`px-2 py-0.5 rounded-md transition-colors ${lang === 'fr' ? 'bg-vex-orange text-black' : 'text-vex-muted hover:text-vex-orange'}`}
+            >
+              FR
+            </button>
+            <button
+              onClick={() => lang !== 'en' && toggleLang()}
+              title="Switch to English"
+              className={`px-2 py-0.5 rounded-md transition-colors ${lang === 'en' ? 'bg-vex-orange text-black' : 'text-vex-muted hover:text-vex-orange'}`}
+            >
+              EN
+            </button>
+          </div>
         </div>
 
         <div className="flex items-center gap-2 mb-3">

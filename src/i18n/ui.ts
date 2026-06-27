@@ -64,7 +64,6 @@ export const UI_STRINGS = {
     'code.showHint': 'Show hint',
     'code.hintApplied': 'Hint inserted — adapt it to finish the exercise',
     'viewer.controls': 'drag to orbit · scroll to zoom',
-    'lang.switch': 'FR',
   },
   fr: {
     'app.tagline': 'Apprends le VEX de Houdini',
@@ -129,7 +128,6 @@ export const UI_STRINGS = {
     'code.showHint': "Voir l'indice",
     'code.hintApplied': "Indice inséré — adapte-le pour terminer l'exercice",
     'viewer.controls': 'glisser pour pivoter · molette pour zoomer',
-    'lang.switch': 'EN',
   },
 } satisfies Record<Lang, Record<string, string>>
 
