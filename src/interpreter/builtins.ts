@@ -151,6 +151,11 @@ export const BUILTINS: Record<string, BuiltinFn> = {
     return mkFloat(lerp(lerp(lerp(n000, n100, ux), lerp(n010, n110, ux), uy),
                         lerp(lerp(n001, n101, ux), lerp(n011, n111, ux), uy), uz))
   },
+  // ── Type casts ────────────────────────────────────────────────────────────
+  int:    ([a]) => mkInt(num(a)),
+  float:  ([a]) => mkFloat(num(a)),
+  vector: ([a]) => toVec(a),
+
   // ── String ────────────────────────────────────────────────────────────────
   itoa: ([x]) => mkStr(String(Math.trunc(num(x)))),
   atoi: ([s]) => mkInt(parseInt(s?.kind === 'string' ? s.value : '0', 10) || 0),

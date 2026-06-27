@@ -17,8 +17,10 @@ export interface FillBlankLine {
 
 export interface CodeCheck {
   description: string
-  // Runs against the output points to verify the exercise
-  test: (points: { P: {x:number;y:number;z:number}; Cd: {x:number;y:number;z:number}; N: {x:number;y:number;z:number}; ptnum: number; numpt: number }[], output: string) => boolean
+  // Runs against the output points to verify the exercise. `code` is the player's
+  // raw source — use it to enforce that a specific construct (if, for...) was
+  // actually used, instead of only checking the resulting points/colors.
+  test: (points: { P: {x:number;y:number;z:number}; Cd: {x:number;y:number;z:number}; N: {x:number;y:number;z:number}; ptnum: number; numpt: number }[], output: string, code: string) => boolean
 }
 
 export type Exercise =

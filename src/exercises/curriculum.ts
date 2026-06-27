@@ -738,7 +738,7 @@ export const CURRICULUM: Module[] = [
             kind: 'code',
             id: 'if-2',
             title: 'Top / Bottom split',
-            prompt: 'Color the **top half** of the sphere yellow and the **bottom half** cyan.\n\nYou decide the threshold — but make sure no points are left with the default grey.',
+            prompt: 'Color the **top half** of the sphere yellow (`{1, 1, 0}`) and the **bottom half** cyan (`{0, 1, 1}`).\n\nYou decide the threshold — but make sure no points are left with the default grey.',
             starterCode: '// Use @P.y to distinguish top from bottom\nif (___) {\n    @Cd = ___; // top color\n} else {\n    @Cd = ___; // bottom color\n}\n',
             solutionCode: 'if (@P.y > 0) {\n    @Cd = {1, 1, 0};\n} else {\n    @Cd = {0, 1, 1};\n}\n',
             checks: [
@@ -767,10 +767,18 @@ export const CURRICULUM: Module[] = [
                   const top = pts.filter(p => p.P.y > 0.3)
                   const bot = pts.filter(p => p.P.y < -0.3)
                   if (!top.length || !bot.length) return false
-                  const tAvg = (top.reduce((s,p)=>s+p.Cd.x+p.Cd.y+p.Cd.z,0)/top.length)
-                  const bAvg = (bot.reduce((s,p)=>s+p.Cd.x+p.Cd.y+p.Cd.z,0)/bot.length)
-                  return Math.abs(tAvg - bAvg) > 0.05
+                  // Compare colors as vectors, not summed channels — yellow {1,1,0}
+                  // and cyan {0,1,1} both sum to 2 despite being clearly different.
+                  const avg = (arr: typeof pts, c: 'x' | 'y' | 'z') => arr.reduce((s, p) => s + p.Cd[c], 0) / arr.length
+                  const dx = avg(top, 'x') - avg(bot, 'x')
+                  const dy = avg(top, 'y') - avg(bot, 'y')
+                  const dz = avg(top, 'z') - avg(bot, 'z')
+                  return Math.sqrt(dx * dx + dy * dy + dz * dz) > 0.3
                 },
+              },
+              {
+                description: 'Uses an if/else statement',
+                test: (_pts, _out, code) => /\bif\s*\(/.test(code),
               },
             ],
             pointShape: 'sphere',
@@ -871,6 +879,32 @@ export const CURRICULUM: Module[] = [
             pointShape: 'grid',
             pointCount: 400,
             explanation: '`sin(@ptnum * 0.3) * 0.4` — frequency 0.3 controls how tight the wave is, amplitude 0.4 controls height. A grid shows waves best.',
+            xp: 25,
+          },
+          {
+            kind: 'code',
+            id: 'loop-4',
+            title: 'Layer waves with a for loop',
+            prompt: 'Use an actual `for` loop this time: add together 3 sine waves of increasing frequency (multiply the frequency by the loop counter `i`), then use the total to displace `@P.y`.',
+            starterCode: '// Sum 3 sine waves of increasing frequency with a for loop\nfloat wave = 0;\nfor (int i = 1; i <= 3; i++) {\n    wave += sin(@ptnum * 0.15 * ___);\n}\n@P.y += wave * ___;\n@Cd = {0.3, 0.6, 1.0};\n',
+            solutionCode: 'float wave = 0;\nfor (int i = 1; i <= 3; i++) {\n    wave += sin(@ptnum * 0.15 * i);\n}\n@P.y += wave * 0.15;\n@Cd = {0.3, 0.6, 1.0};\n',
+            checks: [
+              {
+                description: 'Uses a for loop',
+                test: (_pts, _out, code) => /\bfor\s*\(/.test(code),
+              },
+              {
+                description: 'Y positions vary (the layered wave has peaks and troughs)',
+                test: (pts) => {
+                  const ys = pts.map(p => p.P.y)
+                  const range = Math.max(...ys) - Math.min(...ys)
+                  return range > 0.2
+                },
+              },
+            ],
+            pointShape: 'grid',
+            pointCount: 400,
+            explanation: 'The `for` loop runs 3 times, each time adding a sine wave with a higher frequency (`0.15 * i`). Summing waves like this is the basis of more complex effects like FBM noise, which you\'ll see later.',
             xp: 25,
           },
         ],

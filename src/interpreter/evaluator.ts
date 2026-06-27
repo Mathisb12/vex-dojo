@@ -98,7 +98,7 @@ class Evaluator {
   }
 
   private execVarDecl(node: VarDecl, env: Environment): VexValue {
-    const init = node.init ? this.evalExpr(node.init, env) : coerceDefault(node.type)
+    const init = node.init ? coerceToType(this.evalExpr(node.init, env), node.type) : coerceDefault(node.type)
     env.define(node.name, init)
     return init
   }
@@ -361,6 +361,15 @@ function coerceDefault(type: string): VexValue {
   if (type === 'vector') return mkVec(0, 0, 0)
   if (type === 'string') return mkStr('')
   return mkVoid
+}
+
+// Declaring a typed variable actually casts the value to that type — e.g.
+// `int x = 3.9;` truncates to 3, matching real VEX, not just storing 3.9.
+function coerceToType(v: VexValue, type: string): VexValue {
+  if (type === 'int') return mkInt(toFloat(v))
+  if (type === 'float') return mkFloat(toFloat(v))
+  if (type === 'vector') return toVec(v)
+  return v
 }
 
 function applyOp(prev: VexValue, op: AssignOp, rhs: VexValue): VexValue {

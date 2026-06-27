@@ -349,8 +349,9 @@ class Parser {
       return { kind: 'AttrAccess', attr, comp } as AttrAccess
     }
 
-    // Identifier or function call
-    if (t.kind === 'IDENT') {
+    // Identifier or function call — also covers type-cast calls like int(x), float(x), vector(x),
+    // since VEX lets you call a type name as a cast and the lexer tags those as KEYWORD, not IDENT.
+    if (t.kind === 'IDENT' || (t.kind === 'KEYWORD' && TYPE_NAMES.has(t.value) && this.peek(1).kind === 'LPAREN')) {
       this.advance()
       if (this.check('LPAREN')) {
         // function call

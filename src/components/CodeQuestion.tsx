@@ -59,7 +59,7 @@ export function CodeQuestion({ exercise, onComplete }: Props) {
 
     if (!result.error) {
       const checkResults = exercise.checks.map(c => {
-        try { return c.test(result.points, result.output) }
+        try { return c.test(result.points, result.output, src) }
         catch { return false }
       })
       setChecks(checkResults)
