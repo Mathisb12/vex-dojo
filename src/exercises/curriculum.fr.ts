@@ -68,10 +68,11 @@ export const FR_LEARN_CARDS: Record<string, { title: string; body: string; keyPo
   },
   'learn-attr-1': {
     title: 'Les attributs : le préfixe @',
-    body: "Un **attribut** est une valeur nommée stockée sur la géométrie — chaque point peut avoir sa propre position, couleur, normale, etc.\n\nEn VEX, on lit et écrit les attributs avec le préfixe `@`. Lire `@P` donne la position du point courant. Écrire `@Cd = ...` change sa couleur.\n\nLes attributs persistent après le wrangle — ils font partie des données de la géométrie.",
+    body: "Un **attribut** est une valeur nommée stockée sur la géométrie — chaque point peut avoir sa propre position, couleur, normale, etc.\n\nEn VEX, on lit et écrit les attributs avec le préfixe `@`. Lire `@P` donne la position du point courant. Écrire `@Cd = ...` change sa couleur.\n\nLes attributs (tout ce qui a un `@`) persistent après le wrangle — ils font partie des données de la géométrie. C'est différent des variables locales de la leçon précédente : `float maVar = 2;` (sans `@`) n'est qu'un espace de calcul temporaire pour ce wrangle — ça disparaît dès que le nœud suivant tourne. Seuls les noms préfixés par `@` sont vraiment sauvegardés sur la géométrie.",
     keyPoints: [
       '@ lit ou écrit un attribut de géométrie',
-      'Les attributs persistent sur la géométrie après le wrangle',
+      'Les attributs (avec @) persistent sur la géométrie après le wrangle',
+      'Les variables locales (sans @, ex. float x = 2;) ne persistent PAS',
       'Tu peux créer de nouveaux attributs en écrivant dans @monnom',
     ],
   },
