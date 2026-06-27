@@ -18,7 +18,10 @@ export const FR_LESSONS: Record<string, { title: string; description: string }> 
   'vector-intro': { title: 'Vecteurs', description: 'Déclarer et manipuler des valeurs vector' },
   attributes: { title: 'Attributs', description: 'Lire et écrire les attributs de points avec @' },
   arithmetic: { title: 'Arithmétique', description: 'Maths de base avec floats et vecteurs' },
-  vectors: { title: 'Maths vectorielles', description: 'length, normalize, dot, cross' },
+  'fit-remap': { title: 'fit() — remapper des plages', description: 'Transformer une plage de valeurs en une autre' },
+  vectors: { title: 'length() & normalize()', description: 'Mesurer et transformer la magnitude des vecteurs' },
+  'clamp-lerp': { title: 'clamp() & lerp()', description: 'Contraindre une plage, puis interpoler dedans' },
+  'dot-cross': { title: 'dot() & cross()', description: 'Mesurer un alignement et trouver des directions perpendiculaires' },
   conditionals: { title: 'Si / Sinon', description: 'Brancher la logique selon des conditions' },
   loops: { title: 'Boucles for', description: 'Itérer avec for et while' },
   'noise-basics': { title: 'Bruit et aléatoire', description: 'rand, noise, et motifs organiques' },
@@ -88,40 +91,52 @@ export const FR_LEARN_CARDS: Record<string, { title: string; body: string; keyPo
   },
   'learn-arith-1': {
     title: 'Les opérateurs mathématiques en VEX',
-    body: "VEX supporte les opérateurs arithmétiques standards : `+`, `-`, `*`, `/`, `%`.\n\n**Vecteurs et scalaires se mélangent naturellement.** Multiplier un vecteur par un float met à l'échelle les trois composantes. Additionner deux vecteurs additionne composante par composante.",
+    body: "VEX supporte les opérateurs arithmétiques standards : `+`, `-`, `*`, `/`, `%`.\n\n**Vecteurs et scalaires se mélangent naturellement.** N'importe lequel de ces opérateurs entre un vecteur et un float s'applique aux **trois composantes** — multiplication, addition, peu importe. Additionner deux vecteurs additionne composante par composante.",
     keyPoints: [
       'Opérateurs : + - * / %',
-      'Vecteur * scalaire met à l\'échelle toutes les composantes',
-      'Vecteur + vecteur additionne composante par composante',
+      'Le modulo % donne le reste d\'une division (7 % 3 = 1)',
+      'vecteur opérateur float s\'applique aux 3 composantes',
+      'vecteur + vecteur additionne composante par composante',
       '+= -= *= /= sont des raccourcis d\'affectation',
     ],
   },
-  'learn-arith-2': {
+  'learn-fit-1': {
     title: 'Remapper des valeurs avec fit()',
-    body: "`fit(x, omin, omax, nmin, nmax)` est l'une des fonctions VEX les plus utiles.\n\nElle **remappe** une valeur d'une plage vers une autre. Si `x` est dans `[omin, omax]`, le résultat est dans `[nmin, nmax]`.\n\nExemple : la position Y va de -1 à 1. Tu veux l'utiliser comme couleur (0 à 1). `fit(@P.y, -1, 1, 0, 1)` fait exactement ça.",
+    body: "`fit(x, omin, omax, nmin, nmax)` est l'une des fonctions VEX les plus utiles.\n\nElle **remappe** une valeur d'une plage vers une autre. Si `x` est dans `[omin, omax]`, le résultat est dans `[nmin, nmax]`.\n\nExemple : la position Y va de -1 à 1. Tu veux l'utiliser comme couleur (0 à 1). `fit(@P.y, -1, 1, 0, 1)` fait exactement ça.\n\nDeux raccourcis existent pour les cas courants : `fit01(x, nmin, nmax)` suppose que ton entrée est déjà entre 0 et 1 (et la limite à cette plage d'abord), `fit10(x, nmin, nmax)` fait la même chose mais inversée — pratique pour inverser un dégradé sans retourner tes calculs.",
     keyPoints: [
       'fit(x, omin, omax, nmin, nmax) remappe une plage',
       'Utile pour transformer des positions en valeurs de couleur',
-      'clamp() limite une valeur à [min, max]',
+      'fit01(x, nmin, nmax) suppose une entrée déjà entre 0 et 1',
+      'fit10(x, nmin, nmax) est fit01 mais inversée',
     ],
   },
   'learn-vec-1': {
     title: 'length() et normalize()',
-    body: "`length(v)` retourne la **magnitude** d'un vecteur — la distance entre l'origine et la pointe.\n\nFormule : `sqrt(x² + y² + z²)`\n\n`normalize(v)` retourne un vecteur de **même direction** mais de longueur exactement 1. Un vecteur de longueur 1 s'appelle un **vecteur unitaire**, essentiel pour les directions, normales et produits scalaires.\n\nUne autre fonction bien utile : `clamp(x, min, max)` force une valeur à rester dans une plage donnée — tout ce qui est sous `min` devient `min`, tout ce qui est au-dessus de `max` devient `max`. C'est le moyen le plus simple de ramener une distance dans une plage propre de 0 à 1 avant de l'utiliser comme couleur.",
+    body: "`length(v)` retourne la **magnitude** d'un vecteur — la distance entre l'origine et la pointe.\n\nFormule : `sqrt(x² + y² + z²)`\n\n`normalize(v)` retourne un vecteur de **même direction** mais de longueur exactement 1. Un vecteur de longueur 1 s'appelle un **vecteur unitaire**, essentiel pour les directions, normales et produits scalaires.\n\nIl existe aussi `distance(a, b)` — un raccourci pour `length(a - b)`, la distance entre deux points plutôt que depuis l'origine.",
     keyPoints: [
       'length(v) = magnitude = sqrt(x²+y²+z²)',
       'normalize(v) = vecteur unitaire (longueur = 1)',
       "length(@P) = distance depuis l'origine",
-      'clamp(x, min, max) garde une valeur dans [min, max]',
+      'distance(a, b) = length(a - b)',
     ],
   },
-  'learn-vec-2': {
-    title: 'dot() et lerp()',
-    body: "`dot(a, b)` retourne un seul float : le **produit scalaire**. Il mesure à quel point deux vecteurs sont alignés. Si les deux sont des vecteurs unitaires, `dot(a, b)` va de -1 (opposés) à +1 (même direction), 0 signifiant perpendiculaire.\n\n`lerp(a, b, t)` **interpole** entre deux valeurs. À `t=0` on obtient `a`, à `t=1` on obtient `b`, entre les deux un mélange. Fonctionne sur les floats et les vecteurs.",
+  'learn-clamp-lerp-1': {
+    title: 'clamp() et lerp()',
+    body: "`clamp(x, min, max)` force une valeur à rester dans une plage donnée — tout ce qui est sous `min` devient `min`, tout ce qui est au-dessus de `max` devient `max`. C'est le moyen le plus simple de ramener une distance (ou n'importe quelle valeur non bornée) dans une plage propre de 0 à 1 avant de l'utiliser comme couleur.\n\n`lerp(a, b, t)` **interpole** entre deux valeurs. À `t=0` on obtient `a`, à `t=1` on obtient `b`, entre les deux un mélange. Fonctionne sur les floats et les vecteurs. Contrairement à `fit01`, `lerp()` ne limite **pas** `t` — si tu passes `t=1.5`, ça dépasse `b`.",
     keyPoints: [
-      'dot(a, b) → float : mesure l\'alignement (-1 à 1)',
+      'clamp(x, min, max) garde une valeur dans [min, max]',
       'lerp(a, b, t) → interpole entre a et b',
       'lerp fonctionne sur les floats et les vecteurs',
+      'lerp ne limite pas t — combine avec clamp() si besoin',
+    ],
+  },
+  'learn-dot-cross-1': {
+    title: 'dot() et cross()',
+    body: "`dot(a, b)` retourne un seul float : le **produit scalaire**. Il mesure à quel point deux vecteurs sont alignés. Si les deux sont des vecteurs unitaires, `dot(a, b)` va de **-1** (directions opposées) à **+1** (même direction), avec **0** signifiant perpendiculaire.\n\n`cross(a, b)` retourne un **vecteur** perpendiculaire à `a` et `b` à la fois — utile pour trouver \"la direction de côté\" par rapport à deux autres directions (comme construire un repère local).",
+    keyPoints: [
+      'dot(a, b) → float : mesure l\'alignement (-1 à 1)',
+      'dot(a, b) = 0 signifie que a et b sont perpendiculaires',
+      'cross(a, b) → vecteur : perpendiculaire à a et b',
     ],
   },
   'learn-if-1': {
@@ -409,13 +424,51 @@ export const FR_EXERCISES: Record<string, ExTranslation> = {
     explanation: 'Multiplier un vecteur par un scalaire multiplie **chaque composante** : `{1*3, 0*3, 0*3}` = `{3, 0, 0}`.',
     choices: ['{3, 0, 0}', '3.0', '{1, 0, 0}', 'Erreur — impossible de mélanger vecteur et float'],
   },
+  'arith-5': {
+    title: 'Quel est le résultat de `{1, 2, 3} + 1.0` ?',
+    explanation: 'Un float ajouté à un vecteur se **propage** aux trois composantes : `{1+1, 2+1, 3+1}` = `{2, 3, 4}`. Même règle que `*` — ce n\'est pas que la multiplication qui se propage.',
+    choices: ['{2, 3, 4}', '{1, 2, 4}', '{2, 2, 2}', 'Erreur — impossible d\'additionner vecteur et float'],
+    choiceExplanations: { 1: 'Ça n\'ajouterait qu\'à la dernière composante — le scalaire s\'applique aux trois.' },
+  },
+  'arith-6': {
+    title: "Utilise l'opérateur modulo",
+    codeLines: ['// Quel est le reste de 7 divisé par 3 ?', 'float r = 7.0 ___ 3.0;'],
+    hints: ['L\'opérateur de reste'],
+    explanation: '`7 % 3 = 1` — 3 entre deux fois dans 7 (6), il reste 1. Le modulo est très utile pour les motifs répétitifs, que tu utiliseras beaucoup plus tard.',
+  },
   'arith-2': {
     title: 'Double chaque position — utilise l\'opérateur raccourci `*=` (pas `= @P *`)',
     codeLines: ['// Multiplie @P par 2 — agrandit la géométrie', '@P ___ 2.0;'],
     hints: ['Opérateur multiplier-et-affecter : écris *= , pas = @P *'],
     explanation: '`@P *= 2.0;` multiplie chaque composante de la position par 2, doublant l\'échelle de la géométrie.',
   },
-  'arith-3': {
+  'arith-7': {
+    title: "Décale chaque point sur le côté — utilise l'opérateur raccourci `+=`",
+    codeLines: ['// Décale chaque point de 0.5 unité vers la droite (X)', '@P.x ___ 0.5;'],
+    hints: ['Opérateur additionner-et-affecter'],
+    explanation: '`@P.x += 0.5;` est un raccourci pour `@P.x = @P.x + 0.5;` — même principe que `*=`, juste avec `+`.',
+  },
+  'arith-8': {
+    title: 'Que vaut `5 % 2` ?',
+    explanation: '5 divisé par 2 vaut 2 avec un reste de 1 (2×2=4, 5-4=1). Le modulo donne toujours ce reste.',
+    choices: ['1', '2.5', '0', '10'],
+  },
+  'arith-9': {
+    title: 'Agrandis et soulève',
+    prompt: 'Combine deux opérateurs sur cette sphère : double sa taille, puis décale chaque point vers le haut de 0.5.\n\nUtilise les opérateurs raccourcis que tu viens de pratiquer.',
+    checks: [
+      'Les points sont agrandis (distance moyenne au centre augmentée)',
+      'Les points sont décalés vers le haut d\'environ 0.5',
+    ],
+    explanation: '`@P *= 2.0;` met à l\'échelle chaque point en s\'éloignant de l\'origine (doublant le rayon de la sphère), puis `@P.y += 0.5;` décale le tout vers le haut.',
+  },
+  // ── fit-remap ──
+  'fit-1': {
+    title: 'Que retourne `fit(5, 0, 10, 0, 100)` ?',
+    explanation: '5 est exactement à mi-chemin entre 0 et 10. À mi-chemin dans la nouvelle plage `[0, 100]`, ça donne **50**.',
+    choices: ['50', '5', '100', '10'],
+  },
+  'fit-2': {
     title: 'Dégradé de hauteur',
     prompt: 'Colore les points selon leur hauteur (position Y).\n\nIl te faut un dégradé de noir vers rouge : le bas doit être sombre, le haut rouge vif.\n\nAttention : la sphère est centrée, donc ses valeurs Y vont d\'environ -1 à +1 — pas de 0 à 1.',
     checks: [
@@ -425,7 +478,29 @@ export const FR_EXERCISES: Record<string, ExTranslation> = {
     ],
     explanation: '`fit(@P.y, -1, 1, 0, 1)` mappe -1→0 et +1→1. Assigner uniquement à `@Cd.x` (avec @Cd.y et @Cd.z à 0) crée un dégradé rouge du noir (bas) au rouge (haut).',
   },
-  // ── vectors ──
+  'fit-3': {
+    title: 'Remappe une valeur déjà entre 0 et 1',
+    codeLines: ['// x est déjà entre 0 et 1 (ex: une valeur de bruit). Remappe-le vers 0.2-0.9.', 'float c = ___(x, 0.2, 0.9);'],
+    hints: ['La variante de fit pour les entrées déjà entre 0 et 1'],
+    explanation: '`fit01(x, nmin, nmax)` est un raccourci pour `fit(x, 0, 1, nmin, nmax)` — utilise-la quand l\'entrée est déjà connue pour être entre 0 et 1.',
+  },
+  'fit-4': {
+    title: 'Quelle est la vraie différence entre `fit01(x, 0.2, 0.9)` et `fit(x, 0, 1, 0.2, 0.9)` ?',
+    explanation: 'Elles calculent le même remappage, mais `fit01` **limite** en plus `x` à 0–1 d\'abord. `fit()` seule ne limite pas — si `x` sort de `[omin, omax]`, le résultat extrapole hors de `[nmin, nmax]`.',
+    choices: [
+      'fit01 limite x à 0–1 d\'abord ; fit() peut extrapoler hors de la plage',
+      'Elles sont exactement identiques dans tous les cas',
+      'fit01 ne fonctionne que sur des vecteurs',
+      'fit01 est juste une version plus rapide du même calcul',
+    ],
+  },
+  'fit-5': {
+    title: 'Dégradé de côté à côté',
+    prompt: 'Colore les points selon leur position X cette fois, pas Y.\n\nLes valeurs X de la sphère vont d\'environ -1 à +1. Mélange du bleu (gauche, X=-1) au jaune (droite, X=+1).',
+    checks: ['Les points à gauche (X < -0.6) et à droite (X > 0.6) ont des couleurs différentes'],
+    explanation: 'Même recette que le dégradé de hauteur, juste piloté par `@P.x` au lieu de `@P.y` — `fit()` fonctionne pareil quel que soit l\'axe que tu lui donnes.',
+  },
+  // ── vectors (length/normalize) ──
   'vec-1': {
     title: 'Que retourne `length({0, 3, 4})` ?',
     explanation: 'length = √(0² + 3² + 4²) = √(0 + 9 + 16) = √25 = **5**.',
@@ -435,6 +510,32 @@ export const FR_EXERCISES: Record<string, ExTranslation> = {
     title: 'Que retourne `normalize({0, 0, 9})` ?',
     explanation: '`normalize` conserve la direction mais force la longueur à 1. `{0, 0, 9}` pointe en +Z, donc normalisé → `{0, 0, 1}`.',
     choices: ['{0, 0, 1}', '{0, 0, 9}', '{0, 0, 0.5}', '9.0'],
+  },
+  'vec-5': {
+    title: 'Que retourne `length({1, 1, 1})` (arrondi à 2 décimales) ?',
+    explanation: '√(1² + 1² + 1²) = √3 ≈ **1.73**. Tout ne donne pas un nombre rond avec length() !',
+    choices: ['1.73', '3.0', '1.0', '1.5'],
+  },
+  'vec-6': {
+    title: 'Distance entre deux points',
+    codeLines: [
+      '// Calcule la distance entre le point a et le point b',
+      'vector a = {0, 0, 0};',
+      'vector b = {3, 4, 0};',
+      'float d = ___(a, b);',
+    ],
+    hints: ['Raccourci pour length(a - b)'],
+    explanation: '`distance(a, b)` donne 5 ici — c\'est le classique triangle 3-4-5, comme `length(b - a)` l\'aurait donné aussi.',
+  },
+  'vec-7': {
+    title: 'Pourquoi `normalize({0, 0, 0})` retourne `{0, 0, 0}` au lieu de planter ?',
+    explanation: 'Le vecteur nul n\'a pas de direction à préserver, donc diviser par sa longueur (nulle) serait indéfini. VEX joue la sécurité et retourne simplement le vecteur nul plutôt qu\'une erreur.',
+    choices: [
+      'Le vecteur nul n\'a pas de direction, donc VEX retourne zéro plutôt que de diviser par zéro',
+      'Ça déclenche une erreur d\'exécution',
+      'Ça retourne {1, 1, 1}',
+      'Ça retourne une direction aléatoire',
+    ],
   },
   'vec-3': {
     title: "Calcule la distance depuis l'origine",
@@ -447,11 +548,80 @@ export const FR_EXERCISES: Record<string, ExTranslation> = {
     hints: ['Fonction intégrée qui retourne la magnitude', 'La variable qu\'on vient de calculer'],
     explanation: '`length(@P)` donne la distance depuis l\'origine. L\'utiliser aussi pour le canal rouge donne un dégradé neutre, en niveaux de gris.',
   },
-  'vec-4': {
-    title: 'Colore par distance',
-    prompt: 'Ces points sont dispersés autour de l\'origine du monde `{0,0,0}`, à des distances variées.\n\nColore chaque point selon sa distance à l\'origine — choisis deux couleurs et mélange-les en douceur : une pour les points proches de l\'origine, une autre pour les points lointains.',
-    checks: ['Les points proches (dist < 0.3) ont une couleur différente des points lointains (dist > 0.7)', 'Les points à distance similaire ont une couleur similaire (la couleur suit la distance, pas la direction)'],
-    explanation: '`lerp(a, b, t)` mélange en douceur deux couleurs. Combiné avec `clamp(length(@P), 0, 1)`, on obtient un dégradé radial.',
+  // ── clamp-lerp ──
+  'cl-1': {
+    title: 'Que retourne `clamp(15, 0, 10)` ?',
+    explanation: '15 dépasse le max de 10, donc c\'est limité à **10**.',
+    choices: ['10', '15', '0', '5'],
+  },
+  'cl-2': {
+    title: 'Garde une valeur dans une plage',
+    codeLines: ['// Empêche speed de dépasser 1.0, et de descendre sous 0', 'float speed = ___(rawSpeed, 0.0, 1.0);'],
+    hints: ['Force une valeur à rester dans [min, max]'],
+    explanation: '`clamp(rawSpeed, 0.0, 1.0)` est la méthode standard pour garder une valeur calculée dans une plage sûre.',
+  },
+  'cl-3': {
+    title: 'Que retourne `lerp(10, 20, 0.5)` ?',
+    explanation: '`t=0.5` est exactement à mi-chemin entre 10 et 20 — ça donne **15**.',
+    choices: ['15', '10', '20', '30'],
+  },
+  'cl-4': {
+    title: 'Que retourne `lerp({0,0,0}, {10,10,10}, 0.25)` ?',
+    explanation: '`lerp` interpole chaque composante pareil : `0 + (10-0)*0.25 = 2.5` sur chaque axe.',
+    choices: ['{2.5, 2.5, 2.5}', '{0, 0, 0}', '{10, 10, 10}', '{0.25, 0.25, 0.25}'],
+  },
+  'cl-5': {
+    title: 'Est-ce que `lerp(a, b, 1.5)` limite automatiquement t entre a et b ?',
+    explanation: 'Non — `lerp()` applique toujours le calcul tel quel. `t=1.5` dépasse `b`. Si tu veux que le résultat reste dans `[a, b]`, applique `clamp()` toi-même (ou utilise `fit01`, qui limite).',
+    choices: [
+      'Non — ça dépasse b. Combine avec clamp() si tu veux rester dans la plage',
+      'Oui — t est toujours limité à 0–1 automatiquement',
+      'Ça déclenche une erreur d\'exécution',
+      'Ça retourne a sans changement',
+    ],
+  },
+  'cl-6': {
+    title: 'Mélange deux couleurs',
+    codeLines: ['// Mélange du bleu vers le jaune selon t', '@Cd = ___({0, 0, 1}, {1, 1, 0}, t);'],
+    hints: ['Interpole entre deux couleurs selon t'],
+    explanation: '`lerp(a, b, t)` est la méthode standard pour mélanger deux couleurs — fonctionne exactement pareil sur des vecteurs que sur des floats.',
+  },
+  // ── dot-cross ──
+  'dc-1': {
+    title: 'Que retourne `dot({1, 0, 0}, {0, 1, 0})` ?',
+    explanation: 'Ces deux vecteurs sont perpendiculaires (l\'un pointe le long de X, l\'autre de Y), donc leur produit scalaire est **0**.',
+    choices: ['0.0', '1.0', '-1.0', '{0, 0, 0}'],
+    choiceExplanations: { 3: 'dot() retourne toujours un float, jamais un vecteur — c\'est le rôle de cross().' },
+  },
+  'dc-2': {
+    title: 'Que retourne `dot({1, 0, 0}, {-1, 0, 0})` ?',
+    explanation: 'Ces deux vecteurs unitaires pointent dans des directions exactement **opposées**, donc leur produit scalaire est **-1**.',
+    choices: ['-1.0', '0.0', '1.0', '2.0'],
+  },
+  'dc-3': {
+    title: "Mesure l'alignement avec le \"haut\"",
+    codeLines: [
+      '// Vérifie à quel point la normale est alignée avec le "haut" du monde',
+      'vector up = {0, 1, 0};',
+      'float alignment = ___(@N, up);',
+    ],
+    hints: ['Retourne -1 à 1 selon l\'alignement de deux vecteurs'],
+    explanation: '`dot(@N, up)` est exactement la façon de mesurer "cette surface fait-elle face au-dessus, en dessous, ou de côté" — un motif VEX très courant.',
+  },
+  'dc-4': {
+    title: 'Que retourne `cross({1, 0, 0}, {0, 1, 0})` ?',
+    explanation: '`cross()` retourne un vecteur perpendiculaire aux deux entrées. X croisé avec Y donne Z : `{0, 0, 1}`.',
+    choices: ['{0, 0, 1}', '0.0', '{1, 1, 0}', '{1, 0, 0}'],
+    choiceExplanations: { 1: 'C\'est le type de retour de dot() — cross() retourne toujours un vecteur.' },
+  },
+  'dc-5': {
+    title: 'Ombrage selon la normale orientée vers le haut',
+    prompt: 'Colore chaque point selon à quel point sa normale de surface pointe "vers le haut" (direction +Y).\n\nUtilise `dot()` pour mesurer l\'alignement entre `@N` et `{0,1,0}` — ça donne une valeur de -1 à 1. Remappe-la en 0–1 avec `fit()`, puis utilise-la comme couleur en niveaux de gris (même valeur sur les 3 canaux).',
+    checks: [
+      'Les points du haut (orientés vers le haut) sont plus lumineux que ceux du bas',
+      'La couleur reste en niveaux de gris (les canaux R, G et B correspondent)',
+    ],
+    explanation: 'Sur cette sphère, la normale `@N` pointe directement vers l\'extérieur, donc `dot(@N, up)` est maximal au pôle du haut et minimal en bas — `fit()` transforme ça en une luminosité 0–1 propre.',
   },
   // ── conditionals ──
   'if-1': {

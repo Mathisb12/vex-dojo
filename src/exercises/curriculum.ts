@@ -456,25 +456,14 @@ export const CURRICULUM: Module[] = [
             kind: 'learn',
             id: 'learn-arith-1',
             title: 'Math operators in VEX',
-            body: 'VEX supports the standard arithmetic operators: `+`, `-`, `*`, `/`, `%`.\n\n**Vectors and scalars mix naturally.** Multiplying a vector by a float scales all three components. Adding two vectors adds component-by-component.',
-            codeExample: 'float a = 3.0;\nfloat b = a * 2.0;    // b = 6.0\nfloat c = a % 2.0;    // c = 1.0 (modulo)\n\nvector v = {1, 2, 3};\nvector w = v * 2.0;   // {2, 4, 6}\nvector s = v + {0, 1, 0}; // {1, 3, 3}',
+            body: 'VEX supports the standard arithmetic operators: `+`, `-`, `*`, `/`, `%`.\n\n**Vectors and scalars mix naturally.** Any of these operators between a vector and a float applies to **all three components** — multiplying, adding, whatever. Adding two vectors adds component-by-component.',
+            codeExample: 'float a = 3.0;\nfloat b = a * 2.0;    // b = 6.0\nfloat c = a % 2.0;    // c = 1.0 (modulo: the remainder)\n\nvector v = {1, 2, 3};\nvector w = v * 2.0;   // {2, 4, 6}\nvector u = v + 1.0;   // {2, 3, 4} — scalar broadcasts to all 3\nvector s = v + {0, 1, 0}; // {1, 3, 3}',
             keyPoints: [
               'Operators: + - * / %',
-              'Vector * scalar scales all components',
-              'Vector + vector adds component-by-component',
+              '% is modulo — the remainder of a division (7 % 3 = 1)',
+              'vector op float applies to all 3 components',
+              'vector + vector adds component-by-component',
               '+= -= *= /= are shorthand assignment operators',
-            ],
-          },
-          {
-            kind: 'learn',
-            id: 'learn-arith-2',
-            title: 'Remapping values with fit()',
-            body: '`fit(x, omin, omax, nmin, nmax)` is one of the most useful VEX functions.\n\nIt **remaps** a value from one range into another. If `x` is in `[omin, omax]`, the result is in `[nmin, nmax]`.\n\nExample: Y position goes from -1 to 1. You want to use it as a color (0 to 1). `fit(@P.y, -1, 1, 0, 1)` does exactly that.',
-            codeExample: '// Map Y height (-1..1) to a 0..1 range\nfloat t = fit(@P.y, -1.0, 1.0, 0.0, 1.0);\n\n// t = 0 at the bottom, 1 at the top\n@Cd = {t, 0.0, 0.0}; // dark red → bright red',
-            keyPoints: [
-              'fit(x, omin, omax, nmin, nmax) remaps a range',
-              'Useful for turning positions into color values',
-              'clamp() limits a value to [min, max]',
             ],
           },
         ],
@@ -493,6 +482,32 @@ export const CURRICULUM: Module[] = [
             xp: 10,
           },
           {
+            kind: 'mcq',
+            id: 'arith-5',
+            title: 'What is the result of `{1, 2, 3} + 1.0`?',
+            explanation: 'A float added to a vector **broadcasts** to all three components: `{1+1, 2+1, 3+1}` = `{2, 3, 4}`. Same rule as `*` — it\'s not just multiplication that broadcasts.',
+            choices: [
+              { text: '{2, 3, 4}', correct: true },
+              { text: '{1, 2, 4}', correct: false, explanation: 'This would only add to the last component — the scalar applies to all three.' },
+              { text: '{2, 2, 2}', correct: false },
+              { text: 'Error — can\'t add vector and float', correct: false },
+            ],
+            xp: 10,
+          },
+          {
+            kind: 'fill',
+            id: 'arith-6',
+            title: 'Use the modulo operator',
+            codeLines: [
+              '// What\'s the remainder of 7 divided by 3?',
+              'float r = 7.0 ___ 3.0;',
+            ],
+            answers: ['%'],
+            hints: ['The remainder operator'],
+            explanation: '`7 % 3 = 1` — 3 goes into 7 twice (6), leaving a remainder of 1. Modulo is very useful for repeating patterns, which you\'ll use a lot later.',
+            xp: 15,
+          },
+          {
             kind: 'fill',
             id: 'arith-2',
             title: 'Double every position — use the `*=` shorthand operator (not `= @P *`)',
@@ -508,8 +523,102 @@ export const CURRICULUM: Module[] = [
             xp: 15,
           },
           {
+            kind: 'fill',
+            id: 'arith-7',
+            title: 'Shift every point sideways — use the `+=` shorthand operator',
+            codeLines: [
+              '// Shift every point 0.5 units to the right (X)',
+              '@P.x ___ 0.5;',
+            ],
+            answers: ['+='],
+            hints: ['Add-and-assign operator'],
+            explanation: '`@P.x += 0.5;` is shorthand for `@P.x = @P.x + 0.5;` — same shorthand pattern as `*=`, just with `+`.',
+            pointShape: 'sphere',
+            pointCount: 150,
+            xp: 15,
+          },
+          {
+            kind: 'mcq',
+            id: 'arith-8',
+            title: 'What does `5 % 2` evaluate to?',
+            explanation: '5 divided by 2 is 2 with a remainder of 1 (2×2=4, 5-4=1). Modulo always gives you that leftover remainder.',
+            choices: [
+              { text: '1', correct: true },
+              { text: '2.5', correct: false },
+              { text: '0', correct: false },
+              { text: '10', correct: false },
+            ],
+            xp: 10,
+          },
+          {
             kind: 'code',
-            id: 'arith-3',
+            id: 'arith-9',
+            title: 'Scale and lift',
+            prompt: 'Combine two operators on this sphere: double its size, then shift every point up by 0.5.\n\nUse the shorthand assignment operators you just practiced.',
+            starterCode: '// Double the size (scale @P), then shift up\n',
+            solutionCode: '@P *= 2.0;\n@P.y += 0.5;\n',
+            checks: [
+              {
+                description: 'Points are scaled up (average distance from center increased)',
+                test: (pts) => {
+                  const avgDist = pts.reduce((s, p) => s + Math.sqrt(p.P.x ** 2 + (p.P.y - 0.5) ** 2 + p.P.z ** 2), 0) / pts.length
+                  return avgDist > 1.5
+                },
+              },
+              {
+                description: 'Points are shifted up by about 0.5',
+                test: (pts) => {
+                  const avgY = pts.reduce((s, p) => s + p.P.y, 0) / pts.length
+                  return avgY > 0.3 && avgY < 0.7
+                },
+              },
+            ],
+            pointShape: 'sphere',
+            pointCount: 200,
+            explanation: '`@P *= 2.0;` scales every point away from the origin (doubling the sphere\'s radius), then `@P.y += 0.5;` shifts the whole result upward.',
+            xp: 25,
+          },
+        ],
+      },
+
+      // ── Lesson 2: fit() — remapping ranges ──────────────────────────────────
+      {
+        id: 'fit-remap',
+        title: 'fit() — remapping ranges',
+        icon: '🎯',
+        description: 'Turn any range of values into another range',
+        learnCards: [
+          {
+            kind: 'learn',
+            id: 'learn-fit-1',
+            title: 'Remapping values with fit()',
+            body: '`fit(x, omin, omax, nmin, nmax)` is one of the most useful VEX functions.\n\nIt **remaps** a value from one range into another. If `x` is in `[omin, omax]`, the result is in `[nmin, nmax]`.\n\nExample: Y position goes from -1 to 1. You want to use it as a color (0 to 1). `fit(@P.y, -1, 1, 0, 1)` does exactly that.\n\nTwo shortcuts exist for common cases: `fit01(x, nmin, nmax)` assumes your input is already 0–1 (and clamps it there first), `fit10(x, nmin, nmax)` does the same but reversed — handy for inverting a gradient without flipping your math.',
+            codeExample: '// Map Y height (-1..1) to a 0..1 range\nfloat t = fit(@P.y, -1.0, 1.0, 0.0, 1.0);\n\n// t = 0 at the bottom, 1 at the top\n@Cd = {t, 0.0, 0.0}; // dark red → bright red\n\n// fit01: input already 0..1, remap to a custom range\nfloat brightness = fit01(t, 0.2, 0.9);',
+            keyPoints: [
+              'fit(x, omin, omax, nmin, nmax) remaps a range',
+              'Useful for turning positions into color values',
+              'fit01(x, nmin, nmax) assumes input is already 0–1',
+              'fit10(x, nmin, nmax) is fit01 but reversed',
+            ],
+          },
+        ],
+        exercises: [
+          {
+            kind: 'mcq',
+            id: 'fit-1',
+            title: 'What does `fit(5, 0, 10, 0, 100)` return?',
+            explanation: '5 is exactly halfway between 0 and 10. Halfway in the new range `[0, 100]` is **50**.',
+            choices: [
+              { text: '50', correct: true },
+              { text: '5', correct: false },
+              { text: '100', correct: false },
+              { text: '10', correct: false },
+            ],
+            xp: 10,
+          },
+          {
+            kind: 'code',
+            id: 'fit-2',
             title: 'Height gradient',
             prompt: 'Color the points based on their height (Y position).\n\nYou need a gradient from black to red: the bottom should be dark, the top bright red.\n\nWatch out: the sphere is centered, so its Y values range from about -1 to +1 — not 0 to 1.',
             starterCode: '// Use fit() to remap @P.y from (-1..1) to (0..1)\n// Then assign the result to @Cd.x\n// Set @Cd.y and @Cd.z to 0\n',
@@ -540,39 +649,80 @@ export const CURRICULUM: Module[] = [
             explanation: '`fit(@P.y, -1, 1, 0, 1)` maps -1→0 and +1→1. Assigning to `@Cd.x` alone (with @Cd.y and @Cd.z at 0) makes it a red gradient from black (bottom) to red (top).',
             xp: 25,
           },
+          {
+            kind: 'fill',
+            id: 'fit-3',
+            title: 'Remap a value that\'s already 0–1',
+            codeLines: [
+              '// x is already 0-1 (e.g. a noise value). Map it to a 0.2-0.9 range.',
+              'float c = ___(x, 0.2, 0.9);',
+            ],
+            answers: ['fit01'],
+            hints: ['The fit variant for inputs that are already 0–1'],
+            explanation: '`fit01(x, nmin, nmax)` is shorthand for `fit(x, 0, 1, nmin, nmax)` — use it whenever the input is already known to be 0–1.',
+            xp: 15,
+          },
+          {
+            kind: 'mcq',
+            id: 'fit-4',
+            title: 'What\'s the real difference between `fit01(x, 0.2, 0.9)` and `fit(x, 0, 1, 0.2, 0.9)`?',
+            explanation: 'They compute the same remap, but `fit01` additionally **clamps** `x` to 0–1 first. Plain `fit()` doesn\'t clamp — if `x` is outside `[omin, omax]`, the result extrapolates past `[nmin, nmax]`.',
+            choices: [
+              { text: 'fit01 clamps x to 0–1 first; fit() can extrapolate outside the range', correct: true },
+              { text: 'They are exactly identical in every case', correct: false },
+              { text: 'fit01 only works on vectors', correct: false },
+              { text: 'fit01 is just a faster version of the same math', correct: false },
+            ],
+            xp: 10,
+          },
+          {
+            kind: 'code',
+            id: 'fit-5',
+            title: 'Side-to-side gradient',
+            prompt: 'Color the points based on their X position this time, not Y.\n\nThe sphere\'s X values range from about -1 to +1. Blend from blue (left, X=-1) to yellow (right, X=+1).',
+            starterCode: '// Remap @P.x from (-1..1) to (0..1), then lerp between two colors\n',
+            solutionCode: 'float t = fit(@P.x, -1.0, 1.0, 0.0, 1.0);\n@Cd = lerp({0.1, 0.3, 0.9}, {0.95, 0.85, 0.1}, t);\n',
+            checks: [
+              {
+                description: 'Left points (X < -0.6) and right points (X > 0.6) have different colors',
+                test: (pts) => {
+                  const left = pts.filter(p => p.P.x < -0.6)
+                  const right = pts.filter(p => p.P.x > 0.6)
+                  if (left.length < 3 || right.length < 3) return false
+                  const avg = (arr: typeof pts, c: 'x' | 'y' | 'z') => arr.reduce((s, p) => s + p.Cd[c], 0) / arr.length
+                  const dx = avg(left, 'x') - avg(right, 'x')
+                  const dy = avg(left, 'y') - avg(right, 'y')
+                  const dz = avg(left, 'z') - avg(right, 'z')
+                  return Math.sqrt(dx * dx + dy * dy + dz * dz) > 0.3
+                },
+              },
+            ],
+            pointShape: 'sphere',
+            pointCount: 200,
+            explanation: 'Same recipe as the height gradient, just driven by `@P.x` instead of `@P.y` — `fit()` works identically regardless of which axis you feed it.',
+            xp: 25,
+          },
         ],
       },
 
-      // ── Lesson 2: Vector Math ──────────────────────────────────────────────
+      // ── Lesson 3: length() & normalize() ─────────────────────────────────────
       {
         id: 'vectors',
-        title: 'Vector Math',
+        title: 'length() & normalize()',
         icon: '↗️',
-        description: 'length, normalize, dot, cross',
+        description: 'Measure and reshape vector magnitude',
         learnCards: [
           {
             kind: 'learn',
             id: 'learn-vec-1',
             title: 'length() and normalize()',
-            body: '`length(v)` returns the **magnitude** of a vector — the distance from the origin to the tip.\n\nFormula: `sqrt(x² + y² + z²)`\n\n`normalize(v)` returns a vector with the **same direction** but length exactly 1. A vector with length 1 is called a **unit vector** and is essential for directions, normals, and dot products.\n\nOne more handy function: `clamp(x, min, max)` forces a value to stay inside a range — anything below `min` becomes `min`, anything above `max` becomes `max`. It\'s the easiest way to squeeze a distance into a clean 0–1 range before using it as a color.',
-            codeExample: 'vector v = {3, 4, 0};\nfloat  l = length(v);      // 5.0\nvector n = normalize(v);   // {0.6, 0.8, 0.0}\n\n// Distance from origin to current point\nfloat dist = length(@P);\nfloat t    = clamp(dist, 0.0, 1.0); // force into 0..1',
+            body: '`length(v)` returns the **magnitude** of a vector — the distance from the origin to the tip.\n\nFormula: `sqrt(x² + y² + z²)`\n\n`normalize(v)` returns a vector with the **same direction** but length exactly 1. A vector with length 1 is called a **unit vector** and is essential for directions, normals, and dot products.\n\nThere\'s also `distance(a, b)` — shorthand for `length(a - b)`, the distance between two points instead of from the origin.',
+            codeExample: 'vector v = {3, 4, 0};\nfloat  l = length(v);      // 5.0\nvector n = normalize(v);   // {0.6, 0.8, 0.0}\n\n// Distance from origin to current point\nfloat dist = length(@P);\n\n// Distance between two arbitrary points\nfloat d2 = distance({0,0,0}, {3,4,0}); // 5.0, same as length() of the difference',
             keyPoints: [
               'length(v) = magnitude = sqrt(x²+y²+z²)',
               'normalize(v) = unit vector (length = 1)',
               'length(@P) = distance from the origin',
-              'clamp(x, min, max) keeps a value inside [min, max]',
-            ],
-          },
-          {
-            kind: 'learn',
-            id: 'learn-vec-2',
-            title: 'dot() and lerp()',
-            body: '`dot(a, b)` returns a single float: the **dot product**. It measures how aligned two vectors are. If both are unit vectors, `dot(a, b)` ranges from -1 (opposite) to +1 (same direction), 0 meaning perpendicular.\n\n`lerp(a, b, t)` **interpolates** between two values. At `t=0` you get `a`, at `t=1` you get `b`, in between you get a mix. Works on floats and vectors.',
-            codeExample: 'vector a = {1, 0, 0};\nvector b = {0, 1, 0};\nfloat  d = dot(a, b);          // 0.0 (perpendicular)\n\nvector red  = {1, 0, 0};\nvector blue = {0, 0, 1};\nvector mix  = lerp(red, blue, 0.5); // {0.5, 0, 0.5}',
-            keyPoints: [
-              'dot(a, b) → float: measures alignment (-1 to 1)',
-              'lerp(a, b, t) → interpolates between a and b',
-              'lerp works on both floats and vectors',
+              'distance(a, b) = length(a - b)',
             ],
           },
         ],
@@ -604,6 +754,47 @@ export const CURRICULUM: Module[] = [
             xp: 10,
           },
           {
+            kind: 'mcq',
+            id: 'vec-5',
+            title: 'What does `length({1, 1, 1})` return (rounded to 2 decimals)?',
+            explanation: '√(1² + 1² + 1²) = √3 ≈ **1.73**. Not every length() comes out as a clean whole number!',
+            choices: [
+              { text: '1.73', correct: true },
+              { text: '3.0', correct: false },
+              { text: '1.0', correct: false },
+              { text: '1.5', correct: false },
+            ],
+            xp: 10,
+          },
+          {
+            kind: 'fill',
+            id: 'vec-6',
+            title: 'Distance between two points',
+            codeLines: [
+              '// Compute the distance between point a and point b',
+              'vector a = {0, 0, 0};',
+              'vector b = {3, 4, 0};',
+              'float d = ___(a, b);',
+            ],
+            answers: ['distance'],
+            hints: ['Shorthand for length(a - b)'],
+            explanation: '`distance(a, b)` gives 5 here — it\'s the classic 3-4-5 right triangle, just like `length(b - a)` would.',
+            xp: 15,
+          },
+          {
+            kind: 'mcq',
+            id: 'vec-7',
+            title: 'Why does `normalize({0, 0, 0})` return `{0, 0, 0}` instead of crashing?',
+            explanation: 'The zero vector has no direction to preserve, so dividing by its (zero) length would be undefined. VEX plays it safe and just returns the zero vector instead of erroring.',
+            choices: [
+              { text: 'The zero vector has no direction, so VEX safely returns zero instead of dividing by zero', correct: true },
+              { text: 'It throws a runtime error', correct: false },
+              { text: 'It returns {1, 1, 1}', correct: false },
+              { text: 'It returns a random direction', correct: false },
+            ],
+            xp: 10,
+          },
+          {
             kind: 'fill',
             id: 'vec-3',
             title: 'Distance from origin',
@@ -620,53 +811,214 @@ export const CURRICULUM: Module[] = [
             pointShape: 'random',
             pointCount: 150,
           },
+        ],
+      },
+
+      // ── Lesson 4: clamp() & lerp() ────────────────────────────────────────────
+      {
+        id: 'clamp-lerp',
+        title: 'clamp() & lerp()',
+        icon: '🔀',
+        description: 'Constrain a range, then blend across it',
+        learnCards: [
+          {
+            kind: 'learn',
+            id: 'learn-clamp-lerp-1',
+            title: 'clamp() and lerp()',
+            body: '`clamp(x, min, max)` forces a value to stay inside a range — anything below `min` becomes `min`, anything above `max` becomes `max`. It\'s the easiest way to squeeze a distance (or anything unbounded) into a clean 0–1 range before using it as a color.\n\n`lerp(a, b, t)` **interpolates** between two values. At `t=0` you get `a`, at `t=1` you get `b`, in between you get a smooth mix. Works on floats and vectors alike. Unlike `fit01`, `lerp()` does **not** clamp `t` — if you pass `t=1.5`, it overshoots past `b`.',
+            codeExample: 'float dist = length(@P);\nfloat t = clamp(dist, 0.0, 1.0); // force into 0..1\n\nfloat  midway = lerp(10.0, 20.0, 0.5);          // 15.0\nvector mix    = lerp({0,0,0}, {10,10,10}, 0.25); // {2.5, 2.5, 2.5}\n\n// lerp does NOT clamp t — this overshoots past b\nfloat over = lerp(0.0, 10.0, 1.5); // 15.0, past b!',
+            keyPoints: [
+              'clamp(x, min, max) keeps a value inside [min, max]',
+              'lerp(a, b, t) → interpolates between a and b',
+              'lerp works on both floats and vectors',
+              'lerp does not clamp t — combine with clamp() if needed',
+            ],
+          },
+        ],
+        exercises: [
+          {
+            kind: 'mcq',
+            id: 'cl-1',
+            title: 'What does `clamp(15, 0, 10)` return?',
+            explanation: '15 is above the max of 10, so it gets clamped down to **10**.',
+            choices: [
+              { text: '10', correct: true },
+              { text: '15', correct: false },
+              { text: '0', correct: false },
+              { text: '5', correct: false },
+            ],
+            xp: 10,
+          },
+          {
+            kind: 'fill',
+            id: 'cl-2',
+            title: 'Keep a value inside a range',
+            codeLines: [
+              '// Force speed to never exceed 1.0, and never go below 0',
+              'float speed = ___(rawSpeed, 0.0, 1.0);',
+            ],
+            answers: ['clamp'],
+            hints: ['Forces a value to stay inside [min, max]'],
+            explanation: '`clamp(rawSpeed, 0.0, 1.0)` is the standard way to keep any computed value inside a safe range.',
+            xp: 15,
+          },
+          {
+            kind: 'mcq',
+            id: 'cl-3',
+            title: 'What does `lerp(10, 20, 0.5)` return?',
+            explanation: '`t=0.5` is exactly halfway between 10 and 20 — that\'s **15**.',
+            choices: [
+              { text: '15', correct: true },
+              { text: '10', correct: false },
+              { text: '20', correct: false },
+              { text: '30', correct: false },
+            ],
+            xp: 10,
+          },
+          {
+            kind: 'mcq',
+            id: 'cl-4',
+            title: 'What does `lerp({0,0,0}, {10,10,10}, 0.25)` return?',
+            explanation: '`lerp` interpolates each component the same way: `0 + (10-0)*0.25 = 2.5` for every axis.',
+            choices: [
+              { text: '{2.5, 2.5, 2.5}', correct: true },
+              { text: '{0, 0, 0}', correct: false },
+              { text: '{10, 10, 10}', correct: false },
+              { text: '{0.25, 0.25, 0.25}', correct: false },
+            ],
+            xp: 10,
+          },
+          {
+            kind: 'mcq',
+            id: 'cl-5',
+            title: 'Does `lerp(a, b, 1.5)` automatically clamp t to stay between a and b?',
+            explanation: 'No — `lerp()` always applies the math as-is. `t=1.5` overshoots past `b`. If you need the result to stay within `[a, b]`, `clamp()` the value yourself (or use `fit01`, which does clamp).',
+            choices: [
+              { text: 'No — it overshoots past b. Combine with clamp() if you need to stay in range', correct: true },
+              { text: 'Yes — t is always clamped to 0–1 automatically', correct: false },
+              { text: 'It throws a runtime error', correct: false },
+              { text: 'It silently returns a unchanged', correct: false },
+            ],
+            xp: 10,
+          },
+          {
+            kind: 'fill',
+            id: 'cl-6',
+            title: 'Blend two colors',
+            codeLines: [
+              '// Blend from blue to yellow based on t',
+              '@Cd = ___({0, 0, 1}, {1, 1, 0}, t);',
+            ],
+            answers: ['lerp'],
+            hints: ['Interpolates between two colors based on t'],
+            explanation: '`lerp(a, b, t)` is the standard way to blend between two colors — works exactly the same on vectors as it does on floats.',
+            xp: 15,
+          },
+        ],
+      },
+
+      // ── Lesson 5: dot() & cross() ─────────────────────────────────────────────
+      {
+        id: 'dot-cross',
+        title: 'dot() & cross()',
+        icon: '✳️',
+        description: 'Measure alignment and find perpendicular directions',
+        learnCards: [
+          {
+            kind: 'learn',
+            id: 'learn-dot-cross-1',
+            title: 'dot() and cross()',
+            body: '`dot(a, b)` returns a single float: the **dot product**. It measures how aligned two vectors are. If both are unit vectors, `dot(a, b)` ranges from **-1** (opposite directions) to **+1** (same direction), with **0** meaning perpendicular.\n\n`cross(a, b)` returns a **vector** that is perpendicular to both `a` and `b` — useful for finding "the direction sideways" relative to two other directions (like building a local coordinate frame).',
+            codeExample: 'vector a = {1, 0, 0};\nvector b = {0, 1, 0};\nfloat  d = dot(a, b);    // 0.0 (perpendicular)\nfloat  d2 = dot(a, a);   // 1.0 (same direction as itself)\n\nvector c = cross(a, b);  // {0, 0, 1} — perpendicular to both a and b',
+            keyPoints: [
+              'dot(a, b) → float: measures alignment (-1 to 1)',
+              'dot(a, b) = 0 means a and b are perpendicular',
+              'cross(a, b) → vector: perpendicular to both a and b',
+            ],
+          },
+        ],
+        exercises: [
+          {
+            kind: 'mcq',
+            id: 'dc-1',
+            title: 'What does `dot({1, 0, 0}, {0, 1, 0})` return?',
+            explanation: 'These two vectors are perpendicular (one points along X, the other along Y), so their dot product is **0**.',
+            choices: [
+              { text: '0.0', correct: true },
+              { text: '1.0', correct: false },
+              { text: '-1.0', correct: false },
+              { text: '{0, 0, 0}', correct: false, explanation: 'dot() always returns a float, never a vector — that\'s cross()\'s job.' },
+            ],
+            xp: 10,
+          },
+          {
+            kind: 'mcq',
+            id: 'dc-2',
+            title: 'What does `dot({1, 0, 0}, {-1, 0, 0})` return?',
+            explanation: 'These two unit vectors point in exactly **opposite** directions, so their dot product is **-1**.',
+            choices: [
+              { text: '-1.0', correct: true },
+              { text: '0.0', correct: false },
+              { text: '1.0', correct: false },
+              { text: '2.0', correct: false },
+            ],
+            xp: 10,
+          },
+          {
+            kind: 'fill',
+            id: 'dc-3',
+            title: 'Measure alignment with "up"',
+            codeLines: [
+              '// Check how aligned the normal is with the world "up" direction',
+              'vector up = {0, 1, 0};',
+              'float alignment = ___(@N, up);',
+            ],
+            answers: ['dot'],
+            hints: ['Returns -1 to 1 based on how aligned two vectors are'],
+            explanation: '`dot(@N, up)` is exactly how you\'d measure "is this surface facing up, down, or sideways" — a very common VEX pattern.',
+            xp: 15,
+          },
+          {
+            kind: 'mcq',
+            id: 'dc-4',
+            title: 'What does `cross({1, 0, 0}, {0, 1, 0})` return?',
+            explanation: '`cross()` returns a vector perpendicular to both inputs. X crossed with Y gives Z: `{0, 0, 1}`.',
+            choices: [
+              { text: '{0, 0, 1}', correct: true },
+              { text: '0.0', correct: false, explanation: 'That\'s dot()\'s return type — cross() always returns a vector.' },
+              { text: '{1, 1, 0}', correct: false },
+              { text: '{1, 0, 0}', correct: false },
+            ],
+            xp: 10,
+          },
           {
             kind: 'code',
-            id: 'vec-4',
-            title: 'Color by distance',
-            prompt: 'These points are scattered around the world origin `{0,0,0}`, at varying distances.\n\nColor each point based on how far it is from the origin — pick two colors and blend smoothly between them: one for points close to the origin, another for points far away.',
-            starterCode: 'float dist = length(@P);\nfloat t = clamp(dist, 0.0, 1.0);\n// lerp(colorA, colorB, t)\n@Cd = lerp(___, ___, t);\n',
-            solutionCode: 'float dist = length(@P);\nfloat t = clamp(dist, 0.0, 1.0);\n@Cd = lerp({0, 0.3, 1}, {1, 0.4, 0}, t);\n',
+            id: 'dc-5',
+            title: 'Shade by upward-facing normal',
+            prompt: 'Color each point based on how much its surface normal points "up" (the +Y direction).\n\nUse `dot()` to measure the alignment between `@N` and `{0,1,0}` — that gives you a value from -1 to 1. Remap it to 0–1 with `fit()`, then use it as a grayscale color (same value on all 3 channels).',
+            starterCode: '// 1. dot(@N, up) → alignment from -1 to 1\n// 2. fit() that into 0..1\n// 3. @Cd = {t, t, t}\n',
+            solutionCode: 'float align = dot(@N, {0.0, 1.0, 0.0});\nfloat t = fit(align, -1.0, 1.0, 0.0, 1.0);\n@Cd = {t, t, t};\n',
             checks: [
               {
-                description: 'Near points (dist < 0.3) have different color than far points (dist > 0.7)',
+                description: 'Top points (facing up) are brighter than bottom points (facing down)',
                 test: (pts) => {
-                  const near = pts.filter(p => {
-                    const d = Math.sqrt(p.P.x*p.P.x + p.P.y*p.P.y + p.P.z*p.P.z)
-                    return d < 0.3
-                  })
-                  const far = pts.filter(p => {
-                    const d = Math.sqrt(p.P.x*p.P.x + p.P.y*p.P.y + p.P.z*p.P.z)
-                    return d > 0.7
-                  })
-                  if (near.length < 2 || far.length < 2) return false
-                  // Compare colors as vectors (not summed channels) — a hue swap like
-                  // blue→red keeps R+G+B roughly constant even though it's clearly different.
-                  const avg = (arr: typeof pts, c: 'x' | 'y' | 'z') => arr.reduce((s, p) => s + p.Cd[c], 0) / arr.length
-                  const dx = avg(near, 'x') - avg(far, 'x')
-                  const dy = avg(near, 'y') - avg(far, 'y')
-                  const dz = avg(near, 'z') - avg(far, 'z')
-                  return Math.sqrt(dx * dx + dy * dy + dz * dz) > 0.3
+                  const top = pts.filter(p => p.N.y > 0.6)
+                  const bot = pts.filter(p => p.N.y < -0.6)
+                  if (top.length < 3 || bot.length < 3) return false
+                  const avgTop = top.reduce((s, p) => s + p.Cd.x, 0) / top.length
+                  const avgBot = bot.reduce((s, p) => s + p.Cd.x, 0) / bot.length
+                  return avgTop > avgBot + 0.3
                 },
               },
               {
-                description: 'Points at a similar distance share a similar color (color follows distance, not direction)',
-                test: (pts) => {
-                  const dist = (p: typeof pts[number]) => Math.sqrt(p.P.x * p.P.x + p.P.y * p.P.y + p.P.z * p.P.z)
-                  const band = pts.filter(p => { const d = dist(p); return d > 0.8 && d < 1.2 })
-                  if (band.length < 5) return false
-                  const avg = (c: 'x' | 'y' | 'z') => band.reduce((s, p) => s + p.Cd[c], 0) / band.length
-                  const ax = avg('x'), ay = avg('y'), az = avg('z')
-                  const variance = band.reduce((s, p) =>
-                    s + (p.Cd.x - ax) ** 2 + (p.Cd.y - ay) ** 2 + (p.Cd.z - az) ** 2, 0) / band.length
-                  return variance < 0.05
-                },
+                description: 'Color stays grayscale (R, G and B channels match)',
+                test: (pts) => pts.every(p => Math.abs(p.Cd.x - p.Cd.y) < 0.05 && Math.abs(p.Cd.y - p.Cd.z) < 0.05),
               },
             ],
-            pointShape: 'random',
-            pointCount: 500,
-            explanation: '`lerp(a, b, t)` blends smoothly between two colors. Combined with `clamp(length(@P), 0, 1)` you get a radial gradient.',
-            xp: 25,
+            pointShape: 'sphere',
+            pointCount: 200,
+            explanation: 'On this sphere, the normal `@N` points straight outward, so `dot(@N, up)` is highest at the top pole and lowest at the bottom — `fit()` turns that into a clean 0–1 brightness value.',
+            xp: 30,
           },
         ],
       },
