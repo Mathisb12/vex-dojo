@@ -2,7 +2,7 @@ import { useState, useRef, useEffect, useMemo } from 'react'
 import type { FillBlankExercise, BlankAnswer } from '../exercises/types'
 import { useLang } from '../i18n/LanguageContext'
 import { PointCloudViewer } from '../visualization/PointCloudViewer'
-import { VectorArrowPreview } from './VectorArrowPreview'
+import { VectorArrowViewer } from '../visualization/VectorArrowViewer'
 import { runVex, makeDefaultPoints, type PointAttrs } from '../interpreter/evaluator'
 
 interface Props {
@@ -152,7 +152,7 @@ export function FillBlankQuestion({ exercise, onComplete }: Props) {
       ) : hasVectorPreview ? (
         <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
           {codeBlock}
-          <VectorArrowPreview xRaw={answers[0] ?? ''} yRaw={answers[1] ?? ''} zRaw={answers[2] ?? ''} />
+          <VectorArrowViewer xRaw={answers[0] ?? ''} yRaw={answers[1] ?? ''} zRaw={answers[2] ?? ''} height={260} />
         </div>
       ) : (
         codeBlock
