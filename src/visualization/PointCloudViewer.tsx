@@ -44,9 +44,8 @@ export function PointCloudViewer({ points, height = 320 }: Props) {
     controls.minDistance = 0.5
     controls.maxDistance = 20
 
-    // Grid helper
+    // Grid helper — sits at y=0, the true world origin
     const grid = new THREE.GridHelper(4, 10, 0x30363d, 0x1e2530)
-    grid.position.y = -1.2
     scene.add(grid)
 
     // Axes
