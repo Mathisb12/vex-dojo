@@ -346,7 +346,7 @@ class Parser {
           this.advance(); comp = this.advance().value as 'x' | 'y' | 'z'
         }
       }
-      return { kind: 'AttrAccess', attr, comp } as AttrAccess
+      return { kind: 'AttrAccess', attr, comp, attrType: t.attrType } as AttrAccess
     }
 
     // Identifier or function call — also covers type-cast calls like int(x), float(x), vector(x),
@@ -373,7 +373,7 @@ class Parser {
 
 function exprToTarget(e: Expr): AssignTarget | null {
   if (e.kind === 'Identifier') return { kind: 'IdentTarget', name: e.name }
-  if (e.kind === 'AttrAccess') return { kind: 'AttrTarget', attr: e.attr, comp: e.comp }
+  if (e.kind === 'AttrAccess') return { kind: 'AttrTarget', attr: e.attr, comp: e.comp, attrType: e.attrType }
   if (e.kind === 'MemberExpr') return { kind: 'MemberTarget', object: e.object, prop: e.prop }
   if (e.kind === 'IndexExpr') return { kind: 'IndexTarget', object: e.object, index: e.index }
   return null

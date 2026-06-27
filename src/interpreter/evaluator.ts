@@ -7,7 +7,7 @@ import type {
   IfStmt, ForStmt, WhileStmt, ReturnStmt,
   Literal, Identifier, AttrAccess, VectorLiteral,
   BinaryExpr, UnaryExpr, CallExpr, MemberExpr, IndexExpr, AssignExpr,
-  AssignTarget, AssignOp,
+  AssignTarget, AssignOp, TypeName,
 } from './types'
 import {
   VexValue, VexVector,
@@ -191,18 +191,26 @@ class Evaluator {
       case 'ptnum': return mkInt(a.ptnum)
       case 'numpt': return mkInt(a.numpt)
       default: {
-        // dynamic user attributes
+        // dynamic user attributes — preserve whatever shape they were stored
+        // in (number, {x,y,z}, or string), then optionally cast if this read
+        // used an explicit type prefix (f@/i@/v@/s@).
         const val = (a as any)[node.attr]
-        if (val !== undefined) {
-          if (typeof val === 'number') return mkFloat(val)
-          if (val?.x !== undefined) {
-            if (node.comp === 'x') return mkFloat(val.x)
-            if (node.comp === 'y') return mkFloat(val.y)
-            if (node.comp === 'z') return mkFloat(val.z)
-            return mkVec(val.x, val.y, val.z)
-          }
+        let result: VexValue
+        if (val === undefined) {
+          result = node.attrType ? coerceDefault(node.attrType) : mkFloat(0)
+        } else if (typeof val === 'string') {
+          result = mkStr(val)
+        } else if (typeof val === 'number') {
+          result = mkFloat(val)
+        } else if (val?.x !== undefined) {
+          if (node.comp === 'x') result = mkFloat(val.x)
+          else if (node.comp === 'y') result = mkFloat(val.y)
+          else if (node.comp === 'z') result = mkFloat(val.z)
+          else result = mkVec(val.x, val.y, val.z)
+        } else {
+          result = mkFloat(0)
         }
-        return mkFloat(0)
+        return node.attrType && node.comp === null ? coerceToType(result, node.attrType) : result
       }
     }
   }
@@ -289,7 +297,7 @@ class Evaluator {
     }
 
     if (target.kind === 'AttrTarget') {
-      return this.setAttr(target.attr, target.comp, op, rhs)
+      return this.setAttr(target.attr, target.comp, op, rhs, target.attrType)
     }
 
     if (target.kind === 'MemberTarget') {
@@ -315,7 +323,7 @@ class Evaluator {
     return mkVoid
   }
 
-  private setAttr(attr: string, comp: 'x' | 'y' | 'z' | null, op: AssignOp, rhs: VexValue): VexValue {
+  private setAttr(attr: string, comp: 'x' | 'y' | 'z' | null, op: AssignOp, rhs: VexValue, attrType?: TypeName): VexValue {
     const a = this.attrs
 
     const applyVec3 = (current: { x: number; y: number; z: number }) => {
@@ -337,10 +345,39 @@ class Evaluator {
       case 'Cd': return applyVec3(a.Cd)
       case 'N': return applyVec3(a.N)
       default: {
-        // dynamic user-defined attribute
-        const prev = mkFloat(0)
-        const result = applyOp(prev, op, rhs)
-        ;(a as any)[attr] = toFloat(result)
+        // Dynamic user-defined attribute. Unlike P/Cd/N, these don't have a
+        // fixed shape up front — read back whatever was last stored (number,
+        // {x,y,z}, or string) so a vector attribute survives a += instead of
+        // collapsing to its .x component, and stays a vector instead of being
+        // silently flattened to a float on every write.
+        const existing = (a as any)[attr]
+        let prev: VexValue
+        if (comp !== null) {
+          const base = existing && typeof existing === 'object' && 'x' in existing
+            ? existing as { x: number; y: number; z: number }
+            : { x: 0, y: 0, z: 0 }
+          const newVal = toFloat(applyOp(mkFloat(base[comp]), op, rhs))
+          base[comp] = newVal
+          ;(a as any)[attr] = base
+          return mkFloat(newVal)
+        } else if (existing === undefined) {
+          prev = attrType ? coerceDefault(attrType) : mkFloat(0)
+        } else if (typeof existing === 'string') {
+          prev = mkStr(existing)
+        } else if (typeof existing === 'number') {
+          prev = mkFloat(existing)
+        } else if (existing && typeof existing === 'object' && 'x' in existing) {
+          prev = mkVec(existing.x, existing.y, existing.z)
+        } else {
+          prev = mkFloat(0)
+        }
+
+        let result = applyOp(prev, op, rhs)
+        if (attrType) result = coerceToType(result, attrType)
+
+        if (result.kind === 'vector') (a as any)[attr] = { x: result.x, y: result.y, z: result.z }
+        else if (result.kind === 'string') (a as any)[attr] = result.value
+        else (a as any)[attr] = toFloat(result)
         return result
       }
     }

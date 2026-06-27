@@ -71,12 +71,12 @@ export const FR_LEARN_CARDS: Record<string, { title: string; body: string; keyPo
   },
   'learn-attr-1': {
     title: 'Les attributs : le préfixe @',
-    body: "Un **attribut** est une valeur nommée stockée sur la géométrie — chaque point peut avoir sa propre position, couleur, normale, etc.\n\nEn VEX, on lit et écrit les attributs avec le préfixe `@`. Lire `@P` donne la position du point courant. Écrire `@Cd = ...` change sa couleur.\n\nLes attributs (tout ce qui a un `@`) persistent après le wrangle — ils font partie des données de la géométrie. C'est différent des variables locales de la leçon précédente : `float maVar = 2;` (sans `@`) n'est qu'un espace de calcul temporaire pour ce wrangle — ça disparaît dès que le nœud suivant tourne. Seuls les noms préfixés par `@` sont vraiment sauvegardés sur la géométrie.",
+    body: "Un **attribut** est une valeur nommée stockée sur la géométrie — chaque point peut avoir sa propre position, couleur, normale, etc.\n\nEn VEX, on lit et écrit les attributs avec le préfixe `@`. Lire `@P` donne la position du point courant. Écrire `@Cd = ...` change sa couleur.\n\nLes attributs (tout ce qui a un `@`) persistent après le wrangle — ils font partie des données de la géométrie. C'est différent des variables locales de la leçon précédente : `float maVar = 2;` (sans `@`) n'est qu'un espace de calcul temporaire pour ce wrangle — ça disparaît dès que le nœud suivant tourne. Seuls les noms préfixés par `@` sont vraiment sauvegardés sur la géométrie.\n\nLors de la création d'un nouvel attribut, tu peux préciser son type juste avant le `@` : `f@nom` (float), `i@nom` (int), `v@nom` (vector), `s@nom` (string). Un `@nom = ...` nu fonctionne aussi — VEX déduit le type depuis ce que tu assignes — mais le préfixe explicite rend ton intention sans ambiguïté.",
     keyPoints: [
       '@ lit ou écrit un attribut de géométrie',
       'Les attributs (avec @) persistent sur la géométrie après le wrangle',
       'Les variables locales (sans @, ex. float x = 2;) ne persistent PAS',
-      'Tu peux créer de nouveaux attributs en écrivant dans @monnom',
+      'f@/i@/v@/s@ typent explicitement un nouvel attribut (float/int/vector/string)',
     ],
   },
   'learn-attr-2': {
@@ -417,6 +417,17 @@ export const FR_EXERCISES: Record<string, ExTranslation> = {
     codeLines: ['// Mets uniquement le canal rouge au max, laisse vert et bleu intacts', '@Cd.___ = ___;'],
     hints: ['Quelle composante est le rouge ?', 'Valeur de rouge plein'],
     explanation: '`@Cd.x = 1;` écrit uniquement le canal rouge via la notation par point — pas besoin de réécrire tout le vecteur avec `{}`.',
+  },
+  'attr-7': {
+    title: 'Fais persister une valeur pour de vrai',
+    codeLines: [
+      '// "scratch" est une variable locale — elle disparaît dès que ce wrangle se termine.',
+      'float scratch = 2.0;',
+      '// Fais de "result" un véritable ATTRIBUT float, pour qu\'il persiste.',
+      '___result = 2.0;',
+    ],
+    hints: ['Préfixe de type + @ — même lettre que le mot-clé float'],
+    explanation: '`f@result = 2.0;` déclare explicitement `result` comme un **attribut float**. Contrairement à `float scratch = 2.0;` (une variable locale, perdue après ce wrangle), un attribut est écrit sur la géométrie et existe encore en aval. La forme nue `@result = 2.0;` ferait la même chose ici — `f@` est juste la version explicite, utile quand tu veux préciser le type que tu crées.',
   },
   // ── arithmetic ──
   'arith-1': {

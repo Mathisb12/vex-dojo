@@ -117,7 +117,7 @@ export interface ReturnStmt { kind: 'ReturnStmt'; value: Expr | null }
 
 export interface Literal { kind: 'Literal'; value: number | string; type: 'int' | 'float' | 'string' }
 export interface Identifier { kind: 'Identifier'; name: string }
-export interface AttrAccess { kind: 'AttrAccess'; attr: string; comp: 'x' | 'y' | 'z' | null }
+export interface AttrAccess { kind: 'AttrAccess'; attr: string; comp: 'x' | 'y' | 'z' | null; attrType?: TypeName }
 export interface VectorLiteral { kind: 'VectorLiteral'; x: Expr; y: Expr; z: Expr }
 export interface BinaryExpr { kind: 'BinaryExpr'; op: BinaryOp; left: Expr; right: Expr }
 export interface UnaryExpr { kind: 'UnaryExpr'; op: '-' | '!'; operand: Expr }
@@ -128,7 +128,7 @@ export interface AssignExpr { kind: 'AssignExpr'; target: AssignTarget; op: Assi
 
 export type AssignTarget =
   | { kind: 'IdentTarget'; name: string }
-  | { kind: 'AttrTarget'; attr: string; comp: 'x' | 'y' | 'z' | null }
+  | { kind: 'AttrTarget'; attr: string; comp: 'x' | 'y' | 'z' | null; attrType?: TypeName }
   | { kind: 'MemberTarget'; object: Expr; prop: string }
   | { kind: 'IndexTarget'; object: Expr; index: Expr }
 

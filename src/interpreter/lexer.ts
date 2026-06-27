@@ -13,11 +13,17 @@ export type TKind =
   | 'SEMI' | 'COMMA' | 'DOT' | 'QUESTION' | 'COLON'
   | 'EOF'
 
+export type AttrTypeChar = 'int' | 'float' | 'vector' | 'string'
+
 export interface Token {
   kind: TKind
   value: string
   line: number
   col: number
+  // Set on ATTR tokens written with an explicit type prefix (i@/f@/v@/s@),
+  // Houdini's way of declaring a new attribute's type instead of relying
+  // on inference from the assigned value.
+  attrType?: AttrTypeChar
 }
 
 const KEYWORDS = new Set([
@@ -94,6 +100,21 @@ export function lex(src: string): Token[] {
       }
       if (peek() === '"') advance()
       tokens.push({ kind: 'STRING_LIT', value: str, line: startLine, col: startCol })
+      continue
+    }
+
+    // Typed attribute prefix: f@name, i@name, v@name, s@name — Houdini's
+    // syntax for explicitly declaring a new attribute's type. Must be checked
+    // before the plain identifier branch, since i/f/v/s would otherwise just
+    // be lexed as a 1-character IDENT.
+    if ('ifvs'.includes(c) && peek(1) === '@') {
+      const typeChar = advance() // i/f/v/s
+      advance() // '@'
+      let name = ''
+      while (i < src.length && /[a-zA-Z_0-9]/.test(peek())) name += advance()
+      const attrType: AttrTypeChar =
+        typeChar === 'i' ? 'int' : typeChar === 'f' ? 'float' : typeChar === 'v' ? 'vector' : 'string'
+      tokens.push({ kind: 'ATTR', value: name, line: startLine, col: startCol, attrType })
       continue
     }
 
