@@ -12,7 +12,7 @@ interface Props {
   height?: number
 }
 
-const AXIS_LEN = 1.4
+const AXIS_LEN = 2
 const MAX_DISPLAY_LEN = 2.4
 
 function parseComponent(raw: string): number {
@@ -52,7 +52,8 @@ export function VectorArrowViewer({ xRaw, yRaw, zRaw, height = 220 }: Props) {
     controls.minDistance = 1
     controls.maxDistance = 12
 
-    const grid = new THREE.GridHelper(4, 8, 0x30363d, 0x1e2530)
+    // 4 units wide, 4 divisions → each grid cell is exactly 1 unit
+    const grid = new THREE.GridHelper(4, 4, 0x30363d, 0x1e2530)
     scene.add(grid)
 
     // Reference X/Y/Z axes as colored arrows from the origin

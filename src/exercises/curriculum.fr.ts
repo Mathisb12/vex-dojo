@@ -448,8 +448,8 @@ export const FR_EXERCISES: Record<string, ExTranslation> = {
   },
   'vec-4': {
     title: 'Colore par distance',
-    prompt: 'Ces points sont dispersés autour de l\'origine du monde `{0,0,0}`, à des distances variées. Colore chaque point selon sa distance depuis l\'origine.\n\n- Calcule `dist = length(@P)`\n- Normalise-le entre 0–1 avec `clamp(dist, 0, 1)`\n- Utilise `lerp()` pour mélanger deux couleurs différentes selon cette valeur\n\nLes deux couleurs sont ton choix — assure-toi juste que les points proches et lointains soient visuellement différents.',
-    checks: ['Les points proches (dist < 0.3) ont une couleur différente des points lointains (dist > 0.7)', 'Les couleurs ne sont pas uniformes (pas toutes identiques)'],
+    prompt: 'Ces points sont dispersés autour de l\'origine du monde `{0,0,0}`, à des distances variées.\n\nColore chaque point selon sa distance à l\'origine — choisis deux couleurs et mélange-les en douceur : une pour les points proches de l\'origine, une autre pour les points lointains.',
+    checks: ['Les points proches (dist < 0.3) ont une couleur différente des points lointains (dist > 0.7)', 'Les points à distance similaire ont une couleur similaire (la couleur suit la distance, pas la direction)'],
     explanation: '`lerp(a, b, t)` mélange en douceur deux couleurs. Combiné avec `clamp(length(@P), 0, 1)`, on obtient un dégradé radial.',
   },
   // ── conditionals ──

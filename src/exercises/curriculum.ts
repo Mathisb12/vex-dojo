@@ -623,7 +623,7 @@ export const CURRICULUM: Module[] = [
             kind: 'code',
             id: 'vec-4',
             title: 'Color by distance',
-            prompt: 'These points are scattered around the world origin `{0,0,0}`, at varying distances. Color each point based on its distance from the origin.\n\n- Compute `dist = length(@P)`\n- Normalize it to 0–1 with `clamp(dist, 0, 1)`\n- Use `lerp()` to blend between two different colors based on that value\n\nThe two colors are your choice — just make sure near and far points look different.',
+            prompt: 'These points are scattered around the world origin `{0,0,0}`, at varying distances.\n\nColor each point based on how far it is from the origin — pick two colors and blend smoothly between them: one for points close to the origin, another for points far away.',
             starterCode: 'float dist = length(@P);\nfloat t = clamp(dist, 0.0, 1.0);\n// lerp(colorA, colorB, t)\n@Cd = lerp(___, ___, t);\n',
             solutionCode: 'float dist = length(@P);\nfloat t = clamp(dist, 0.0, 1.0);\n@Cd = lerp({0, 0.3, 1}, {1, 0.4, 0}, t);\n',
             checks: [
@@ -649,14 +649,16 @@ export const CURRICULUM: Module[] = [
                 },
               },
               {
-                description: 'Colors are not uniform (not all the same)',
+                description: 'Points at a similar distance share a similar color (color follows distance, not direction)',
                 test: (pts) => {
-                  const first = pts[0]
-                  return pts.slice(1, 30).some(p =>
-                    Math.abs(p.Cd.x - first.Cd.x) > 0.05 ||
-                    Math.abs(p.Cd.y - first.Cd.y) > 0.05 ||
-                    Math.abs(p.Cd.z - first.Cd.z) > 0.05
-                  )
+                  const dist = (p: typeof pts[number]) => Math.sqrt(p.P.x * p.P.x + p.P.y * p.P.y + p.P.z * p.P.z)
+                  const band = pts.filter(p => { const d = dist(p); return d > 0.8 && d < 1.2 })
+                  if (band.length < 5) return false
+                  const avg = (c: 'x' | 'y' | 'z') => band.reduce((s, p) => s + p.Cd[c], 0) / band.length
+                  const ax = avg('x'), ay = avg('y'), az = avg('z')
+                  const variance = band.reduce((s, p) =>
+                    s + (p.Cd.x - ax) ** 2 + (p.Cd.y - ay) ** 2 + (p.Cd.z - az) ** 2, 0) / band.length
+                  return variance < 0.05
                 },
               },
             ],
