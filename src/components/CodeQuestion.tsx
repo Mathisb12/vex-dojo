@@ -5,13 +5,16 @@ import { runVex, makeDefaultPoints, type PointAttrs } from '../interpreter/evalu
 import type { CodeExercise } from '../exercises/types'
 import { useLang } from '../i18n/LanguageContext'
 import { registerVexEditorFeatures } from './vexMonacoLanguage'
+import { ExerciseHeader } from './ExerciseHeader'
+import { CheckPillRow } from './CheckPillRow'
 
 interface Props {
   exercise: CodeExercise
+  icon: string
   onComplete: (xp: number) => void
 }
 
-export function CodeQuestion({ exercise, onComplete }: Props) {
+export function CodeQuestion({ exercise, icon, onComplete }: Props) {
   const { t } = useLang()
   const placeholder = t('code.placeholder')
   const [code, setCode] = useState(placeholder)
@@ -23,13 +26,15 @@ export function CodeQuestion({ exercise, onComplete }: Props) {
   const [allPass, setAllPass] = useState(false)
   const [showSolution, setShowSolution] = useState(false)
   const [hintUsed, setHintUsed] = useState(false)
+  const [isPending, setIsPending] = useState(false)
   const basePoints = useRef(makeDefaultPoints(exercise.pointCount, exercise.pointShape))
 
   // Auto-run on code change (debounced)
   const runTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   useEffect(() => {
     if (runTimer.current) clearTimeout(runTimer.current)
-    runTimer.current = setTimeout(() => runCode(code), 600)
+    setIsPending(true)
+    runTimer.current = setTimeout(() => { runCode(code); setIsPending(false) }, 600)
     return () => { if (runTimer.current) clearTimeout(runTimer.current) }
   }, [code])
 
@@ -82,11 +87,7 @@ export function CodeQuestion({ exercise, onComplete }: Props) {
 
   return (
     <div className="flex flex-col gap-4">
-      {/* Prompt */}
-      <div className="bg-vex-surface border border-vex-border rounded-2xl p-5">
-        <div className="text-xs text-vex-orange font-mono uppercase tracking-widest mb-2">{t('code.title')}</div>
-        <p className="text-vex-text text-base font-medium">{exercise.prompt}</p>
-      </div>
+      <ExerciseHeader kind="code" icon={icon}>{exercise.prompt}</ExerciseHeader>
 
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
         {/* Editor */}
@@ -99,6 +100,7 @@ export function CodeQuestion({ exercise, onComplete }: Props) {
                 <div className="w-3 h-3 rounded-full bg-green-500/60" />
               </div>
               <span className="text-vex-muted text-xs font-mono ml-2">wrangle.vex</span>
+              <span className="ml-auto text-[10px] font-mono text-vex-muted border border-vex-border rounded-full px-2 py-0.5">VEX</span>
             </div>
             <Editor
               height="220px"
@@ -122,6 +124,12 @@ export function CodeQuestion({ exercise, onComplete }: Props) {
               }}
             />
           </div>
+
+          {!ran && (
+            <div className="px-3 py-1.5 text-vex-muted text-xs font-mono border border-vex-border rounded-lg bg-vex-surface/60">
+              {t('code.idleHint')}
+            </div>
+          )}
 
           {/* Run + actions */}
           <div className="flex items-center gap-2 flex-wrap">
@@ -175,21 +183,18 @@ export function CodeQuestion({ exercise, onComplete }: Props) {
 
           {/* Check results */}
           {ran && !error && (
-            <div className="flex flex-col gap-1">
-              {exercise.checks.map((check, i) => (
-                <div key={i} className={`flex items-center gap-2 text-xs px-3 py-1.5 rounded-lg border ${
-                  checks[i] ? 'border-vex-green/40 bg-vex-green/5 text-vex-green' : 'border-vex-border bg-vex-surface text-vex-muted'
-                }`}>
-                  <span>{checks[i] ? '✓' : '○'}</span>
-                  <span>{check.description}</span>
-                </div>
-              ))}
-            </div>
+            <CheckPillRow checks={exercise.checks.map((check, i) => ({ description: check.description, passed: checks[i] }))} />
           )}
         </div>
 
         {/* 3D Viewer */}
-        <PointCloudViewer points={points} height={300} />
+        <div className="flex flex-col gap-2">
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-mono uppercase tracking-widest text-vex-muted">{t('viewer.title3d')}</span>
+            {isPending && <span className="w-1.5 h-1.5 rounded-full bg-vex-orange animate-pulse-fast" />}
+          </div>
+          <PointCloudViewer points={points} height={300} />
+        </div>
       </div>
 
       {/* Success */}

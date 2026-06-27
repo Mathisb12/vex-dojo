@@ -1,9 +1,11 @@
 import { useState, useMemo } from 'react'
 import type { MCQExercise, MCQChoice } from '../exercises/types'
 import { useLang } from '../i18n/LanguageContext'
+import { ExerciseHeader } from './ExerciseHeader'
 
 interface Props {
   exercise: MCQExercise
+  icon: string
   onComplete: (xp: number) => void
 }
 
@@ -16,7 +18,7 @@ function shuffle<T>(arr: T[]): T[] {
   return copy
 }
 
-export function MCQQuestion({ exercise, onComplete }: Props) {
+export function MCQQuestion({ exercise, icon, onComplete }: Props) {
   const { t } = useLang()
   const [selected, setSelected] = useState<number | null>(null)
   const [answered, setAnswered] = useState(false)
@@ -52,11 +54,7 @@ export function MCQQuestion({ exercise, onComplete }: Props) {
 
   return (
     <div className={`flex flex-col gap-5 ${shake ? 'animate-[shake_0.4s_ease]' : ''}`}>
-      {/* Question */}
-      <div className="bg-vex-surface border border-vex-border rounded-2xl p-5">
-        <div className="text-xs text-vex-orange font-mono uppercase tracking-widest mb-2">{t('mcq.question')}</div>
-        <p className="text-vex-text text-base font-medium">{exercise.title}</p>
-      </div>
+      <ExerciseHeader kind="mcq" icon={icon}>{exercise.title}</ExerciseHeader>
 
       {/* Choices */}
       <div className="flex flex-col gap-2">

@@ -4,9 +4,11 @@ import { useLang } from '../i18n/LanguageContext'
 import { PointCloudViewer } from '../visualization/PointCloudViewer'
 import { VectorArrowViewer } from '../visualization/VectorArrowViewer'
 import { runVex, makeDefaultPoints, type PointAttrs } from '../interpreter/evaluator'
+import { ExerciseHeader } from './ExerciseHeader'
 
 interface Props {
   exercise: FillBlankExercise
+  icon: string
   onComplete: (xp: number) => void
 }
 
@@ -39,7 +41,7 @@ function buildPreviewCode(codeLines: string[], answers: string[]): string | null
   return codeLines.map(line => line.replace(/___/g, () => answers[blankIdx++].trim())).join('\n')
 }
 
-export function FillBlankQuestion({ exercise, onComplete }: Props) {
+export function FillBlankQuestion({ exercise, icon, onComplete }: Props) {
   const { t } = useLang()
   const [answers, setAnswers] = useState<string[]>(exercise.answers.map(() => ''))
   const [checked, setChecked] = useState(false)
@@ -116,7 +118,7 @@ export function FillBlankQuestion({ exercise, onComplete }: Props) {
                       }
                     }}
                     className={[
-                      'inline-block w-20 text-center font-mono text-sm px-1 py-0 mx-1 rounded border',
+                      'inline-block w-20 text-center font-mono text-sm px-1 py-0.5 mx-1 rounded-full border',
                       'bg-vex-surface focus:outline-none',
                       isCorrect === null ? 'border-vex-orange/50 focus:border-vex-orange text-vex-orange' :
                       isCorrect ? 'border-vex-green text-vex-green bg-vex-green/5' : 'border-vex-red text-vex-red bg-vex-red/5',
@@ -137,22 +139,32 @@ export function FillBlankQuestion({ exercise, onComplete }: Props) {
 
   return (
     <div className="flex flex-col gap-5">
-      {/* Instructions */}
-      <div className="bg-vex-surface border border-vex-border rounded-2xl p-5">
-        <div className="text-xs text-vex-orange font-mono uppercase tracking-widest mb-2">{t('fill.title')}</div>
-        <p className="text-vex-text text-base font-medium">{exercise.title}</p>
-      </div>
+      <ExerciseHeader kind="fill" icon={icon}>{exercise.title}</ExerciseHeader>
 
       {/* Code block — with live 3D preview or vector arrow side-by-side when available */}
       {hasPreview ? (
         <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
           {codeBlock}
-          <PointCloudViewer points={previewPoints} height={260} />
+          <div className="flex flex-col gap-2">
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-mono uppercase tracking-widest text-vex-muted">{t('viewer.title3d')}</span>
+              <span className="w-1.5 h-1.5 rounded-full bg-vex-orange animate-pulse-fast" />
+              <span className="text-[10px] font-mono text-vex-muted uppercase">{t('viewer.live')}</span>
+            </div>
+            <PointCloudViewer points={previewPoints} height={260} />
+          </div>
         </div>
       ) : hasVectorPreview ? (
         <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
           {codeBlock}
-          <VectorArrowViewer xRaw={answers[0] ?? ''} yRaw={answers[1] ?? ''} zRaw={answers[2] ?? ''} height={260} />
+          <div className="flex flex-col gap-2">
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-mono uppercase tracking-widest text-vex-muted">{t('viewer.title3d')}</span>
+              <span className="w-1.5 h-1.5 rounded-full bg-vex-orange animate-pulse-fast" />
+              <span className="text-[10px] font-mono text-vex-muted uppercase">{t('viewer.live')}</span>
+            </div>
+            <VectorArrowViewer xRaw={answers[0] ?? ''} yRaw={answers[1] ?? ''} zRaw={answers[2] ?? ''} height={260} />
+          </div>
         </div>
       ) : (
         codeBlock

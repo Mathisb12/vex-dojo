@@ -3,9 +3,12 @@ import { MCQQuestion } from './components/MCQQuestion'
 import { FillBlankQuestion } from './components/FillBlankQuestion'
 import { CodeQuestion } from './components/CodeQuestion'
 import { LearnCardView } from './components/LearnCardView'
+import { LessonPath } from './components/LessonPath'
+import { KIND_BADGE_STYLE } from './components/KindBadge'
 import { useProgress } from './hooks/useProgress'
 import { getLocalizedCurriculum, getTotalXP } from './exercises/curriculum'
 import type { Exercise, Lesson, LearnCard, Module } from './exercises/types'
+import { isModuleComplete, isModuleLocked, isLessonLocked } from './exercises/locks'
 import { LanguageProvider, useLang } from './i18n/LanguageContext'
 
 // ─── XP Display ──────────────────────────────────────────────────────────────
@@ -14,67 +17,18 @@ function XPBar({ xp, total }: { xp: number; total: number }) {
   const { t } = useLang()
   const pct = Math.min((xp / total) * 100, 100)
   return (
-    <div className="flex items-center gap-3">
-      <span className="text-vex-orange font-bold text-sm">⚡ {xp} XP</span>
-      <div className="flex-1 bg-vex-surface border border-vex-border rounded-full h-2 min-w-[80px]">
+    <div className="flex flex-col gap-1.5">
+      <div className="flex items-center justify-between text-xs">
+        <span className="text-vex-orange font-bold">⚡ {xp} XP</span>
+        <span className="text-vex-muted">{total} {t('app.totalXp')}</span>
+      </div>
+      <div className="bg-vex-surface border border-vex-border rounded-full h-2">
         <div
           className="h-full bg-vex-orange rounded-full transition-all duration-500"
           style={{ width: `${pct}%` }}
         />
       </div>
-      <span className="text-vex-muted text-xs">{total} {t('app.totalXp')}</span>
     </div>
-  )
-}
-
-// ─── Lesson Card ─────────────────────────────────────────────────────────────
-
-function LessonCard({
-  lesson, moduleId, completedIds, onStart, locked,
-}: {
-  lesson: Lesson & { moduleId: string }
-  moduleId: string
-  completedIds: Set<string>
-  onStart: () => void
-  locked: boolean
-}) {
-  const done = lesson.exercises.filter(e => completedIds.has(e.id)).length
-  const total = lesson.exercises.length
-  const pct = total > 0 ? (done / total) * 100 : 0
-  const complete = done === total
-
-  return (
-    <button
-      disabled={locked}
-      onClick={() => !locked && onStart()}
-      className={`w-full text-left p-4 rounded-xl border transition-all duration-150 group ${
-        locked
-          ? 'border-vex-border bg-vex-surface/40 opacity-50 cursor-not-allowed'
-          : complete
-            ? 'border-vex-green/40 bg-vex-green/5 hover:bg-vex-green/10'
-            : 'border-vex-border bg-vex-surface hover:border-vex-orange/50 hover:bg-vex-surface/60'
-      }`}
-    >
-      <div className="flex items-center gap-3 mb-2">
-        <span className="text-2xl">{locked ? '🔒' : lesson.icon}</span>
-        <div className="flex-1 min-w-0">
-          <div className="text-vex-text font-semibold text-sm truncate">{lesson.title}</div>
-          <div className="text-vex-muted text-xs">{lesson.description}</div>
-        </div>
-        {complete && !locked && <span className="text-vex-green text-lg">✓</span>}
-      </div>
-      {!locked && (
-        <div className="flex items-center gap-2">
-          <div className="flex-1 bg-vex-bg rounded-full h-1.5">
-            <div
-              className={`h-full rounded-full transition-all duration-300 ${complete ? 'bg-vex-green' : 'bg-vex-orange'}`}
-              style={{ width: `${pct}%` }}
-            />
-          </div>
-          <span className="text-vex-muted text-xs">{done}/{total}</span>
-        </div>
-      )}
-    </button>
   )
 }
 
@@ -99,12 +53,16 @@ function buildSteps(lesson: Lesson): LessonStep[] {
 
 function LessonPlayer({
   lesson,
+  moduleTitle,
   completedIds,
+  streak,
   onComplete,
   onBack,
 }: {
   lesson: Lesson
+  moduleTitle: string
   completedIds: Set<string>
+  streak: number
   onComplete: (exerciseId: string, xp: number) => void
   onBack: () => void
 }) {
@@ -154,20 +112,41 @@ function LessonPlayer({
       ? `${t('code.exercise')} ${step.exIdx + 1}/${totalEx}`
       : ''
 
+  const breadcrumbKind = step?.kind === 'learn'
+    ? t(KIND_BADGE_STYLE.learn.labelKey)
+    : step?.kind === 'exercise'
+      ? t(KIND_BADGE_STYLE[step.exercise.kind].labelKey)
+      : ''
+
   return (
     <div className="flex flex-col h-full">
       {/* Top bar */}
-      <div className="flex items-center gap-4 px-4 py-3 border-b border-vex-border">
-        <button onClick={onBack} className="text-vex-muted hover:text-vex-text transition-colors text-sm">
+      <div className="flex items-center gap-3 px-4 py-3 border-b border-vex-border">
+        <button onClick={onBack} className="text-vex-muted hover:text-vex-text transition-colors text-sm flex-shrink-0">
           {t('app.back')}
         </button>
-        <div className="flex-1 bg-vex-surface rounded-full h-2 border border-vex-border">
-          <div
-            className="h-full bg-vex-orange rounded-full transition-all duration-500"
-            style={{ width: `${progress}%` }}
-          />
+        <span className="w-8 h-8 rounded-lg border border-vex-orange/30 bg-vex-orange/10 text-vex-orange flex items-center justify-center text-sm flex-shrink-0">
+          {lesson.icon}
+        </span>
+        <div className="min-w-0">
+          <div className="text-vex-text font-semibold text-sm truncate">{lesson.title}</div>
+          <div className="text-vex-muted text-xs truncate">{moduleTitle} · {breadcrumbKind}</div>
         </div>
-        <span className="text-vex-muted text-xs whitespace-nowrap font-mono">{stepLabel}</span>
+        {streak > 0 && (
+          <span className="hidden sm:inline-flex items-center gap-1 px-2 py-1 rounded-full border border-vex-orange/30 bg-vex-orange/10 text-vex-orange text-xs font-semibold flex-shrink-0">
+            🔥 {streak}
+          </span>
+        )}
+        <div className="flex items-center gap-2 ml-auto w-44 flex-shrink-0">
+          <span className="text-vex-muted text-xs font-mono whitespace-nowrap hidden md:inline">{t('lesson.progressLabel')}</span>
+          <div className="flex-1 bg-vex-surface rounded-full h-2 border border-vex-border">
+            <div
+              className="h-full bg-vex-orange rounded-full transition-all duration-500"
+              style={{ width: `${progress}%` }}
+            />
+          </div>
+          <span className="text-vex-muted text-xs whitespace-nowrap font-mono">{stepLabel}</span>
+        </div>
       </div>
 
       {/* Step content */}
@@ -191,39 +170,17 @@ function LessonPlayer({
           )}
           {step?.kind === 'exercise' && (
             step.exercise.kind === 'mcq' ? (
-              <MCQQuestion key={step.exercise.id} exercise={step.exercise} onComplete={handleExerciseComplete} />
+              <MCQQuestion key={step.exercise.id} exercise={step.exercise} icon={lesson.icon} onComplete={handleExerciseComplete} />
             ) : step.exercise.kind === 'fill' ? (
-              <FillBlankQuestion key={step.exercise.id} exercise={step.exercise} onComplete={handleExerciseComplete} />
+              <FillBlankQuestion key={step.exercise.id} exercise={step.exercise} icon={lesson.icon} onComplete={handleExerciseComplete} />
             ) : (
-              <CodeQuestion key={step.exercise.id} exercise={step.exercise} onComplete={handleExerciseComplete} />
+              <CodeQuestion key={step.exercise.id} exercise={step.exercise} icon={lesson.icon} onComplete={handleExerciseComplete} />
             )
           )}
         </div>
       </div>
     </div>
   )
-}
-
-// ─── Cascading lock helpers ───────────────────────────────────────────────────
-
-function isLessonComplete(lesson: Lesson, completedIds: Set<string>): boolean {
-  return lesson.exercises.length > 0 && lesson.exercises.every(e => completedIds.has(e.id))
-}
-
-function isModuleComplete(mod: Module, completedIds: Set<string>): boolean {
-  return mod.lessons.every(l => isLessonComplete(l, completedIds))
-}
-
-// Lessons unlock one at a time within a module — must finish lesson N to reach N+1.
-function isLessonLocked(mod: Module, lessonIdx: number, completedIds: Set<string>): boolean {
-  if (lessonIdx === 0) return false
-  return !isLessonComplete(mod.lessons[lessonIdx - 1], completedIds)
-}
-
-// Modules unlock one at a time within their tier list — must finish module N to reach N+1.
-function isModuleLocked(tierModules: Module[], modIdx: number, completedIds: Set<string>): boolean {
-  if (modIdx === 0) return false
-  return !isModuleComplete(tierModules[modIdx - 1], completedIds)
 }
 
 // ─── Sidebar ─────────────────────────────────────────────────────────────────
@@ -235,6 +192,7 @@ function Sidebar({
   xp,
   totalXP,
   streak,
+  level,
   onReset,
 }: {
   modules: Module[]
@@ -243,6 +201,7 @@ function Sidebar({
   xp: number
   totalXP: number
   streak: number
+  level: number
   onReset: () => void
 }) {
   const { t, lang, toggleLang } = useLang()
@@ -291,6 +250,14 @@ function Sidebar({
                     {lessonLocked ? '' : complete ? '✓' : `${done}/${total}`}
                   </span>
                 </div>
+                {!lessonLocked && (
+                  <div className="mt-1.5 h-1 bg-vex-bg rounded-full">
+                    <div
+                      className={`h-full rounded-full transition-all duration-300 ${complete ? 'bg-vex-green' : 'bg-vex-orange'}`}
+                      style={{ width: `${total > 0 ? (done / total) * 100 : 0}%` }}
+                    />
+                  </div>
+                )}
               </button>
             )
           })}
@@ -304,25 +271,32 @@ function Sidebar({
       {/* Logo */}
       <div className="px-5 py-4 border-b border-vex-border">
         <div className="flex items-center gap-2 mb-3">
-          <span className="text-2xl">⚡</span>
-          <div className="flex-1">
+          <span className="w-9 h-9 rounded-xl bg-vex-orange flex items-center justify-center text-black font-bold text-lg flex-shrink-0">@</span>
+          <div className="flex-1 min-w-0">
             <div className="text-vex-text font-bold text-lg leading-tight">VEX Dojo</div>
             <div className="text-vex-muted text-xs">{t('app.tagline')}</div>
           </div>
           <button
             onClick={toggleLang}
             title={lang === 'en' ? 'Passer en français' : 'Switch to English'}
-            className="px-2 py-1 rounded-lg border border-vex-border text-vex-muted hover:border-vex-orange/50 hover:text-vex-orange text-xs font-mono transition-colors"
+            className="px-2 py-1 rounded-lg border border-vex-border text-vex-muted hover:border-vex-orange/50 hover:text-vex-orange text-xs font-mono transition-colors flex-shrink-0"
           >
             {t('lang.switch')}
           </button>
         </div>
+
+        <div className="flex items-center gap-2 mb-3">
+          {streak > 0 && (
+            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full border border-vex-orange/30 bg-vex-orange/10 text-vex-orange text-xs font-semibold">
+              🔥 {streak}
+            </span>
+          )}
+          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full border border-vex-purple/30 bg-vex-purple/10 text-vex-purple text-xs font-semibold">
+            <span className="text-vex-muted font-normal">{t('app.level')}</span> {level}
+          </span>
+        </div>
+
         <XPBar xp={xp} total={totalXP} />
-        {streak > 0 && (
-          <div className="mt-2 text-xs text-vex-muted flex items-center gap-1">
-            🔥 <span className="text-vex-orange font-semibold">{streak} {t('app.streak')}</span>
-          </div>
-        )}
       </div>
 
       {/* Module list */}
@@ -379,120 +353,6 @@ function Sidebar({
   )
 }
 
-// ─── Welcome Screen ───────────────────────────────────────────────────────────
-
-function TierSection({
-  tier,
-  modules,
-  completedIds,
-  onSelectLesson,
-}: {
-  tier: 1 | 2
-  modules: Module[]
-  completedIds: Set<string>
-  onSelectLesson: (lesson: Lesson, moduleId: string) => void
-}) {
-  const { t } = useLang()
-  const tier1Modules = modules.filter(m => m.tier === 1)
-  const tierModules = modules.filter(m => m.tier === tier)
-  const tier1Done = tier1Modules.filter(m => isModuleComplete(m, completedIds)).length
-  const locked = tier === 2 && tier1Done < tier1Modules.length
-
-  return (
-    <section className="mb-10">
-      {/* Tier header */}
-      <div className={`flex items-center gap-4 mb-5 px-1`}>
-        <div className={`flex items-center gap-2 px-4 py-1.5 rounded-full border text-sm font-bold ${
-          tier === 1
-            ? 'border-vex-orange/40 bg-vex-orange/10 text-vex-orange'
-            : locked
-              ? 'border-vex-border bg-vex-surface text-vex-muted'
-              : 'border-vex-purple/40 bg-vex-purple/10 text-vex-purple'
-        }`}>
-          {tier === 1 ? t('tier.1.full') : locked ? t('tier.2.locked') : t('tier.2.full')}
-        </div>
-        {tier === 2 && locked && (
-          <span className="text-vex-muted text-xs">
-            {t('tier.2.unlockNote')} <span className="text-vex-purple">{t('tier.1.full')}</span> {t('tier.2.youHave')} {tier1Done}/{tier1Modules.length}
-          </span>
-        )}
-      </div>
-
-      {locked ? (
-        <div className={`rounded-2xl border border-vex-purple/20 bg-vex-purple/5 p-8 text-center`}>
-          <div className="text-4xl mb-3">🔒</div>
-          <div className="text-vex-text font-semibold mb-1">{t('tier.2.full')}</div>
-          <div className="text-vex-muted text-sm mb-4">
-            {t('tier.2.complete')} {tier1Modules.length - tier1Done} {t('tier.2.remaining')}
-          </div>
-          <div className="max-w-xs mx-auto bg-vex-surface rounded-full h-2 border border-vex-border">
-            <div
-              className="h-full bg-vex-purple rounded-full transition-all"
-              style={{ width: `${Math.min((tier1Done / Math.max(tier1Modules.length, 1)) * 100, 100)}%` }}
-            />
-          </div>
-          <div className="text-vex-muted text-xs mt-2">{tier1Done} / {tier1Modules.length}</div>
-          <div className="mt-5 text-vex-muted text-xs">
-            {t('tier.2.preview')}
-          </div>
-        </div>
-      ) : (
-        tierModules.map((mod, modIdxInTier) => {
-          const moduleLocked = isModuleLocked(tierModules, modIdxInTier, completedIds)
-          return (
-            <div key={mod.id} className={`mb-7 ${moduleLocked ? 'opacity-50' : ''}`}>
-              <div className="flex items-center gap-2 mb-3 px-1">
-                <span className="text-xl">{moduleLocked ? '🔒' : mod.icon}</span>
-                <h2 className="text-vex-text font-bold text-lg">{mod.title}</h2>
-              </div>
-              <div className="flex flex-col gap-3 max-w-xl">
-                {mod.lessons.map((lesson, lessonIdx) => (
-                  <LessonCard
-                    key={lesson.id}
-                    lesson={{ ...lesson, moduleId: mod.id }}
-                    moduleId={mod.id}
-                    completedIds={completedIds}
-                    onStart={() => onSelectLesson(lesson, mod.id)}
-                    locked={moduleLocked || isLessonLocked(mod, lessonIdx, completedIds)}
-                  />
-                ))}
-              </div>
-            </div>
-          )
-        })
-      )}
-    </section>
-  )
-}
-
-function WelcomeScreen({
-  modules,
-  completedIds,
-  onSelectLesson,
-}: {
-  modules: Module[]
-  completedIds: Set<string>
-  onSelectLesson: (lesson: Lesson, moduleId: string) => void
-}) {
-  const { t } = useLang()
-  return (
-    <div className="flex-1 overflow-y-auto p-6 md:p-10">
-      <div className="max-w-3xl mx-auto">
-        <div className="text-center mb-10">
-          <div className="text-5xl mb-3">⚡</div>
-          <h1 className="text-3xl font-bold text-vex-text mb-2">{t('app.welcomeTitle')}</h1>
-          <p className="text-vex-muted text-base">
-            {t('app.welcomeSubtitle')}
-          </p>
-        </div>
-
-        <TierSection tier={1} modules={modules} completedIds={completedIds} onSelectLesson={onSelectLesson} />
-        <TierSection tier={2} modules={modules} completedIds={completedIds} onSelectLesson={onSelectLesson} />
-      </div>
-    </div>
-  )
-}
-
 // ─── App Root ─────────────────────────────────────────────────────────────────
 
 function AppInner() {
@@ -501,6 +361,8 @@ function AppInner() {
   const [activeLesson, setActiveLesson] = useState<{ lesson: Lesson; moduleId: string } | null>(null)
   const totalXP = useMemo(() => getTotalXP(), [])
   const curriculum = useMemo(() => getLocalizedCurriculum(lang), [lang])
+  // Cosmetic only — derived from XP, never persisted, purely for the sidebar's level pill.
+  const level = useMemo(() => 1 + Math.floor(state.xp / 200), [state.xp])
 
   // Keep the active lesson in sync with the current language
   const activeLessonLocalized = useMemo(() => {
@@ -512,6 +374,11 @@ function AppInner() {
     }
     return activeLesson
   }, [activeLesson, curriculum])
+
+  const activeModuleTitle = useMemo(() => {
+    if (!activeLessonLocalized) return ''
+    return curriculum.find(m => m.id === activeLessonLocalized.moduleId)?.title ?? ''
+  }, [activeLessonLocalized, curriculum])
 
   const handleSelectLesson = (lesson: Lesson, moduleId: string) => {
     setActiveLesson({ lesson, moduleId })
@@ -537,6 +404,7 @@ function AppInner() {
         xp={state.xp}
         totalXP={totalXP}
         streak={state.streak}
+        level={level}
         onReset={handleReset}
       />
 
@@ -544,12 +412,14 @@ function AppInner() {
         {activeLessonLocalized ? (
           <LessonPlayer
             lesson={activeLessonLocalized.lesson}
+            moduleTitle={activeModuleTitle}
             completedIds={state.completedExercises}
+            streak={state.streak}
             onComplete={handleCompleteExercise}
             onBack={() => setActiveLesson(null)}
           />
         ) : (
-          <WelcomeScreen
+          <LessonPath
             modules={curriculum}
             completedIds={state.completedExercises}
             onSelectLesson={handleSelectLesson}
