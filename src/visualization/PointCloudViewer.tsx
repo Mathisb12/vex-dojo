@@ -107,15 +107,25 @@ export function PointCloudViewer({ points, height = 320 }: Props) {
 
     const positions = new Float32Array(points.length * 3)
     const colors = new Float32Array(points.length * 3)
+    const tmpColor = new THREE.Color()
 
     for (let i = 0; i < points.length; i++) {
       const p = points[i]
       positions[i * 3 + 0] = p.P.x
       positions[i * 3 + 1] = p.P.y
       positions[i * 3 + 2] = p.P.z
-      colors[i * 3 + 0] = Math.min(Math.max(p.Cd.x, 0), 1)
-      colors[i * 3 + 1] = Math.min(Math.max(p.Cd.y, 0), 1)
-      colors[i * 3 + 2] = Math.min(Math.max(p.Cd.z, 0), 1)
+      // @Cd values are authored as the display color the player intends to see.
+      // Three.js renders vertex colors in linear space and re-encodes to sRGB on
+      // output, which would otherwise wash out the upper half of any gradient —
+      // convert sRGB -> linear here so the round trip displays what was authored.
+      tmpColor.setRGB(
+        Math.min(Math.max(p.Cd.x, 0), 1),
+        Math.min(Math.max(p.Cd.y, 0), 1),
+        Math.min(Math.max(p.Cd.z, 0), 1),
+      ).convertSRGBToLinear()
+      colors[i * 3 + 0] = tmpColor.r
+      colors[i * 3 + 1] = tmpColor.g
+      colors[i * 3 + 2] = tmpColor.b
     }
 
     state.geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3))

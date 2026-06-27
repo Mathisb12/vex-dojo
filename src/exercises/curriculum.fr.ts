@@ -431,9 +431,13 @@ export const FR_EXERCISES: Record<string, ExTranslation> = {
     choiceExplanations: { 1: 'Ça n\'ajouterait qu\'à la dernière composante — le scalaire s\'applique aux trois.' },
   },
   'arith-6': {
-    title: "Utilise l'opérateur modulo",
-    codeLines: ['// Quel est le reste de 7 divisé par 3 ?', 'float r = 7.0 ___ 3.0;'],
-    hints: ['L\'opérateur de reste'],
+    title: "Utilise l'opérateur modulo, et calcule son résultat",
+    codeLines: [
+      "// Complète l'opérateur qui calcule un reste,",
+      '// puis la valeur qu\'il produit pour 7 et 3.',
+      'float r = 7.0 ___ 3.0;  // r = ___',
+    ],
+    hints: ["L'opérateur de reste (pas le résultat)", 'Le reste de 7 divisé par 3'],
     explanation: '`7 % 3 = 1` — 3 entre deux fois dans 7 (6), il reste 1. Le modulo est très utile pour les motifs répétitifs, que tu utiliseras beaucoup plus tard.',
   },
   'arith-2': {
@@ -478,6 +482,12 @@ export const FR_EXERCISES: Record<string, ExTranslation> = {
     ],
     explanation: '`fit(@P.y, -1, 1, 0, 1)` mappe -1→0 et +1→1. Assigner uniquement à `@Cd.x` (avec @Cd.y et @Cd.z à 0) crée un dégradé rouge du noir (bas) au rouge (haut).',
   },
+  'fit-6': {
+    title: 'Quelle fonction est un raccourci pour `fit(x, 0, 1, nmin, nmax)` ?',
+    explanation: '`fit01(x, nmin, nmax)` existe spécifiquement pour le cas très courant où ton entrée est déjà connue pour être entre 0 et 1 (la plupart des valeurs de bruit et de masque le sont) — ça t\'évite de retaper `0, 1` chaque fois.',
+    choices: ['fit01(x, nmin, nmax)', 'fit10(x, nmin, nmax)', 'clamp(x, nmin, nmax)', 'lerp(x, nmin, nmax)'],
+    choiceExplanations: { 1: 'Celle-ci est la version inversée — 1→nmin, 0→nmax.' },
+  },
   'fit-3': {
     title: 'Remappe une valeur déjà entre 0 et 1',
     codeLines: ['// x est déjà entre 0 et 1 (ex: une valeur de bruit). Remappe-le vers 0.2-0.9.', 'float c = ___(x, 0.2, 0.9);'],
@@ -515,6 +525,12 @@ export const FR_EXERCISES: Record<string, ExTranslation> = {
     title: 'Que retourne `length({1, 1, 1})` (arrondi à 2 décimales) ?',
     explanation: '√(1² + 1² + 1²) = √3 ≈ **1.73**. Tout ne donne pas un nombre rond avec length() !',
     choices: ['1.73', '3.0', '1.0', '1.5'],
+  },
+  'vec-8': {
+    title: 'Quelle fonction est un raccourci pour `length(a - b)` ?',
+    explanation: '`distance(a, b)` existe purement pour la lisibilité — elle calcule exactement `length(a - b)`, la distance entre deux points arbitraires plutôt que depuis l\'origine.',
+    choices: ['distance(a, b)', 'normalize(a, b)', 'dot(a, b)', 'length(a, b)'],
+    choiceExplanations: { 1: 'normalize() ne prend qu\'un seul vecteur — elle ne compare pas deux points.', 3: 'length() ne prend qu\'un seul vecteur.' },
   },
   'vec-6': {
     title: 'Distance entre deux points',
