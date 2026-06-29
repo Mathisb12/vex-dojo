@@ -34,14 +34,13 @@ export const CURRICULUM: Module[] = [
             kind: 'learn',
             id: 'learn-intro-2',
             title: 'The Geometry Wrangle',
-            body: 'In Houdini, you write VEX inside a **Geometry Wrangle** (Attribute Wrangle) node. Its **Run Over** setting decides which type of component your code loops over: Points (the default), Primitives, Vertices, or Detail.\n\nThat changes what each iteration represents — but most built-ins stay available no matter which mode you pick, they just adapt their meaning:\n- `@ptnum` always works: looping points it\'s the current point; looping vertices it\'s "the point that vertex is wired to"; looping primitives it\'s "the point of that primitive\'s first vertex"\n- The **totals** (`@numpt`, `@numprim`, `@numvtx`) stay readable too — you can check `@numpt` from inside a Primitive wrangle just fine\n\n**Detail** mode runs your code only **once for the whole geometry** — ideal for a value that describes the whole setup rather than any single point (a global counter, a bounding-box size). Storing that on every point instead would waste memory for no benefit.\n\nOne thing that *does* change with Run Over: where a brand-new attribute gets created. Write `f@mask = 1;` in Points mode and `mask` becomes a point attribute; the exact same line in Primitives mode creates a primitive attribute instead.',
+            body: 'In Houdini, you write VEX inside a **Geometry Wrangle** node. Its **Run Over** setting picks what your code loops over: Points (the default), Primitives, Vertices, or Detail.\n\nSwitching modes doesn\'t lock you out of anything — `@ptnum`, `@numpt`, and friends stay readable everywhere, they just adapt to whatever you\'re looping over.\n\n**Detail** is the special case: it runs your code **once for the whole geometry** — perfect for a single value that isn\'t really "per point," like a global counter.\n\nOne thing Run Over *does* change: where a brand-new attribute lands. `f@mask = 1;` creates a **point** attribute in Points mode, but a **primitive** attribute in Primitives mode.',
             codeExample: '// Run Over = Points (this lesson)\n// Point 0 → @ptnum is 0\n// Point 1 → @ptnum is 1\n// ...\n// Last point → @ptnum is @numpt - 1',
             keyPoints: [
-              'Run Over picks which component type you loop over: Points, Primitives, Vertices, Detail',
-              '@ptnum/@primnum/@vtxnum stay available in every mode — they just describe a different relationship',
-              '@numpt/@numprim/@numvtx (the totals) are always readable, regardless of mode',
-              'Detail mode runs once for the whole geometry — for global, not-per-point values',
-              'A new attribute (f@name = ...) is created on whichever component type you\'re currently looping over',
+              'Run Over picks what you loop over: Points, Primitives, Vertices, Detail',
+              '@ptnum, @numpt and friends stay readable in every mode',
+              'Detail mode runs once for the whole geometry — for one global value',
+              'A new attribute (f@name = ...) lands on whichever component type you\'re looping over',
             ],
           },
         ],
@@ -104,10 +103,10 @@ export const CURRICULUM: Module[] = [
             title: 'You set a wrangle\'s Run Over to Primitives. What happens to `@ptnum` and `@numpt`?',
             explanation: '`@ptnum` and `@numpt` stay fully available — they don\'t disappear just because you switched modes. `@ptnum` now means "the point of this primitive\'s first vertex" instead of "the current point," and `@numpt` still tells you the geometry\'s total point count, exactly as before.',
             choices: [
-              { text: 'They\'re still readable — @ptnum adapts its meaning, @numpt stays the same total', correct: true },
-              { text: 'Both become completely unavailable until you switch back to Points', correct: false },
-              { text: 'The code now runs once per frame instead of once per cook', correct: false },
-              { text: 'VEX syntax itself changes to a primitive-only dialect', correct: false },
+              { text: 'Still readable — @ptnum just adapts its meaning', correct: true },
+              { text: 'Both become unavailable until you switch back', correct: false },
+              { text: 'The code now runs once per frame, not per cook', correct: false },
+              { text: 'VEX syntax becomes a primitive-only dialect', correct: false },
             ],
             xp: 10,
           },
@@ -117,10 +116,10 @@ export const CURRICULUM: Module[] = [
             title: 'You write `f@mask = 1;` while Run Over is set to Primitives. What happens?',
             explanation: 'Run Over doesn\'t just change which loop runs — it changes WHERE new data gets stored. The new attribute is created on whatever component type the wrangle is currently looping over: primitives here. The exact same line of code in Points mode would create a point attribute instead.',
             choices: [
-              { text: '"mask" is created as a primitive attribute, since Run Over is Primitives', correct: true },
-              { text: '"mask" is always created as a point attribute, no matter the Run Over mode', correct: false },
-              { text: '"mask" is created on every point AND every primitive at once', correct: false },
-              { text: 'This is an error — you can\'t create new attributes in Primitive mode', correct: false },
+              { text: '"mask" is now a primitive attribute', correct: true },
+              { text: '"mask" is always a point attribute', correct: false },
+              { text: '"mask" lands on points AND primitives', correct: false },
+              { text: 'Error — can\'t create attributes in this mode', correct: false },
             ],
             xp: 10,
           },
@@ -504,7 +503,7 @@ export const CURRICULUM: Module[] = [
             id: 'learn-params-2',
             title: 'chramp() — sampling a ramp',
             visual: 'ramp',
-            body: 'A **ramp parameter** lets an artist draw a curve instead of setting one number — useful when a value should change smoothly across a range, like a gradient or an easing curve.\n\n`chramp("name", pos)` takes two separate arguments:\n- `"name"` — WHICH ramp to sample (just like the string in `chf("name")`)\n- `pos` — WHERE along that ramp\'s curve to sample, from 0 (the very start) to 1 (the very end)\n\nSo `chramp("falloff", 0.0)` reads the start of the "falloff" curve, and `chramp("falloff", 1.0)` reads its end — anything in between blends smoothly along whatever shape the artist drew.',
+            body: 'A **ramp parameter** lets an artist draw a curve instead of setting one number — useful when a value should change smoothly across a range, like a gradient or an easing curve.\n\n`chramp("name", pos)` takes two separate arguments:\n- `"name"` — WHICH ramp to sample (just like the string in `chf("name")`)\n- `pos` — WHERE along that ramp\'s curve to sample, from 0 (the very start) to 1 (the very end)\n\n`chramp()` always returns a **single value at that one position** — never a range. `chramp("falloff", 0.0)` samples the curve\'s value right at its start, `chramp("falloff", 1.0)` samples it right at its end, and any `pos` in between samples whatever the curve does there.',
             codeExample: '// Sample the "falloff" ramp at this point\'s height\n// (0 = bottom of the shape, 1 = top)\nfloat t = fit(@P.y, -1.0, 1.0, 0.0, 1.0);\nfloat brightness = chramp("falloff", t);',
             keyPoints: [
               'chramp("name", pos) — "name" picks the ramp, pos picks where on it (0..1)',
@@ -570,6 +569,48 @@ export const CURRICULUM: Module[] = [
           {
             kind: 'code',
             id: 'params-5',
+            title: 'Color a sphere with a ramp',
+            prompt: 'See what `chramp()` actually produces. `t` goes from 0 at the bottom of this sphere to 1 at the top — use `chramp("falloff", t)` to turn that into a brightness value, then blend between two colors with `lerp()`.',
+            starterCode: '// t = 0 at the bottom of the sphere, 1 at the top\nfloat t = fit(@P.y, -1.0, 1.0, 0.0, 1.0);\nfloat g = chramp("falloff", t);\n@Cd = lerp({0.1, 0.2, 0.6}, {1.0, 0.6, 0.1}, ___);\n',
+            solutionCode: 'float t = fit(@P.y, -1.0, 1.0, 0.0, 1.0);\nfloat g = chramp("falloff", t);\n@Cd = lerp({0.1, 0.2, 0.6}, {1.0, 0.6, 0.1}, g);\n',
+            checks: [
+              {
+                description: 'Uses chramp("falloff", t) to sample the ramp',
+                test: (_pts, _out, code) => /chramp\s*\(\s*["']falloff["']\s*,/.test(code),
+              },
+              {
+                description: 'Top of the sphere is warmer than the bottom (the ramp\'s shape shows)',
+                test: (pts) => {
+                  const top = pts.filter(p => p.P.y > 0.5)
+                  const bot = pts.filter(p => p.P.y < -0.5)
+                  if (!top.length || !bot.length) return false
+                  const avg = (arr: typeof pts, c: 'x' | 'y' | 'z') => arr.reduce((s, p) => s + p.Cd[c], 0) / arr.length
+                  return avg(top, 'x') > avg(bot, 'x') + 0.15
+                },
+              },
+              {
+                // The ramp stays near 0 until t=0.3, so this band (t ~0.1-0.2)
+                // should be noticeably darker than a plain linear "t" blend
+                // would give — catches calling chramp() but not actually
+                // using its result.
+                description: 'Colors follow the ramp\'s curve, not a plain linear blend',
+                test: (pts) => {
+                  const band = pts.filter(p => p.P.y > -0.8 && p.P.y < -0.6)
+                  if (!band.length) return false
+                  const avgX = band.reduce((s, p) => s + p.Cd.x, 0) / band.length
+                  return avgX < 0.2
+                },
+              },
+            ],
+            pointShape: 'sphere',
+            pointCount: 200,
+            chRamps: [{ name: 'falloff', stops: [{ pos: 0, value: 0 }, { pos: 0.3, value: 0.1 }, { pos: 1, value: 1 }] }],
+            explanation: '`chramp("falloff", t)` turns height into a brightness value that follows the ramp\'s actual shape, not just a straight blend — this ramp stays dark for the first third before rising, so the bottom of the sphere reads noticeably darker than a simple linear fade would give you.',
+            xp: 25,
+          },
+          {
+            kind: 'code',
+            id: 'params-6',
             title: 'Live brightness slider',
             prompt: 'Color every point with a flat grayscale brightness, driven by a **live parameter** instead of a hardcoded number.\n\nThe `chf("brightness")` call is already there for you — just use `b` to set `@Cd`. Drag the slider on the right and watch the color change live.',
             starterCode: '// "brightness" is a live slider — drag it on the right!\nfloat b = chf("brightness");\n@Cd = ___;\n',

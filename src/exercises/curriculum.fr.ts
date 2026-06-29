@@ -44,13 +44,12 @@ export const FR_LEARN_CARDS: Record<string, { title: string; body: string; keyPo
   },
   'learn-intro-2': {
     title: 'Le Geometry Wrangle',
-    body: "Dans Houdini, on écrit du VEX dans un nœud **Geometry Wrangle** (Attribute Wrangle). Son réglage **Run Over** décide sur quel type de composant ton code boucle : Points (par défaut), Primitives, Vertices, ou Detail.\n\nÇa change ce que représente chaque itération — mais la plupart des attributs intégrés restent disponibles peu importe le mode choisi, ils adaptent juste leur sens :\n- `@ptnum` fonctionne toujours : en bouclant sur les points c'est le point courant ; en bouclant sur les vertices c'est \"le point auquel ce vertex est rattaché\" ; en bouclant sur les primitives c'est \"le point du premier vertex de cette primitive\"\n- Les **totaux** (`@numpt`, `@numprim`, `@numvtx`) restent lisibles aussi — tu peux consulter `@numpt` depuis un Primitive wrangle sans problème\n\nLe mode **Detail** ne fait tourner ton code **qu'une seule fois pour toute la géométrie** — idéal pour une valeur qui décrit l'ensemble du setup plutôt qu'un seul point (un compteur global, la taille d'une bounding-box). La stocker sur chaque point au lieu de ça gâcherait de la mémoire pour rien.\n\nUne chose qui *change* bien avec Run Over : où un nouvel attribut est créé. Écris `f@mask = 1;` en mode Points et `mask` devient un attribut de point ; la même ligne en mode Primitives crée un attribut de primitive à la place.",
+    body: "Dans Houdini, on écrit du VEX dans un nœud **Geometry Wrangle**. Son réglage **Run Over** choisit sur quoi ton code boucle : Points (par défaut), Primitives, Vertices, ou Detail.\n\nChanger de mode ne te bloque l'accès à rien — `@ptnum`, `@numpt`, et les autres restent lisibles partout, ils s'adaptent juste à ce que tu boucles.\n\nLe mode **Detail** est le cas spécial : il fait tourner ton code **une seule fois pour toute la géométrie** — parfait pour une valeur qui n'est pas vraiment \"par point\", comme un compteur global.\n\nUne chose que Run Over *change* bien : où atterrit un nouvel attribut. `f@mask = 1;` crée un attribut de **point** en mode Points, mais un attribut de **primitive** en mode Primitives.",
     keyPoints: [
-      'Run Over choisit sur quel type de composant tu boucles : Points, Primitives, Vertices, Detail',
-      '@ptnum/@primnum/@vtxnum restent disponibles dans tous les modes — ils décrivent juste une relation différente',
-      '@numpt/@numprim/@numvtx (les totaux) sont toujours lisibles, peu importe le mode',
-      'Le mode Detail tourne une fois pour toute la géométrie — pour des valeurs globales, pas par point',
-      'Un nouvel attribut (f@nom = ...) est créé sur le type de composant que tu boucles actuellement',
+      'Run Over choisit ce que tu boucles : Points, Primitives, Vertices, Detail',
+      '@ptnum, @numpt et les autres restent lisibles dans tous les modes',
+      'Le mode Detail tourne une fois pour toute la géométrie — pour une valeur globale',
+      'Un nouvel attribut (f@nom = ...) atterrit sur le type de composant que tu boucles',
     ],
   },
   'learn-var-1': {
@@ -105,7 +104,7 @@ export const FR_LEARN_CARDS: Record<string, { title: string; body: string; keyPo
   },
   'learn-params-2': {
     title: 'chramp() — échantillonner une rampe',
-    body: "Un **paramètre rampe** permet à un artiste de dessiner une courbe au lieu de régler un seul nombre — utile quand une valeur doit changer en douceur sur une plage, comme un dégradé ou une courbe d'accélération.\n\n`chramp(\"nom\", pos)` prend deux arguments séparés :\n- `\"nom\"` — QUELLE rampe échantillonner (comme la chaîne dans `chf(\"nom\")`)\n- `pos` — OÙ échantillonner sur la courbe de cette rampe, de 0 (le tout début) à 1 (la toute fin)\n\nDonc `chramp(\"falloff\", 0.0)` lit le début de la courbe \"falloff\", et `chramp(\"falloff\", 1.0)` lit sa fin — tout ce qui est entre les deux se mélange en douceur selon la forme que l'artiste a dessinée.",
+    body: "Un **paramètre rampe** permet à un artiste de dessiner une courbe au lieu de régler un seul nombre — utile quand une valeur doit changer en douceur sur une plage, comme un dégradé ou une courbe d'accélération.\n\n`chramp(\"nom\", pos)` prend deux arguments séparés :\n- `\"nom\"` — QUELLE rampe échantillonner (comme la chaîne dans `chf(\"nom\")`)\n- `pos` — OÙ échantillonner sur la courbe de cette rampe, de 0 (le tout début) à 1 (la toute fin)\n\n`chramp()` retourne toujours **une seule valeur, à cette position précise** — jamais une plage. `chramp(\"falloff\", 0.0)` échantillonne la valeur tout au début de la courbe, `chramp(\"falloff\", 1.0)` l'échantillonne tout à sa fin, et n'importe quel `pos` entre les deux échantillonne ce que fait la courbe à cet endroit-là.",
     keyPoints: [
       'chramp("nom", pos) — "nom" choisit la rampe, pos choisit où dessus (0..1)',
       "Une rampe est une courbe que l'artiste dessine dans l'interface — plus expressive qu'un seul slider",
@@ -350,12 +349,12 @@ export const FR_EXERCISES: Record<string, ExTranslation> = {
   'intro-5': {
     title: 'Tu règles le Run Over d\'un wrangle sur Primitives. Qu\'arrive-t-il à `@ptnum` et `@numpt` ?',
     explanation: '`@ptnum` et `@numpt` restent entièrement disponibles — ils ne disparaissent pas juste parce que tu as changé de mode. `@ptnum` signifie maintenant "le point du premier vertex de cette primitive" au lieu de "le point courant", et `@numpt` te donne toujours le nombre total de points de la géométrie, exactement comme avant.',
-    choices: ['Ils restent lisibles — @ptnum adapte son sens, @numpt reste le même total', 'Les deux deviennent complètement indisponibles jusqu\'à ce que tu repasses en mode Points', 'Le code tourne maintenant une fois par frame au lieu d\'une fois par calcul', 'La syntaxe VEX elle-même change pour un dialecte réservé aux primitives'],
+    choices: ['Toujours lisibles — @ptnum adapte juste son sens', 'Les deux deviennent indisponibles jusqu\'au retour', 'Le code tourne une fois par frame, pas par calcul', 'La syntaxe VEX devient un dialecte réservé aux primitives'],
   },
   'intro-6': {
     title: 'Tu écris `f@mask = 1;` alors que Run Over est réglé sur Primitives. Qu\'est-ce qui se passe ?',
     explanation: 'Run Over ne change pas juste quelle boucle tourne — ça change OÙ les nouvelles données sont stockées. Le nouvel attribut est créé sur le type de composant que le wrangle boucle actuellement : les primitives ici. La même ligne de code en mode Points créerait un attribut de point à la place.',
-    choices: ['"mask" est créé comme attribut de primitive, puisque Run Over est Primitives', '"mask" est toujours créé comme attribut de point, quel que soit le mode Run Over', '"mask" est créé sur chaque point ET chaque primitive à la fois', 'C\'est une erreur — on ne peut pas créer de nouveaux attributs en mode Primitive'],
+    choices: ['"mask" est maintenant un attribut de primitive', '"mask" est toujours un attribut de point', '"mask" atterrit sur les points ET les primitives', 'Erreur — impossible de créer un attribut dans ce mode'],
   },
   // ── variables ──
   'var-1': {
@@ -514,6 +513,12 @@ export const FR_EXERCISES: Record<string, ExTranslation> = {
     explanation: '`chramp("gradient", t)` échantillonne le paramètre rampe "gradient" à la position `t` — une valeur qui varie en douceur sur la plage, pilotée par une courbe plutôt qu\'un seul nombre.',
   },
   'params-5': {
+    title: 'Colore une sphère avec une rampe',
+    prompt: 'Regarde ce que `chramp()` produit vraiment. `t` va de 0 en bas de cette sphère à 1 en haut — utilise `chramp("falloff", t)` pour en faire une valeur de luminosité, puis mélange deux couleurs avec `lerp()`.',
+    checks: ['Utilise chramp("falloff", t) pour échantillonner la rampe', 'Le haut de la sphère est plus chaud que le bas (la forme de la rampe se voit)', 'Les couleurs suivent la courbe de la rampe, pas un mélange linéaire simple'],
+    explanation: '`chramp("falloff", t)` transforme la hauteur en une valeur de luminosité qui suit la forme réelle de la rampe, pas juste un mélange linéaire — cette rampe reste sombre sur le premier tiers avant de monter, donc le bas de la sphère reste nettement plus sombre qu\'un simple fondu linéaire ne le donnerait.',
+  },
+  'params-6': {
     title: 'Slider de luminosité en direct',
     prompt: 'Colore tous les points avec une luminosité en niveaux de gris, pilotée par un **paramètre en direct** au lieu d\'un nombre codé en dur.\n\nL\'appel `chf("brightness")` est déjà là — utilise juste `b` pour définir `@Cd`. Glisse le slider à droite et regarde la couleur changer en direct.',
     checks: ['Lit le paramètre brightness avec chf("brightness")', 'La couleur est en niveaux de gris et correspond à la valeur du slider'],
