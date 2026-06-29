@@ -7,9 +7,13 @@ import { useLang } from '../i18n/LanguageContext'
 interface Props {
   points: PointAttrs[]
   height?: number
+  // Draws a translucent unit sphere under the points — for exercises about
+  // @N, so it's visually clear the points sit on a real surface (normals come
+  // from that surface's geometry) rather than floating in empty space.
+  showSurface?: boolean
 }
 
-export function PointCloudViewer({ points, height = 320 }: Props) {
+export function PointCloudViewer({ points, height = 320, showSurface = false }: Props) {
   const { t } = useLang()
   const mountRef = useRef<HTMLDivElement>(null)
   const stateRef = useRef<{
@@ -19,6 +23,7 @@ export function PointCloudViewer({ points, height = 320 }: Props) {
     controls: OrbitControls
     geometry: THREE.BufferGeometry
     pointsMesh: THREE.Points
+    surfaceMesh: THREE.Mesh | null
     animId: number
   } | null>(null)
 
@@ -62,11 +67,34 @@ export function PointCloudViewer({ points, height = 320 }: Props) {
     const pointsMesh = new THREE.Points(geometry, pointsMaterial)
     scene.add(pointsMesh)
 
-    // Ambient + directional light (for future mesh mode)
+    // Ambient + directional light (also lights the optional surface mesh)
     scene.add(new THREE.AmbientLight(0xffffff, 0.4))
     const dirLight = new THREE.DirectionalLight(0xffffff, 0.8)
     dirLight.position.set(5, 10, 7.5)
     scene.add(dirLight)
+
+    // Optional translucent sphere — shows the surface the points actually sit
+    // on, so @N (surface normal) reads as "perpendicular to this shell" rather
+    // than a mysterious property of disconnected dots.
+    let surfaceMesh: THREE.Mesh | null = null
+    if (showSurface) {
+      const surfaceGeo = new THREE.SphereGeometry(1, 32, 24)
+      const surfaceMat = new THREE.MeshStandardMaterial({
+        color: 0x3b4555,
+        transparent: true,
+        opacity: 0.18,
+        roughness: 0.8,
+        metalness: 0,
+        side: THREE.DoubleSide,
+      })
+      surfaceMesh = new THREE.Mesh(surfaceGeo, surfaceMat)
+      scene.add(surfaceMesh)
+      const wireframe = new THREE.LineSegments(
+        new THREE.WireframeGeometry(surfaceGeo),
+        new THREE.LineBasicMaterial({ color: 0x4a5568, transparent: true, opacity: 0.35 })
+      )
+      surfaceMesh.add(wireframe)
+    }
 
     let animId = 0
     const animate = () => {
@@ -86,7 +114,7 @@ export function PointCloudViewer({ points, height = 320 }: Props) {
     const ro = new ResizeObserver(handleResize)
     ro.observe(el)
 
-    stateRef.current = { renderer, scene, camera, controls, geometry, pointsMesh, animId }
+    stateRef.current = { renderer, scene, camera, controls, geometry, pointsMesh, surfaceMesh, animId }
 
     return () => {
       cancelAnimationFrame(animId)
@@ -95,10 +123,14 @@ export function PointCloudViewer({ points, height = 320 }: Props) {
       renderer.dispose()
       geometry.dispose()
       pointsMaterial.dispose()
+      if (surfaceMesh) {
+        surfaceMesh.geometry.dispose()
+        ;(surfaceMesh.material as THREE.Material).dispose()
+      }
       el.removeChild(renderer.domElement)
       stateRef.current = null
     }
-  }, [height])
+  }, [height, showSurface])
 
   // Update geometry when points change
   useEffect(() => {

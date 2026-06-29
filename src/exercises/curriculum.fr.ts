@@ -82,11 +82,12 @@ export const FR_LEARN_CARDS: Record<string, { title: string; body: string; keyPo
   },
   'learn-attr-2': {
     title: 'Les attributs intégrés',
-    body: "Houdini possède déjà plusieurs attributs sur la géométrie :\n\n- `@P` *(vector)* — position dans l'espace 3D\n- `@Cd` *(vector)* — couleur diffuse, où X=R, Y=G, Z=B (0–1)\n- `@N` *(vector)* — normale de surface (vecteur unitaire pointant \"vers l'extérieur\")\n- `@ptnum` *(int, lecture seule)* — index du point courant\n- `@numpt` *(int, lecture seule)* — nombre total de points\n\nTu utiliseras `@P` et `@Cd` dans presque tous tes wrangles.",
+    body: "Houdini possède déjà plusieurs attributs sur la géométrie :\n\n- `@P` *(vector)* — position dans l'espace 3D\n- `@Cd` *(vector)* — couleur diffuse, où X=R, Y=G, Z=B (0–1)\n- `@N` *(vector)* — normale de surface (vecteur unitaire pointant \"vers l'extérieur\")\n- `@ptnum` *(int, lecture seule)* — index du point courant\n- `@numpt` *(int, lecture seule)* — nombre total de points\n\nTu utiliseras `@P` et `@Cd` dans presque tous tes wrangles.\n\nUne subtilité avec `@N` : ça n'a vraiment de sens **que par rapport à une surface**. Un mesh polygonal (comme une sphère SOP) le calcule pour toi à partir de comment les faces se connectent. Un nuage de points isolés, sans face, n'a rien à partir de quoi le calculer — il n'aura pas de `@N` significatif sauf si quelque chose en amont (comme un nœud Point Cloud Normal) en crée un explicitement.",
     keyPoints: [
       '@P = position (vector)',
       '@Cd = couleur, X=rouge Y=vert Z=bleu',
       '@N = normale (vecteur directionnel unitaire)',
+      '@N vient d\'une surface (ex. un mesh) — un nuage de points isolés n\'en a pas par défaut',
       '@ptnum / @numpt = index / total (lecture seule)',
     ],
   },
@@ -675,7 +676,7 @@ export const FR_EXERCISES: Record<string, ExTranslation> = {
       'Les points du haut (orientés vers le haut) sont plus lumineux que ceux du bas',
       'La couleur reste en niveaux de gris (les canaux R, G et B correspondent)',
     ],
-    explanation: 'Sur cette sphère, la normale `@N` pointe directement vers l\'extérieur, donc `dot(@N, up)` est maximal au pôle du haut et minimal en bas — `fit()` transforme ça en une luminosité 0–1 propre.',
+    explanation: 'Sur cette sphère, la normale `@N` pointe directement vers l\'extérieur, donc `dot(@N, up)` est maximal au pôle du haut et minimal en bas — `fit()` transforme ça en une luminosité 0–1 propre. La coque translucide montre POURQUOI : une normale n\'a de sens que par rapport à une surface — un nuage de points isolés dans un vrai Houdini n\'en aurait pas, sauf si ces points viennent réellement d\'une surface comme celle-ci.',
   },
   // ── conditionals ──
   'if-1': {

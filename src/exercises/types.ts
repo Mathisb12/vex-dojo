@@ -81,6 +81,10 @@ export interface CodeExercise {
   pointCount: number
   explanation: string
   xp: number
+  // When true (and pointShape is 'sphere'), the viewer draws a translucent
+  // sphere surface under the points — for exercises about @N, since a bare
+  // point cloud has no real surface to derive a normal from in real Houdini.
+  showSurface?: boolean
 }
 
 export interface Lesson {

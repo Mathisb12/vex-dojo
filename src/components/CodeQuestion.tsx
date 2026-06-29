@@ -193,7 +193,7 @@ export function CodeQuestion({ exercise, icon, onComplete }: Props) {
             <span className="text-xs font-mono uppercase tracking-widest text-vex-muted">{t('viewer.title3d')}</span>
             {isPending && <span className="w-1.5 h-1.5 rounded-full bg-vex-orange animate-pulse-fast" />}
           </div>
-          <PointCloudViewer points={points} height={300} />
+          <PointCloudViewer points={points} height={300} showSurface={exercise.showSurface} />
         </div>
       </div>
 
