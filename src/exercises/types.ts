@@ -2,6 +2,25 @@
 
 export type PointShape = 'sphere' | 'grid' | 'random'
 
+// A single ch()/chf() spare-parameter slider rendered next to the 3D preview —
+// simulates dragging a real Houdini node parameter while the wrangle runs live.
+export interface ChParamSpec {
+  name: string   // channel name read via ch("name") / chf("name") in the code
+  label: string
+  min: number
+  max: number
+  default: number
+  step?: number
+}
+
+// A fixed (non-editable) ramp sampled via chramp("name", pos) — Houdini's real
+// ramp parameter is a draggable curve editor, which this sandbox doesn't
+// reproduce; the sampling behavior itself is real and verified against docs.
+export interface ChRampSpec {
+  name: string
+  stops: { pos: number; value: number }[]
+}
+
 export interface MCQChoice {
   text: string
   correct: boolean
@@ -85,6 +104,12 @@ export interface CodeExercise {
   // sphere surface under the points — for exercises about @N, since a bare
   // point cloud has no real surface to derive a normal from in real Houdini.
   showSurface?: boolean
+  // Renders a live slider per entry; dragging it re-runs the code with the
+  // new value, simulating a wrangle's spare ch()/chf() parameters.
+  chParams?: ChParamSpec[]
+  // Fixed ramp data sampled by chramp() calls in the code — always available
+  // to the interpreter, not user-editable (see ChRampSpec).
+  chRamps?: ChRampSpec[]
 }
 
 export interface Lesson {

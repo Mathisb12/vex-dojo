@@ -17,6 +17,7 @@ export const FR_LESSONS: Record<string, { title: string; description: string }> 
   variables: { title: 'Nombres et texte', description: 'Déclarer des variables int, float et string' },
   'vector-intro': { title: 'Vecteurs', description: 'Déclarer et manipuler des valeurs vector' },
   attributes: { title: 'Attributs', description: 'Lire et écrire les attributs de points avec @' },
+  params: { title: 'Paramètres et sliders', description: 'Piloter un wrangle en direct avec ch(), chf() et chramp()' },
   arithmetic: { title: 'Arithmétique', description: 'Maths de base avec floats et vecteurs' },
   'fit-remap': { title: 'fit() — remapper des plages', description: 'Transformer une plage de valeurs en une autre' },
   vectors: { title: 'length() & normalize()', description: 'Mesurer et transformer la magnitude des vecteurs' },
@@ -89,6 +90,25 @@ export const FR_LEARN_CARDS: Record<string, { title: string; body: string; keyPo
       '@N = normale (vecteur directionnel unitaire)',
       '@N vient d\'une surface (ex. un mesh) — un nuage de points isolés n\'en a pas par défaut',
       '@ptnum / @numpt = index / total (lecture seule)',
+    ],
+  },
+  'learn-params-1': {
+    title: 'ch() et chf() — lire des paramètres',
+    body: "Dans le vrai Houdini, un nœud wrangle a sa propre interface de paramètres — des sliders qu'un artiste peut glisser sans toucher au code. `ch(\"nom\")` lit la valeur actuelle d'un paramètre appelé \"nom\". Si ce paramètre n'existe pas encore, un bouton à côté de l'éditeur de code (« Create spare parameter for each ch() ») en ajoute un pour toi — un vrai slider qui pilote ton code en direct.\n\n`ch()` est ambigu sur le type de la valeur, donc la doc VEX recommande les formes typées explicites à la place : `chf(\"nom\")` pour un float, `chi(\"nom\")` pour un int.",
+    keyPoints: [
+      'ch("nom") lit un paramètre de nœud par son nom',
+      "chf(\"nom\") est la forme float explicite — recommandée par rapport au ch() ambigu",
+      'Houdini peut créer automatiquement un slider pour tout ch()/chf() dans ton code',
+      "Glisser ce slider relance le wrangle avec la nouvelle valeur — sans toucher au code",
+    ],
+  },
+  'learn-params-2': {
+    title: 'chramp() — échantillonner une rampe',
+    body: "Un **paramètre rampe** permet à un artiste de dessiner une courbe au lieu de régler un seul nombre — utile quand une valeur doit changer en douceur sur une plage, comme un dégradé ou une courbe d'accélération.\n\n`chramp(\"nom\", pos)` échantillonne cette courbe à une position de 0 à 1. Comme `chf()`, y faire référence peut créer automatiquement le paramètre rampe sur le nœud.",
+    keyPoints: [
+      'chramp("nom", pos) échantillonne un paramètre rampe à une position 0..1',
+      "Une rampe est une courbe que l'artiste dessine dans l'interface — plus expressive qu'un seul slider",
+      'pos est automatiquement contraint entre 0 et 1',
     ],
   },
   'learn-arith-1': {
@@ -456,6 +476,42 @@ export const FR_EXERCISES: Record<string, ExTranslation> = {
     ],
     hints: ['Préfixe de type + @ — même lettre que le mot-clé float'],
     explanation: '`f@result = 2.0;` déclare explicitement `result` comme un **attribut float**. Contrairement à `float scratch = 2.0;` (une variable locale, perdue après ce wrangle), un attribut est écrit sur la géométrie et existe encore en aval. La forme nue `@result = 2.0;` ferait la même chose ici — `f@` est juste la version explicite, utile quand tu veux préciser le type que tu crées.',
+  },
+  // ── params ──
+  'params-1': {
+    title: 'Que fait réellement le glissement d\'un slider créé depuis `chf("amplitude")` ?',
+    explanation: 'Houdini relance le wrangle avec la nouvelle valeur injectée dans chaque appel `chf("amplitude")` du code — exactement comme si tu avais édité le nombre toi-même, mais en direct et sans toucher au VEX.',
+    choices: ['Relance le wrangle avec la nouvelle valeur injectée dans chf("amplitude")', 'Change seulement la valeur affichée dans le viewport, pas le code réel', 'Renomme le channel partout où il est utilisé', 'N\'a aucun effet jusqu\'à ce que tu retapes le code manuellement'],
+  },
+  'params-2': {
+    title: 'Lis un paramètre float',
+    codeLines: [
+      '// Lis un paramètre "frequency" au lieu de coder un nombre en dur',
+      'float freq = ___("frequency");',
+    ],
+    hints: ['La fonction explicite et recommandée pour lire un float'],
+    explanation: '`chf("frequency")` lit la valeur actuelle du paramètre "frequency". Le simple `ch()` marcherait aussi, mais la doc VEX recommande la forme typée puisque `ch()` ne précise pas si tu veux un float, un int, un vector ou une string.',
+  },
+  'params-3': {
+    title: 'Pourquoi la doc de SideFX recommande-t-elle chf()/chi()/chv() plutôt que le simple ch() ?',
+    explanation: '`ch()` a plusieurs surcharges et Houdini doit deviner laquelle tu veux d\'après le contexte — les variantes typées éliminent complètement cette ambiguïté.',
+    choices: ['ch() est ambigu sur le type de retour ; les formes typées le rendent explicite', 'ch() est obsolète et sera retiré dans une future version de Houdini', 'ch() ne fonctionne que dans les SOPs, pas dans les wrangles', 'ch() ne peut lire que des valeurs int, jamais des floats'],
+  },
+  'params-4': {
+    title: 'Échantillonne un paramètre rampe',
+    codeLines: [
+      '// Échantillonne un paramètre rampe "gradient" selon la hauteur de ce point',
+      'float t = fit(@P.y, -1.0, 1.0, 0.0, 1.0);',
+      'float val = ___("gradient", t);',
+    ],
+    hints: ['Échantillonne un paramètre rampe à une position 0..1'],
+    explanation: '`chramp("gradient", t)` échantillonne le paramètre rampe "gradient" à la position `t` — une valeur qui varie en douceur sur la plage, pilotée par une courbe plutôt qu\'un seul nombre.',
+  },
+  'params-5': {
+    title: 'Slider d\'amplitude en direct',
+    prompt: 'Déplace `@P.y` avec une onde sinusoïdale dont l\'amplitude vient d\'un **paramètre en direct** au lieu d\'un nombre codé en dur.\n\nUtilise `chf("amplitude")` pour lire le slider à droite, multiplie-le dans ton onde sinusoïdale, et donne aussi une couleur aux points. Glisse le slider — la vague devrait grossir et rétrécir en direct.',
+    checks: ['Lit le paramètre amplitude avec chf("amplitude")', 'Le déplacement Y varie par point (une vraie vague, mise à l\'échelle par le slider)'],
+    explanation: 'Glisser le slider change ce que retourne `chf("amplitude")`, ce qui change `amp`, ce qui change à quel point l\'onde sinusoïdale déplace `@P.y` — en direct, sans éditer le code. C\'est tout l\'intérêt d\'exposer une valeur comme paramètre plutôt que de la coder en dur.',
   },
   // ── arithmetic ──
   'arith-1': {

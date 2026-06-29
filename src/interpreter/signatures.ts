@@ -160,6 +160,25 @@ export const VEX_SIGNATURES: Record<string, FnSignature> = {
     doc: 'Prints formatted text to the console. %d=int, %f=float, %v=vector, %s=string.',
     params: [{ label: 'fmt: string', doc: 'Format string, e.g. "%d points".' }, { label: '...args', doc: 'Values matching the format specifiers.' }],
   },
+
+  ch: {
+    label: 'ch(channel: string) → float',
+    doc: 'Reads a node parameter by name. Real VEX docs recommend the typed chf()/chi() instead, since ch() is ambiguous about the return type.',
+    params: [{ label: 'channel: string', doc: 'Parameter name, e.g. "amplitude".' }],
+  },
+  chf: {
+    label: 'chf(channel: string) → float',
+    doc: 'Reads a float node parameter by name — the explicit, recommended form of ch(). In real Houdini, referencing chf("name") lets you create a spare slider parameter for it on the node.',
+    params: [{ label: 'channel: string', doc: 'Parameter name, e.g. "amplitude".' }],
+  },
+  chramp: {
+    label: 'chramp(channel: string, pos: float) → float',
+    doc: 'Samples a ramp parameter at position pos (0..1, clamped). Lets an artist control a value with a curve instead of a single slider.',
+    params: [
+      { label: 'channel: string', doc: 'Ramp parameter name, e.g. "gradient".' },
+      { label: 'pos: float', doc: 'Position along the ramp, 0 to 1.' },
+    ],
+  },
 }
 
 export const VEX_FUNCTION_NAMES = Object.keys(VEX_SIGNATURES)

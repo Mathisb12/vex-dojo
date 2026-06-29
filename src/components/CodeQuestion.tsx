@@ -7,6 +7,7 @@ import { useLang } from '../i18n/LanguageContext'
 import { registerVexEditorFeatures } from './vexMonacoLanguage'
 import { ExerciseHeader } from './ExerciseHeader'
 import { CheckPillRow } from './CheckPillRow'
+import { ChannelSliders } from './ChannelSliders'
 
 interface Props {
   exercise: CodeExercise
@@ -27,6 +28,9 @@ export function CodeQuestion({ exercise, icon, onComplete }: Props) {
   const [showSolution, setShowSolution] = useState(false)
   const [hintUsed, setHintUsed] = useState(false)
   const [isPending, setIsPending] = useState(false)
+  const [chValues, setChValues] = useState<Record<string, number>>(() =>
+    Object.fromEntries((exercise.chParams ?? []).map(p => [p.name, p.default]))
+  )
   const basePoints = useRef(makeDefaultPoints(exercise.pointCount, exercise.pointShape))
 
   // Auto-run on code change (debounced)
@@ -34,21 +38,32 @@ export function CodeQuestion({ exercise, icon, onComplete }: Props) {
   useEffect(() => {
     if (runTimer.current) clearTimeout(runTimer.current)
     setIsPending(true)
-    runTimer.current = setTimeout(() => { runCode(code); setIsPending(false) }, 600)
+    runTimer.current = setTimeout(() => { runCode(code, chValues); setIsPending(false) }, 600)
     return () => { if (runTimer.current) clearTimeout(runTimer.current) }
   }, [code])
+
+  // Auto-run on slider change — snappier debounce than code typing, since a
+  // slider drag is already a "final" value the player wants to see live.
+  const chTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  useEffect(() => {
+    if (!exercise.chParams?.length) return
+    if (chTimer.current) clearTimeout(chTimer.current)
+    chTimer.current = setTimeout(() => { runCode(code, chValues) }, 80)
+    return () => { if (chTimer.current) clearTimeout(chTimer.current) }
+  }, [chValues])
 
   // Reset base points when exercise changes
   useEffect(() => {
     basePoints.current = makeDefaultPoints(exercise.pointCount, exercise.pointShape)
     setCode(placeholder)
+    setChValues(Object.fromEntries((exercise.chParams ?? []).map(p => [p.name, p.default])))
     setRan(false)
     setAllPass(false)
     setShowSolution(false)
     setHintUsed(false)
   }, [exercise.id])
 
-  const runCode = useCallback((src: string) => {
+  const runCode = useCallback((src: string, chVals: Record<string, number>) => {
     // Deep copy base points
     const pts = basePoints.current.map(p => ({
       ...p,
@@ -56,7 +71,8 @@ export function CodeQuestion({ exercise, icon, onComplete }: Props) {
       Cd: { ...p.Cd },
       N: { ...p.N },
     }))
-    const result = runVex(src, pts)
+    const ramps = Object.fromEntries((exercise.chRamps ?? []).map(r => [r.name, r.stops]))
+    const result = runVex(src, pts, chVals, ramps)
     setPoints(result.points)
     setOutput(result.output)
     setError(result.error)
@@ -73,7 +89,7 @@ export function CodeQuestion({ exercise, icon, onComplete }: Props) {
     }
   }, [exercise])
 
-  const handleRun = () => runCode(code)
+  const handleRun = () => runCode(code, chValues)
 
   const handleHint = () => {
     setCode(exercise.starterCode)
@@ -140,7 +156,14 @@ export function CodeQuestion({ exercise, icon, onComplete }: Props) {
               {t('common.run')}
             </button>
             <button
-              onClick={() => { setCode(placeholder); setRan(false); setAllPass(false); setShowSolution(false); setHintUsed(false) }}
+              onClick={() => {
+                setCode(placeholder)
+                setChValues(Object.fromEntries((exercise.chParams ?? []).map(p => [p.name, p.default])))
+                setRan(false)
+                setAllPass(false)
+                setShowSolution(false)
+                setHintUsed(false)
+              }}
               className="px-3 py-1.5 border border-vex-border text-vex-muted rounded-lg hover:border-vex-text hover:text-vex-text text-sm transition-colors"
             >
               {t('common.reset')}
@@ -166,6 +189,14 @@ export function CodeQuestion({ exercise, icon, onComplete }: Props) {
               </div>
             )}
           </div>
+
+          {exercise.chParams && exercise.chParams.length > 0 && (
+            <ChannelSliders
+              params={exercise.chParams}
+              values={chValues}
+              onChange={(name, value) => setChValues(v => ({ ...v, [name]: value }))}
+            />
+          )}
 
           {/* Error */}
           {error && (

@@ -33,6 +33,30 @@ export interface RunResult {
   error: string | null
 }
 
+// Live values for ch()/chf()/chi() — simulates a wrangle's spare parameters,
+// driven by a real slider in the exercise UI instead of a hardcoded constant.
+export type ChannelValues = Record<string, number>
+
+// Live ramp data for chramp() — control points sampled by linear interpolation.
+export interface RampStop { pos: number; value: number }
+export type RampValues = Record<string, RampStop[]>
+
+function sampleRamp(stops: RampStop[], pos: number): number {
+  if (stops.length === 0) return 0
+  const clamped = Math.min(Math.max(pos, 0), 1)
+  if (clamped <= stops[0].pos) return stops[0].value
+  const last = stops[stops.length - 1]
+  if (clamped >= last.pos) return last.value
+  for (let i = 0; i < stops.length - 1; i++) {
+    const a = stops[i], b = stops[i + 1]
+    if (clamped >= a.pos && clamped <= b.pos) {
+      const t = (clamped - a.pos) / (b.pos - a.pos)
+      return a.value + (b.value - a.value) * t
+    }
+  }
+  return last.value
+}
+
 const MAX_ITERATIONS = 10_000
 
 class BreakSignal { }
@@ -66,6 +90,8 @@ class Environment {
 
 class Evaluator {
   private attrs!: PointAttrs
+
+  constructor(private chValues: ChannelValues = {}, private ramps: RampValues = {}) { }
 
   runForPoint(ast: Program, point: PointAttrs): void {
     this.attrs = point
@@ -258,6 +284,22 @@ class Evaluator {
   }
 
   private evalCall(node: CallExpr, env: Environment): VexValue {
+    // ch()/chf()/chi()/chramp() read live parameter values supplied by the
+    // exercise UI (e.g. a real slider) rather than a pure function of their
+    // arguments — handled here instead of in the static BUILTINS table.
+    if (node.name === 'ch' || node.name === 'chf' || node.name === 'chi') {
+      const nameArg = this.evalExpr(node.args[0], env)
+      const channel = nameArg.kind === 'string' ? nameArg.value : ''
+      const value = this.chValues[channel] ?? 0
+      return node.name === 'chi' ? mkInt(value) : mkFloat(value)
+    }
+    if (node.name === 'chramp') {
+      const nameArg = this.evalExpr(node.args[0], env)
+      const channel = nameArg.kind === 'string' ? nameArg.value : ''
+      const pos = toFloat(this.evalExpr(node.args[1], env))
+      const stops = this.ramps[channel] ?? [{ pos: 0, value: 0 }, { pos: 1, value: 1 }]
+      return mkFloat(sampleRamp(stops, pos))
+    }
     const fn = BUILTINS[node.name]
     if (!fn) throw new Error(`Unknown function '${node.name}'`)
     const args = node.args.map(a => this.evalExpr(a, env))
@@ -461,13 +503,18 @@ function exprToIdentName(expr: Expr): string | null {
 
 // ─── Public API ───────────────────────────────────────────────────────────────
 
-export function runVex(code: string, points: PointAttrs[]): RunResult {
+export function runVex(
+  code: string,
+  points: PointAttrs[],
+  chValues: ChannelValues = {},
+  ramps: RampValues = {},
+): RunResult {
   ;(globalThis as any).__vex_output__ = ''
   let error: string | null = null
 
   try {
     const ast = parse(code)
-    const ev = new Evaluator()
+    const ev = new Evaluator(chValues, ramps)
     for (const pt of points) {
       ev.runForPoint(ast, pt)
     }
