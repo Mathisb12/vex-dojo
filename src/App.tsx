@@ -68,7 +68,11 @@ function LessonPlayer({
   onBack: () => void
 }) {
   const { t } = useLang()
-  const allSteps = useMemo(() => buildSteps(lesson), [lesson.id])
+  // Depend on the whole lesson object, not just its id — getLocalizedCurriculum
+  // builds a fresh object on every language toggle, and we want that re-render
+  // to immediately re-localize the exercise currently on screen, not just the
+  // chrome around it (which already updates live since it reads t() directly).
+  const allSteps = useMemo(() => buildSteps(lesson), [lesson])
 
   // Start at first uncompleted exercise (skip already-done learn cards)
   const firstExerciseStep = allSteps.findIndex(

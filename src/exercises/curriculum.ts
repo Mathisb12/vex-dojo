@@ -475,12 +475,13 @@ export const CURRICULUM: Module[] = [
             kind: 'learn',
             id: 'learn-params-1',
             title: 'ch() and chf() — reading parameters',
-            body: 'In real Houdini, a wrangle node has its own parameter interface — sliders an artist can drag without touching the code. `ch("name")` reads the current value of a parameter called "name". If that parameter doesn\'t exist yet, a button next to the code editor ("Create spare parameter for each ch()") adds one for you — a real slider that controls your code live.\n\n`ch()` is ambiguous about the value\'s type, so real VEX docs recommend the explicit typed forms instead: `chf("name")` for a float, `chi("name")` for an int.',
+            visual: 'wrangle-params',
+            body: 'In real Houdini, a wrangle node has its own parameter interface — sliders an artist can drag without touching the code. `chf("name")` **reads** the current value of a parameter called "name" (it returns 0 if that parameter doesn\'t exist yet).\n\nCreating the actual slider is a separate step: a button next to the code editor ("Create spare parameter for each ch()") scans your code and adds a real, draggable parameter for every `chf()`/`ch()` call it finds. So `chf()` itself only reads — the button is what creates.\n\n`ch()` is ambiguous about the value\'s type, so real VEX docs recommend the explicit typed forms instead: `chf("name")` for a float, `chi("name")` for an int.',
             codeExample: '// Hardcoded — works, but an artist has to edit code to tweak it\nfloat amp = 0.4;\n\n// Same idea, but driven by a node parameter\nfloat amp = chf("amplitude");\n// -> click "Create spare parameter" and a slider named\n//    "amplitude" appears on the node, ready to drag',
             keyPoints: [
-              'ch("name") reads a node parameter by name',
+              'chf("name") reads a node parameter by name (0 if it doesn\'t exist yet)',
               'chf("name") is the explicit float form — recommended over the ambiguous ch()',
-              'Houdini can auto-create a slider parameter for any ch()/chf() in your code',
+              'A separate button creates the actual slider for any chf()/ch() in your code',
               'Dragging that slider re-runs the wrangle with the new value — no code edits needed',
             ],
           },
@@ -488,10 +489,11 @@ export const CURRICULUM: Module[] = [
             kind: 'learn',
             id: 'learn-params-2',
             title: 'chramp() — sampling a ramp',
-            body: 'A **ramp parameter** lets an artist draw a curve instead of setting one number — useful when a value should change smoothly across a range, like a gradient or an easing curve.\n\n`chramp("name", pos)` samples that curve at a position from 0 to 1. Like `chf()`, referencing it can auto-create the ramp parameter on the node.',
-            codeExample: '// Sample a ramp at this point\'s height (0 at the bottom, 1 at the top)\nfloat t = fit(@P.y, -1.0, 1.0, 0.0, 1.0);\nfloat brightness = chramp("falloff", t);',
+            visual: 'ramp',
+            body: 'A **ramp parameter** lets an artist draw a curve instead of setting one number — useful when a value should change smoothly across a range, like a gradient or an easing curve.\n\n`chramp("name", pos)` takes two separate arguments:\n- `"name"` — WHICH ramp to sample (just like the string in `chf("name")`)\n- `pos` — WHERE along that ramp\'s curve to sample, from 0 (the very start) to 1 (the very end)\n\nSo `chramp("falloff", 0.0)` reads the start of the "falloff" curve, and `chramp("falloff", 1.0)` reads its end — anything in between blends smoothly along whatever shape the artist drew.',
+            codeExample: '// Sample the "falloff" ramp at this point\'s height\n// (0 = bottom of the shape, 1 = top)\nfloat t = fit(@P.y, -1.0, 1.0, 0.0, 1.0);\nfloat brightness = chramp("falloff", t);',
             keyPoints: [
-              'chramp("name", pos) samples a ramp parameter at position 0..1',
+              'chramp("name", pos) — "name" picks the ramp, pos picks where on it (0..1)',
               'A ramp is a curve an artist draws in the UI — more expressive than one slider',
               'pos is automatically clamped to 0..1',
             ],
@@ -504,7 +506,7 @@ export const CURRICULUM: Module[] = [
             title: 'What does dragging a spare slider created from `chf("amplitude")` actually do?',
             explanation: 'Houdini re-cooks the wrangle with the new value plugged into every `chf("amplitude")` call in the code — exactly as if you\'d edited the number yourself, but live and without touching the VEX.',
             choices: [
-              { text: 'Re-runs the wrangle with the new value substituted into chf("amplitude")', correct: true },
+              { text: 'Changes the "amplitude" value everywhere it\'s used in the code', correct: true },
               { text: 'Only changes the value shown in the viewport, not the actual code', correct: false },
               { text: 'Renames the channel everywhere it\'s used', correct: false },
               { text: 'Has no effect until you manually re-type the code', correct: false },
@@ -521,16 +523,16 @@ export const CURRICULUM: Module[] = [
             ],
             answers: ['chf'],
             hints: ['The explicit, recommended float-reading function'],
-            explanation: '`chf("frequency")` reads the current value of the "frequency" parameter. The plain `ch()` would work too, but real VEX docs recommend the typed form since `ch()` doesn\'t make clear whether you want a float, int, vector, or string.',
+            explanation: '`chf("frequency")` reads the current value of the "frequency" parameter — it returns 0 if no such parameter exists yet. The plain `ch()` would also read it, but real VEX docs recommend the typed form since `ch()` doesn\'t make clear whether you want a float, int, vector, or string. (Actually creating the slider itself is a separate step — see the previous theory card.)',
             xp: 15,
           },
           {
             kind: 'mcq',
             id: 'params-3',
             title: 'Why do SideFX\'s own docs recommend chf()/chi()/chv() over the plain ch()?',
-            explanation: '`ch()` has several overloads and Houdini has to guess which one you mean from context — the typed variants remove that ambiguity entirely.',
+            explanation: '`ch()` has several overloads and Houdini has to guess which one you mean from context. `chf()`, `chi()` and `chv()` each commit to one specific type (float, int, vector) instead, so there\'s no guessing involved.',
             choices: [
-              { text: 'ch() is ambiguous about the return type; the typed forms make it explicit', correct: true },
+              { text: 'ch() doesn\'t say what type it returns; chf()/chi()/chv() each commit to one specific type', correct: true },
               { text: 'ch() is deprecated and will be removed in a future Houdini version', correct: false },
               { text: 'ch() only works inside SOPs, not wrangles', correct: false },
               { text: 'ch() can only read int values, never floats', correct: false },
@@ -542,7 +544,7 @@ export const CURRICULUM: Module[] = [
             id: 'params-4',
             title: 'Sample a ramp parameter',
             codeLines: [
-              '// Sample a "gradient" ramp parameter at this point\'s height',
+              '// "gradient" = which ramp, t = where along it (0 to 1)',
               'float t = fit(@P.y, -1.0, 1.0, 0.0, 1.0);',
               'float val = ___("gradient", t);',
             ],
@@ -554,33 +556,33 @@ export const CURRICULUM: Module[] = [
           {
             kind: 'code',
             id: 'params-5',
-            title: 'Live amplitude slider',
-            prompt: 'Displace `@P.y` with a sine wave whose amplitude comes from a **live parameter** instead of a hardcoded number.\n\nUse `chf("amplitude")` to read the slider on the right, multiply it into your sine wave, and give the points a color too. Drag the slider — the wave should grow and shrink live.',
-            starterCode: '// amp comes from the "amplitude" slider — drag it!\nfloat amp = chf("amplitude");\n@P.y += sin(@ptnum * 0.3) * ___;\n@Cd = {0.3, 0.8, 1.0};\n',
-            solutionCode: 'float amp = chf("amplitude");\n@P.y += sin(@ptnum * 0.3) * amp;\n@Cd = {0.3, 0.8, 1.0};\n',
+            title: 'Live brightness slider',
+            prompt: 'Color every point with a flat grayscale brightness, driven by a **live parameter** instead of a hardcoded number.\n\nThe `chf("brightness")` call is already there for you — just use `b` to set `@Cd`. Drag the slider on the right and watch the color change live.',
+            starterCode: '// "brightness" is a live slider — drag it on the right!\nfloat b = chf("brightness");\n@Cd = ___;\n',
+            solutionCode: 'float b = chf("brightness");\n@Cd = {b, b, b};\n',
             checks: [
               {
-                description: 'Reads the amplitude parameter with chf("amplitude")',
-                test: (_pts, _out, code) => /chf\s*\(\s*["']amplitude["']\s*\)/.test(code),
+                description: 'Reads the brightness parameter with chf("brightness")',
+                test: (_pts, _out, code) => /chf\s*\(\s*["']brightness["']\s*\)/.test(code),
               },
               {
-                // Same row-divergence technique as the loops module: row 0 of the
-                // grid all starts at the same Y, so only a real per-point wave
-                // (scaled by a non-zero amplitude) can split those values apart.
-                description: 'Y displacement varies per point (a real wave, scaled by the slider)',
-                test: (pts) => {
-                  const side = Math.ceil(Math.sqrt(pts.length))
-                  const row = pts.slice(0, side)
-                  const range = Math.max(...row.map(p => p.P.y)) - Math.min(...row.map(p => p.P.y))
-                  return range > 0.05
+                description: 'Color is grayscale and matches the slider value',
+                test: (pts, _out, code, chValues) => {
+                  if (!/chf\s*\(\s*["']brightness["']\s*\)/.test(code)) return false
+                  const expected = chValues?.brightness ?? 0
+                  return pts.every(p =>
+                    Math.abs(p.Cd.x - p.Cd.y) < 0.05 &&
+                    Math.abs(p.Cd.y - p.Cd.z) < 0.05 &&
+                    Math.abs(p.Cd.x - expected) < 0.05
+                  )
                 },
               },
             ],
-            pointShape: 'grid',
-            pointCount: 400,
-            chParams: [{ name: 'amplitude', label: 'Amplitude', min: 0, max: 1, default: 0.4 }],
-            explanation: 'Dragging the slider changes what `chf("amplitude")` returns, which changes `amp`, which changes how far the sine wave pushes `@P.y` — live, without editing the code. That\'s the whole point of exposing a value as a parameter instead of hardcoding it.',
-            xp: 30,
+            pointShape: 'sphere',
+            pointCount: 200,
+            chParams: [{ name: 'brightness', label: 'Brightness', min: 0, max: 1, default: 0.6 }],
+            explanation: 'Dragging the slider changes what `chf("brightness")` returns, which changes `b`, which changes the color every point gets — live, without editing the code. That\'s the whole point of exposing a value as a parameter instead of hardcoding it.',
+            xp: 25,
           },
         ],
       },

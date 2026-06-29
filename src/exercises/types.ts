@@ -39,7 +39,11 @@ export interface CodeCheck {
   // Runs against the output points to verify the exercise. `code` is the player's
   // raw source — use it to enforce that a specific construct (if, for...) was
   // actually used, instead of only checking the resulting points/colors.
-  test: (points: { P: {x:number;y:number;z:number}; Cd: {x:number;y:number;z:number}; N: {x:number;y:number;z:number}; ptnum: number; numpt: number }[], output: string, code: string) => boolean
+  // `chValues` is the live slider state at the moment Run was clicked — needed
+  // to verify a result actually reflects the current parameter value, not just
+  // a coincidentally-similar hardcoded one (e.g. grayscale alone doesn't prove
+  // the color came from chf("brightness") rather than a literal {1,1,1}).
+  test: (points: { P: {x:number;y:number;z:number}; Cd: {x:number;y:number;z:number}; N: {x:number;y:number;z:number}; ptnum: number; numpt: number }[], output: string, code: string, chValues?: Record<string, number>) => boolean
 }
 
 export type Exercise =
@@ -53,7 +57,7 @@ export interface LearnCard {
   title: string
   body: string          // plain text with **bold** and `code` markers
   codeExample?: string  // syntax-highlighted code block
-  visual?: 'vector' | 'attributes' | 'loop'  // optional diagram type
+  visual?: 'vector' | 'attributes' | 'loop' | 'wrangle-params' | 'ramp'  // optional diagram type
   keyPoints?: string[]
 }
 

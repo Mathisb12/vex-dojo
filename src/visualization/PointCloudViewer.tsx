@@ -1,6 +1,7 @@
-import { useEffect, useRef, useMemo } from 'react'
+import { useEffect, useRef } from 'react'
 import * as THREE from 'three'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
+import { ConvexGeometry } from 'three/examples/jsm/geometries/ConvexGeometry.js'
 import type { PointAttrs } from '../interpreter/evaluator'
 import { useLang } from '../i18n/LanguageContext'
 
@@ -24,6 +25,7 @@ export function PointCloudViewer({ points, height = 320, showSurface = false }: 
     geometry: THREE.BufferGeometry
     pointsMesh: THREE.Points
     surfaceMesh: THREE.Mesh | null
+    surfaceWireframe: THREE.LineSegments | null
     animId: number
   } | null>(null)
 
@@ -73,12 +75,15 @@ export function PointCloudViewer({ points, height = 320, showSurface = false }: 
     dirLight.position.set(5, 10, 7.5)
     scene.add(dirLight)
 
-    // Optional translucent sphere — shows the surface the points actually sit
+    // Optional translucent surface — shows the shape the points actually sit
     // on, so @N (surface normal) reads as "perpendicular to this shell" rather
-    // than a mysterious property of disconnected dots.
+    // than a mysterious property of disconnected dots. Built as a convex hull
+    // of the real points (in the points-update effect below) rather than an
+    // idealized sphere, so the wireframe's vertices are the actual points —
+    // not a mismatched, independently-parameterized mesh floating nearby.
     let surfaceMesh: THREE.Mesh | null = null
+    let surfaceWireframe: THREE.LineSegments | null = null
     if (showSurface) {
-      const surfaceGeo = new THREE.SphereGeometry(1, 32, 24)
       const surfaceMat = new THREE.MeshStandardMaterial({
         color: 0x3b4555,
         transparent: true,
@@ -87,13 +92,13 @@ export function PointCloudViewer({ points, height = 320, showSurface = false }: 
         metalness: 0,
         side: THREE.DoubleSide,
       })
-      surfaceMesh = new THREE.Mesh(surfaceGeo, surfaceMat)
+      surfaceMesh = new THREE.Mesh(new THREE.BufferGeometry(), surfaceMat)
       scene.add(surfaceMesh)
-      const wireframe = new THREE.LineSegments(
-        new THREE.WireframeGeometry(surfaceGeo),
+      surfaceWireframe = new THREE.LineSegments(
+        new THREE.BufferGeometry(),
         new THREE.LineBasicMaterial({ color: 0x4a5568, transparent: true, opacity: 0.35 })
       )
-      surfaceMesh.add(wireframe)
+      surfaceMesh.add(surfaceWireframe)
     }
 
     let animId = 0
@@ -114,7 +119,7 @@ export function PointCloudViewer({ points, height = 320, showSurface = false }: 
     const ro = new ResizeObserver(handleResize)
     ro.observe(el)
 
-    stateRef.current = { renderer, scene, camera, controls, geometry, pointsMesh, surfaceMesh, animId }
+    stateRef.current = { renderer, scene, camera, controls, geometry, pointsMesh, surfaceMesh, surfaceWireframe, animId }
 
     return () => {
       cancelAnimationFrame(animId)
@@ -126,6 +131,10 @@ export function PointCloudViewer({ points, height = 320, showSurface = false }: 
       if (surfaceMesh) {
         surfaceMesh.geometry.dispose()
         ;(surfaceMesh.material as THREE.Material).dispose()
+      }
+      if (surfaceWireframe) {
+        surfaceWireframe.geometry.dispose()
+        ;(surfaceWireframe.material as THREE.Material).dispose()
       }
       el.removeChild(renderer.domElement)
       stateRef.current = null
@@ -163,6 +172,20 @@ export function PointCloudViewer({ points, height = 320, showSurface = false }: 
     state.geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3))
     state.geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3))
     state.geometry.computeBoundingSphere()
+
+    // Rebuild the optional surface as the convex hull of the CURRENT points,
+    // so its vertices are the actual rendered points, not an independent
+    // idealized sphere with its own unrelated vertex layout.
+    if (state.surfaceMesh && points.length >= 4) {
+      const hullPoints = points.map(p => new THREE.Vector3(p.P.x, p.P.y, p.P.z))
+      const hullGeo = new ConvexGeometry(hullPoints)
+      state.surfaceMesh.geometry.dispose()
+      state.surfaceMesh.geometry = hullGeo
+      if (state.surfaceWireframe) {
+        state.surfaceWireframe.geometry.dispose()
+        state.surfaceWireframe.geometry = new THREE.WireframeGeometry(hullGeo)
+      }
+    }
   }, [points])
 
   return (

@@ -1,5 +1,12 @@
 import type { LearnCard } from '../exercises/types'
 import { useLang } from '../i18n/LanguageContext'
+import { WrangleParamDiagram } from './WrangleParamDiagram'
+import { RampDiagram } from './RampDiagram'
+
+const VISUAL_COMPONENTS: Partial<Record<NonNullable<LearnCard['visual']>, () => JSX.Element>> = {
+  'wrangle-params': WrangleParamDiagram,
+  ramp: RampDiagram,
+}
 
 interface Props {
   card: LearnCard
@@ -47,6 +54,16 @@ export function LearnCardView({ card, onContinue, current, total }: Props) {
       <div className="bg-vex-surface border border-vex-border rounded-2xl p-5 flex flex-col gap-1">
         {renderBody(card.body)}
       </div>
+
+      {/* Illustrative diagram, when this card has one */}
+      {card.visual && VISUAL_COMPONENTS[card.visual] && (() => {
+        const Diagram = VISUAL_COMPONENTS[card.visual]!
+        return (
+          <div className="bg-vex-bg border border-vex-border rounded-xl p-3">
+            <Diagram />
+          </div>
+        )
+      })()}
 
       {/* Code example */}
       {card.codeExample && (

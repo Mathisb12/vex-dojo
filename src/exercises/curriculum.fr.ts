@@ -94,19 +94,19 @@ export const FR_LEARN_CARDS: Record<string, { title: string; body: string; keyPo
   },
   'learn-params-1': {
     title: 'ch() et chf() — lire des paramètres',
-    body: "Dans le vrai Houdini, un nœud wrangle a sa propre interface de paramètres — des sliders qu'un artiste peut glisser sans toucher au code. `ch(\"nom\")` lit la valeur actuelle d'un paramètre appelé \"nom\". Si ce paramètre n'existe pas encore, un bouton à côté de l'éditeur de code (« Create spare parameter for each ch() ») en ajoute un pour toi — un vrai slider qui pilote ton code en direct.\n\n`ch()` est ambigu sur le type de la valeur, donc la doc VEX recommande les formes typées explicites à la place : `chf(\"nom\")` pour un float, `chi(\"nom\")` pour un int.",
+    body: "Dans le vrai Houdini, un nœud wrangle a sa propre interface de paramètres — des sliders qu'un artiste peut déplacer sans toucher au code. `chf(\"nom\")` **lit** la valeur actuelle d'un paramètre appelé \"nom\" (ça retourne 0 si ce paramètre n'existe pas encore).\n\nCréer le slider lui-même est une étape séparée : un bouton à côté de l'éditeur de code (« Create spare parameter for each ch() ») scanne ton code et ajoute un vrai paramètre, déplaçable, pour chaque `chf()`/`ch()` trouvé. Donc `chf()` ne fait que lire — c'est le bouton qui crée.\n\n`ch()` est ambigu sur le type de la valeur, donc la doc VEX recommande les formes typées explicites à la place : `chf(\"nom\")` pour un float, `chi(\"nom\")` pour un int.",
     keyPoints: [
-      'ch("nom") lit un paramètre de nœud par son nom',
+      'chf("nom") lit un paramètre de nœud par son nom (0 s\'il n\'existe pas encore)',
       "chf(\"nom\") est la forme float explicite — recommandée par rapport au ch() ambigu",
-      'Houdini peut créer automatiquement un slider pour tout ch()/chf() dans ton code',
-      "Glisser ce slider relance le wrangle avec la nouvelle valeur — sans toucher au code",
+      'Un bouton séparé crée le vrai slider pour tout chf()/ch() dans ton code',
+      "Déplacer ce slider relance le wrangle avec la nouvelle valeur — sans toucher au code",
     ],
   },
   'learn-params-2': {
     title: 'chramp() — échantillonner une rampe',
-    body: "Un **paramètre rampe** permet à un artiste de dessiner une courbe au lieu de régler un seul nombre — utile quand une valeur doit changer en douceur sur une plage, comme un dégradé ou une courbe d'accélération.\n\n`chramp(\"nom\", pos)` échantillonne cette courbe à une position de 0 à 1. Comme `chf()`, y faire référence peut créer automatiquement le paramètre rampe sur le nœud.",
+    body: "Un **paramètre rampe** permet à un artiste de dessiner une courbe au lieu de régler un seul nombre — utile quand une valeur doit changer en douceur sur une plage, comme un dégradé ou une courbe d'accélération.\n\n`chramp(\"nom\", pos)` prend deux arguments séparés :\n- `\"nom\"` — QUELLE rampe échantillonner (comme la chaîne dans `chf(\"nom\")`)\n- `pos` — OÙ échantillonner sur la courbe de cette rampe, de 0 (le tout début) à 1 (la toute fin)\n\nDonc `chramp(\"falloff\", 0.0)` lit le début de la courbe \"falloff\", et `chramp(\"falloff\", 1.0)` lit sa fin — tout ce qui est entre les deux se mélange en douceur selon la forme que l'artiste a dessinée.",
     keyPoints: [
-      'chramp("nom", pos) échantillonne un paramètre rampe à une position 0..1',
+      'chramp("nom", pos) — "nom" choisit la rampe, pos choisit où dessus (0..1)',
       "Une rampe est une courbe que l'artiste dessine dans l'interface — plus expressive qu'un seul slider",
       'pos est automatiquement contraint entre 0 et 1',
     ],
@@ -479,9 +479,9 @@ export const FR_EXERCISES: Record<string, ExTranslation> = {
   },
   // ── params ──
   'params-1': {
-    title: 'Que fait réellement le glissement d\'un slider créé depuis `chf("amplitude")` ?',
+    title: 'Que fait réellement le déplacement d\'un slider créé depuis `chf("amplitude")` ?',
     explanation: 'Houdini relance le wrangle avec la nouvelle valeur injectée dans chaque appel `chf("amplitude")` du code — exactement comme si tu avais édité le nombre toi-même, mais en direct et sans toucher au VEX.',
-    choices: ['Relance le wrangle avec la nouvelle valeur injectée dans chf("amplitude")', 'Change seulement la valeur affichée dans le viewport, pas le code réel', 'Renomme le channel partout où il est utilisé', 'N\'a aucun effet jusqu\'à ce que tu retapes le code manuellement'],
+    choices: ['Modifie la valeur "amplitude" partout où elle est utilisée dans le code', 'Change seulement la valeur affichée dans le viewport, pas le code réel', 'Renomme le channel partout où il est utilisé', 'N\'a aucun effet jusqu\'à ce que tu retapes le code manuellement'],
   },
   'params-2': {
     title: 'Lis un paramètre float',
@@ -490,17 +490,17 @@ export const FR_EXERCISES: Record<string, ExTranslation> = {
       'float freq = ___("frequency");',
     ],
     hints: ['La fonction explicite et recommandée pour lire un float'],
-    explanation: '`chf("frequency")` lit la valeur actuelle du paramètre "frequency". Le simple `ch()` marcherait aussi, mais la doc VEX recommande la forme typée puisque `ch()` ne précise pas si tu veux un float, un int, un vector ou une string.',
+    explanation: '`chf("frequency")` lit la valeur actuelle du paramètre "frequency" — ça retourne 0 si ce paramètre n\'existe pas encore. Le simple `ch()` lirait la même chose, mais la doc VEX recommande la forme typée puisque `ch()` ne précise pas si tu veux un float, un int, un vector ou une string. (Créer le slider lui-même est une étape séparée — voir la carte de théorie précédente.)',
   },
   'params-3': {
     title: 'Pourquoi la doc de SideFX recommande-t-elle chf()/chi()/chv() plutôt que le simple ch() ?',
-    explanation: '`ch()` a plusieurs surcharges et Houdini doit deviner laquelle tu veux d\'après le contexte — les variantes typées éliminent complètement cette ambiguïté.',
-    choices: ['ch() est ambigu sur le type de retour ; les formes typées le rendent explicite', 'ch() est obsolète et sera retiré dans une future version de Houdini', 'ch() ne fonctionne que dans les SOPs, pas dans les wrangles', 'ch() ne peut lire que des valeurs int, jamais des floats'],
+    explanation: '`ch()` a plusieurs surcharges et Houdini doit deviner laquelle tu veux d\'après le contexte. `chf()`, `chi()` et `chv()` s\'engagent chacun sur un type précis (float, int, vector), donc il n\'y a plus rien à deviner.',
+    choices: ['ch() ne précise pas son type de retour ; chf()/chi()/chv() s\'engagent chacun sur un type précis', 'ch() est obsolète et sera retiré dans une future version de Houdini', 'ch() ne fonctionne que dans les SOPs, pas dans les wrangles', 'ch() ne peut lire que des valeurs int, jamais des floats'],
   },
   'params-4': {
     title: 'Échantillonne un paramètre rampe',
     codeLines: [
-      '// Échantillonne un paramètre rampe "gradient" selon la hauteur de ce point',
+      '// "gradient" = quelle rampe, t = où dessus (0 à 1)',
       'float t = fit(@P.y, -1.0, 1.0, 0.0, 1.0);',
       'float val = ___("gradient", t);',
     ],
@@ -508,10 +508,10 @@ export const FR_EXERCISES: Record<string, ExTranslation> = {
     explanation: '`chramp("gradient", t)` échantillonne le paramètre rampe "gradient" à la position `t` — une valeur qui varie en douceur sur la plage, pilotée par une courbe plutôt qu\'un seul nombre.',
   },
   'params-5': {
-    title: 'Slider d\'amplitude en direct',
-    prompt: 'Déplace `@P.y` avec une onde sinusoïdale dont l\'amplitude vient d\'un **paramètre en direct** au lieu d\'un nombre codé en dur.\n\nUtilise `chf("amplitude")` pour lire le slider à droite, multiplie-le dans ton onde sinusoïdale, et donne aussi une couleur aux points. Glisse le slider — la vague devrait grossir et rétrécir en direct.',
-    checks: ['Lit le paramètre amplitude avec chf("amplitude")', 'Le déplacement Y varie par point (une vraie vague, mise à l\'échelle par le slider)'],
-    explanation: 'Glisser le slider change ce que retourne `chf("amplitude")`, ce qui change `amp`, ce qui change à quel point l\'onde sinusoïdale déplace `@P.y` — en direct, sans éditer le code. C\'est tout l\'intérêt d\'exposer une valeur comme paramètre plutôt que de la coder en dur.',
+    title: 'Slider de luminosité en direct',
+    prompt: 'Colore tous les points avec une luminosité en niveaux de gris, pilotée par un **paramètre en direct** au lieu d\'un nombre codé en dur.\n\nL\'appel `chf("brightness")` est déjà là — utilise juste `b` pour définir `@Cd`. Glisse le slider à droite et regarde la couleur changer en direct.',
+    checks: ['Lit le paramètre brightness avec chf("brightness")', 'La couleur est en niveaux de gris et correspond à la valeur du slider'],
+    explanation: 'Glisser le slider change ce que retourne `chf("brightness")`, ce qui change `b`, ce qui change la couleur de tous les points — en direct, sans éditer le code. C\'est tout l\'intérêt d\'exposer une valeur comme paramètre plutôt que de la coder en dur.',
   },
   // ── arithmetic ──
   'arith-1': {
