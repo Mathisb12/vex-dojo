@@ -35,7 +35,7 @@ export const FR_LESSONS: Record<string, { title: string; description: string }> 
 export const FR_LEARN_CARDS: Record<string, { title: string; body: string; keyPoints?: string[] }> = {
   'learn-intro-1': {
     title: "Qu'est-ce que VEX ?",
-    body: "VEX est le **langage d'expression au cœur de Houdini**. Il te permet d'écrire une logique personnalisée qui s'exécute directement sur la géométrie — modifier positions, couleurs, normales, et tout autre attribut imaginable.\n\nVEX a une syntaxe **proche du C** : accolades, points-virgules, variables typées. Si tu as déjà écrit du C, C++ ou GLSL, tu seras en terrain familier.\n\n(Tu verras souvent VEX présenté comme « Vector Expression » en ligne — mais la doc officielle de SideFX n'explique jamais ce que ces lettres signifient, donc ne le prends pas pour argent comptant.)",
+    body: "VEX est le **langage d'expression au cœur de Houdini**. Il te permet d'écrire une logique personnalisée qui s'exécute directement sur la géométrie — modifier positions, couleurs, normales, et tout autre attribut imaginable.\n\nVEX a une syntaxe **proche du C** : accolades, points-virgules, variables typées. Si tu as déjà écrit du C, C++ ou GLSL, tu seras en terrain familier.",
     keyPoints: [
       "VEX = le langage d'expression intégré à Houdini",
       'Syntaxe proche du C (accolades, points-virgules, types)',
@@ -44,12 +44,13 @@ export const FR_LEARN_CARDS: Record<string, { title: string; body: string; keyPo
   },
   'learn-intro-2': {
     title: 'Le Geometry Wrangle',
-    body: "Dans Houdini, on écrit du VEX dans un nœud **Geometry Wrangle** (Attribute Wrangle). Son réglage **Run Over** décide sur quoi ton code boucle — ce n'est pas toujours les points :\n\n- **Points** (par défaut) — une fois par point, avec `@ptnum` (index courant) et `@numpt` (total)\n- **Primitives** — une fois par primitive/face, avec `@primnum` et `@numprim`\n- **Vertices** — une fois par vertex, avec `@vtxnum` et `@numvtx`\n- **Detail** — **une seule fois au total**, pour une configuration globale, sans index par composant\n\nCette leçon reste sur le mode **Points** — de loin le plus courant — mais garde les autres modes en tête une fois dans le vrai Houdini.",
+    body: "Dans Houdini, on écrit du VEX dans un nœud **Geometry Wrangle** (Attribute Wrangle). Son réglage **Run Over** décide sur quel type de composant ton code boucle : Points (par défaut), Primitives, Vertices, ou Detail.\n\nÇa change ce que représente chaque itération — mais la plupart des attributs intégrés restent disponibles peu importe le mode choisi, ils adaptent juste leur sens :\n- `@ptnum` fonctionne toujours : en bouclant sur les points c'est le point courant ; en bouclant sur les vertices c'est \"le point auquel ce vertex est rattaché\" ; en bouclant sur les primitives c'est \"le point du premier vertex de cette primitive\"\n- Les **totaux** (`@numpt`, `@numprim`, `@numvtx`) restent lisibles aussi — tu peux consulter `@numpt` depuis un Primitive wrangle sans problème\n\nLe mode **Detail** ne fait tourner ton code **qu'une seule fois pour toute la géométrie** — idéal pour une valeur qui décrit l'ensemble du setup plutôt qu'un seul point (un compteur global, la taille d'une bounding-box). La stocker sur chaque point au lieu de ça gâcherait de la mémoire pour rien.\n\nUne chose qui *change* bien avec Run Over : où un nouvel attribut est créé. Écris `f@mask = 1;` en mode Points et `mask` devient un attribut de point ; la même ligne en mode Primitives crée un attribut de primitive à la place.",
     keyPoints: [
-      'Run Over contrôle ce sur quoi le wrangle boucle : Points, Primitives, Vertices ou Detail',
-      'Points (défaut) : @ptnum / @numpt',
-      'Primitives : @primnum / @numprim — Vertices : @vtxnum / @numvtx',
-      'Detail : ne tourne qu\'une seule fois, pas de boucle par composant',
+      'Run Over choisit sur quel type de composant tu boucles : Points, Primitives, Vertices, Detail',
+      '@ptnum/@primnum/@vtxnum restent disponibles dans tous les modes — ils décrivent juste une relation différente',
+      '@numpt/@numprim/@numvtx (les totaux) sont toujours lisibles, peu importe le mode',
+      'Le mode Detail tourne une fois pour toute la géométrie — pour des valeurs globales, pas par point',
+      'Un nouvel attribut (f@nom = ...) est créé sur le type de composant que tu boucles actuellement',
     ],
   },
   'learn-var-1': {
@@ -347,9 +348,14 @@ export const FR_EXERCISES: Record<string, ExTranslation> = {
     choices: ['50', '49', '0', 'Ça varie selon le point'],
   },
   'intro-5': {
-    title: 'Tu changes le Run Over d\'un wrangle de Points à Primitives. Qu\'est-ce qui change ?',
-    explanation: 'Changer **Run Over** change ce sur quoi le code boucle et quels attributs intégrés sont disponibles : Primitives te donne `@primnum`/`@numprim` au lieu de `@ptnum`/`@numpt`. La même syntaxe VEX fonctionne dans chaque mode — seuls la cible de la boucle et les variables d\'index/total changent.',
-    choices: ['Le code tourne maintenant une fois par primitive, avec @primnum / @numprim au lieu de @ptnum / @numpt', 'Rien — Run Over n\'affecte que l\'affichage dans le viewport', 'Le code tourne maintenant une fois par frame au lieu d\'une fois par calcul', 'La syntaxe VEX elle-même change pour un dialecte réservé aux primitives'],
+    title: 'Tu règles le Run Over d\'un wrangle sur Primitives. Qu\'arrive-t-il à `@ptnum` et `@numpt` ?',
+    explanation: '`@ptnum` et `@numpt` restent entièrement disponibles — ils ne disparaissent pas juste parce que tu as changé de mode. `@ptnum` signifie maintenant "le point du premier vertex de cette primitive" au lieu de "le point courant", et `@numpt` te donne toujours le nombre total de points de la géométrie, exactement comme avant.',
+    choices: ['Ils restent lisibles — @ptnum adapte son sens, @numpt reste le même total', 'Les deux deviennent complètement indisponibles jusqu\'à ce que tu repasses en mode Points', 'Le code tourne maintenant une fois par frame au lieu d\'une fois par calcul', 'La syntaxe VEX elle-même change pour un dialecte réservé aux primitives'],
+  },
+  'intro-6': {
+    title: 'Tu écris `f@mask = 1;` alors que Run Over est réglé sur Primitives. Qu\'est-ce qui se passe ?',
+    explanation: 'Run Over ne change pas juste quelle boucle tourne — ça change OÙ les nouvelles données sont stockées. Le nouvel attribut est créé sur le type de composant que le wrangle boucle actuellement : les primitives ici. La même ligne de code en mode Points créerait un attribut de point à la place.',
+    choices: ['"mask" est créé comme attribut de primitive, puisque Run Over est Primitives', '"mask" est toujours créé comme attribut de point, quel que soit le mode Run Over', '"mask" est créé sur chaque point ET chaque primitive à la fois', 'C\'est une erreur — on ne peut pas créer de nouveaux attributs en mode Primitive'],
   },
   // ── variables ──
   'var-1': {

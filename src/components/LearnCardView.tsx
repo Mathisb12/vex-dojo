@@ -27,7 +27,7 @@ function renderBody(text: string) {
     return (
       <div key={i} className={`${isBullet ? 'flex items-start gap-2' : ''} ${line === '' ? 'h-3' : ''}`}>
         {isBullet && <span className="text-vex-orange mt-1 text-xs flex-shrink-0">▸</span>}
-        <span dangerouslySetInnerHTML={{ __html: html }} className="text-vex-text/90 text-sm leading-relaxed" />
+        <span dangerouslySetInnerHTML={{ __html: html }} className="text-vex-text/90 text-sm leading-relaxed text-pretty" />
       </div>
     )
   })
@@ -106,7 +106,7 @@ export function LearnCardView({ card, onContinue, current, total }: Props) {
               <li key={i} className="flex items-start gap-2 text-sm">
                 <span className="text-vex-orange flex-shrink-0 mt-0.5">✦</span>
                 <span
-                  className="text-vex-text/80"
+                  className="text-vex-text/80 text-pretty"
                   dangerouslySetInnerHTML={{ __html: pt.replace(/`(.+?)`/g, '<code class="bg-black/30 text-vex-orange font-mono text-xs px-1 rounded">$1</code>') }}
                 />
               </li>

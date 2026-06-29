@@ -213,7 +213,7 @@ export function FillBlankQuestion({ exercise, icon, onComplete }: Props) {
       {allCorrect && (
         <div className="bg-vex-green/10 border border-vex-green rounded-xl p-4 animate-[slideIn_0.3s_ease-out]">
           <div className="text-vex-green font-semibold mb-1">{t('fill.perfect')} +{exercise.xp} XP</div>
-          <p className="text-vex-text/80 text-sm"
+          <p className="text-vex-text/80 text-sm text-pretty"
             dangerouslySetInnerHTML={{ __html: exercise.explanation.replace(/`(.+?)`/g, '<code class="bg-black/30 px-1 rounded text-vex-orange font-mono text-xs">$1</code>') }}
           />
           <button

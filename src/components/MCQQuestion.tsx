@@ -74,7 +74,7 @@ export function MCQQuestion({ exercise, icon, onComplete }: Props) {
       {answered && (
         <div className="bg-vex-green/10 border border-vex-green rounded-xl p-4 animate-[slideIn_0.3s_ease-out]">
           <div className="text-vex-green font-semibold mb-1">{t('mcq.correct')} +{exercise.xp} XP</div>
-          <p className="text-vex-text/80 text-sm"
+          <p className="text-vex-text/80 text-sm text-pretty"
             dangerouslySetInnerHTML={{ __html: exercise.explanation.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>').replace(/`(.+?)`/g, '<code class="bg-black/30 px-1 rounded text-vex-orange font-mono text-xs">$1</code>') }}
           />
           {selected !== null && choices[selected]?.explanation && (
