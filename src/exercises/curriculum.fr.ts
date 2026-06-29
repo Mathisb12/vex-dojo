@@ -33,21 +33,22 @@ export const FR_LESSONS: Record<string, { title: string; description: string }> 
 
 export const FR_LEARN_CARDS: Record<string, { title: string; body: string; keyPoints?: string[] }> = {
   'learn-intro-1': {
-    title: 'VEX — Vector Expression Language',
-    body: "VEX est le **langage de script au cœur de Houdini**. Il te permet d'écrire une logique personnalisée qui s'exécute directement sur la géométrie — modifier positions, couleurs, normales, et tout autre attribut imaginable.\n\nVEX a une syntaxe **proche du C** : accolades, points-virgules, variables typées. Si tu as déjà écrit du C, C++ ou GLSL, tu seras en terrain familier.",
+    title: "Qu'est-ce que VEX ?",
+    body: "VEX est le **langage d'expression au cœur de Houdini**. Il te permet d'écrire une logique personnalisée qui s'exécute directement sur la géométrie — modifier positions, couleurs, normales, et tout autre attribut imaginable.\n\nVEX a une syntaxe **proche du C** : accolades, points-virgules, variables typées. Si tu as déjà écrit du C, C++ ou GLSL, tu seras en terrain familier.\n\n(Tu verras souvent VEX présenté comme « Vector Expression » en ligne — mais la doc officielle de SideFX n'explique jamais ce que ces lettres signifient, donc ne le prends pas pour argent comptant.)",
     keyPoints: [
-      'VEX = Vector Expression Language',
+      "VEX = le langage d'expression intégré à Houdini",
       'Syntaxe proche du C (accolades, points-virgules, types)',
       "S'exécute une fois par point par défaut dans un wrangle",
     ],
   },
   'learn-intro-2': {
     title: 'Le Geometry Wrangle',
-    body: "Dans Houdini, on écrit du VEX dans un nœud **Geometry Wrangle**. Quand le nœud se calcule, ton code s'exécute **une fois pour chaque point** de la géométrie en entrée.\n\nDeux variables intégrées indiquent où tu te situes :\n- `@ptnum` — l'index du point **courant** (0, 1, 2 …)\n- `@numpt` — le nombre **total** de points\n\nC'est comme une boucle `for` que Houdini exécute pour toi.",
+    body: "Dans Houdini, on écrit du VEX dans un nœud **Geometry Wrangle** (Attribute Wrangle). Son réglage **Run Over** décide sur quoi ton code boucle — ce n'est pas toujours les points :\n\n- **Points** (par défaut) — une fois par point, avec `@ptnum` (index courant) et `@numpt` (total)\n- **Primitives** — une fois par primitive/face, avec `@primnum` et `@numprim`\n- **Vertices** — une fois par vertex, avec `@vtxnum` et `@numvtx`\n- **Detail** — **une seule fois au total**, pour une configuration globale, sans index par composant\n\nCette leçon reste sur le mode **Points** — de loin le plus courant — mais garde les autres modes en tête une fois dans le vrai Houdini.",
     keyPoints: [
-      '@ptnum = index du point courant (lecture seule)',
-      '@numpt = nombre total de points (lecture seule)',
-      'Le code tourne une fois par point — pas besoin de boucle explicite',
+      'Run Over contrôle ce sur quoi le wrangle boucle : Points, Primitives, Vertices ou Detail',
+      'Points (défaut) : @ptnum / @numpt',
+      'Primitives : @primnum / @numprim — Vertices : @vtxnum / @numvtx',
+      'Detail : ne tourne qu\'une seule fois, pas de boucle par composant',
     ],
   },
   'learn-var-1': {
@@ -305,13 +306,13 @@ interface ExTranslation {
 export const FR_EXERCISES: Record<string, ExTranslation> = {
   // ── intro ──
   'intro-1': {
-    title: 'VEX signifie...',
-    explanation: 'VEX signifie **Vector Expression** language. C\'est un langage proche du C intégré à Houdini qui tourne sur chaque point, primitive ou vertex.',
-    choices: ['Vector Expression', 'Visual Effects Extension', 'Volume Export XML', 'Voxel Expression'],
+    title: "Qu'est-ce que VEX, fondamentalement ?",
+    explanation: 'VEX est le **langage d\'expression** intégré à Houdini pour traiter la géométrie — ce n\'est pas un plugin séparé, un format de fichier, ou un outil réservé au shading. Il exécute ton code directement sur des points, primitives, vertices, ou tout le detail.',
+    choices: ['Un langage d\'expression intégré pour traiter la géométrie', 'Un plugin tiers à installer dans Houdini', 'Un format de fichier 3D pour exporter de la géométrie', 'Un moteur de rendu réservé au shading, pas à la géométrie'],
   },
   'intro-2': {
-    title: 'Dans un Geometry Wrangle, ton code tourne...',
-    explanation: 'Par défaut, le code tourne **une fois par point**. `@ptnum` est l\'index du point courant, `@numpt` le total.',
+    title: 'Avec Run Over réglé sur sa valeur par défaut, ton code de wrangle tourne...',
+    explanation: 'Le mode **Run Over** par défaut est **Points** — le code tourne **une fois par point**. `@ptnum` est l\'index du point courant, `@numpt` le total. (Les autres modes Run Over bouclent sur les primitives, les vertices, ou une seule fois pour tout le detail — plus de détails ensuite.)',
     choices: ['Une fois par point', 'Une fois pour toute la géométrie', 'Une fois par frame', 'Une fois par face de polygone'],
   },
   'intro-3': {
@@ -323,6 +324,11 @@ export const FR_EXERCISES: Record<string, ExTranslation> = {
     title: 'Un wrangle tourne sur une grille de 50 points. Que vaut `@numpt` pour chaque point ?',
     explanation: '`@numpt` est identique pour chaque point — le total ne change jamais pendant la boucle. Seul `@ptnum` change, de 0 à 49.',
     choices: ['50', '49', '0', 'Ça varie selon le point'],
+  },
+  'intro-5': {
+    title: 'Tu changes le Run Over d\'un wrangle de Points à Primitives. Qu\'est-ce qui change ?',
+    explanation: 'Changer **Run Over** change ce sur quoi le code boucle et quels attributs intégrés sont disponibles : Primitives te donne `@primnum`/`@numprim` au lieu de `@ptnum`/`@numpt`. La même syntaxe VEX fonctionne dans chaque mode — seuls la cible de la boucle et les variables d\'index/total changent.',
+    choices: ['Le code tourne maintenant une fois par primitive, avec @primnum / @numprim au lieu de @ptnum / @numpt', 'Rien — Run Over n\'affecte que l\'affichage dans le viewport', 'Le code tourne maintenant une fois par frame au lieu d\'une fois par calcul', 'La syntaxe VEX elle-même change pour un dialecte réservé aux primitives'],
   },
   // ── variables ──
   'var-1': {
