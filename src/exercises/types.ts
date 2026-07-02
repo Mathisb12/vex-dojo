@@ -43,7 +43,9 @@ export interface CodeCheck {
   // to verify a result actually reflects the current parameter value, not just
   // a coincidentally-similar hardcoded one (e.g. grayscale alone doesn't prove
   // the color came from chf("brightness") rather than a literal {1,1,1}).
-  test: (points: { P: {x:number;y:number;z:number}; Cd: {x:number;y:number;z:number}; N: {x:number;y:number;z:number}; ptnum: number; numpt: number }[], output: string, code: string, chValues?: Record<string, number>) => boolean
+  // The index signature exposes custom attributes the player created with
+  // f@name/@name — a float lands as a plain number on the point object.
+  test: (points: { P: {x:number;y:number;z:number}; Cd: {x:number;y:number;z:number}; N: {x:number;y:number;z:number}; ptnum: number; numpt: number; [attr: string]: unknown }[], output: string, code: string, chValues?: Record<string, number>) => boolean
 }
 
 export type Exercise =
@@ -108,6 +110,10 @@ export interface CodeExercise {
   // sphere surface under the points — for exercises about @N, since a bare
   // point cloud has no real surface to derive a normal from in real Houdini.
   showSurface?: boolean
+  // When true, the editor opens with starterCode already loaded instead of
+  // the empty placeholder — for "run this broken code, watch it fail, fix it"
+  // exercises where starting from the given code IS the exercise.
+  startWithStarter?: boolean
   // Renders a live slider per entry; dragging it re-runs the code with the
   // new value, simulating a wrangle's spare ch()/chf() parameters.
   chParams?: ChParamSpec[]

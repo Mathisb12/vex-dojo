@@ -18,7 +18,10 @@ interface Props {
 export function CodeQuestion({ exercise, icon, onComplete }: Props) {
   const { t } = useLang()
   const placeholder = t('code.placeholder')
-  const [code, setCode] = useState(placeholder)
+  // "Fix this broken code" exercises open with the starter already loaded —
+  // running it as-is (and watching checks fail) is part of the lesson.
+  const initialCode = exercise.startWithStarter ? exercise.starterCode : placeholder
+  const [code, setCode] = useState(initialCode)
   const [points, setPoints] = useState<PointAttrs[]>(() => makeDefaultPoints(exercise.pointCount, exercise.pointShape))
   const [output, setOutput] = useState('')
   const [error, setError] = useState<string | null>(null)
@@ -55,7 +58,7 @@ export function CodeQuestion({ exercise, icon, onComplete }: Props) {
   // Reset base points when exercise changes
   useEffect(() => {
     basePoints.current = makeDefaultPoints(exercise.pointCount, exercise.pointShape)
-    setCode(placeholder)
+    setCode(initialCode)
     setChValues(Object.fromEntries((exercise.chParams ?? []).map(p => [p.name, p.default])))
     setRan(false)
     setAllPass(false)
@@ -157,7 +160,7 @@ export function CodeQuestion({ exercise, icon, onComplete }: Props) {
             </button>
             <button
               onClick={() => {
-                setCode(placeholder)
+                setCode(initialCode)
                 setChValues(Object.fromEntries((exercise.chParams ?? []).map(p => [p.name, p.default])))
                 setRan(false)
                 setAllPass(false)
@@ -170,7 +173,7 @@ export function CodeQuestion({ exercise, icon, onComplete }: Props) {
             </button>
             {!allPass && (
               <div className="flex items-center gap-2 ml-auto">
-                {!hintUsed && !showSolution && (
+                {!hintUsed && !showSolution && !exercise.startWithStarter && (
                   <button
                     onClick={handleHint}
                     className="px-3 py-1.5 border border-vex-border text-vex-muted rounded-lg hover:border-vex-blue hover:text-vex-blue text-sm transition-colors"

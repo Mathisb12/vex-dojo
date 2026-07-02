@@ -482,6 +482,16 @@ export const FR_EXERCISES: Record<string, ExTranslation> = {
     hints: ['Préfixe de type + @ — même lettre que le mot-clé float'],
     explanation: '`f@result = 2.0;` déclare explicitement `result` comme un **attribut float**. Contrairement à `float scratch = 2.0;` (une variable locale, perdue après ce wrangle), un attribut est écrit sur la géométrie et existe encore en aval. La forme nue `@result = 2.0;` ferait la même chose ici — `f@` est juste la version explicite, utile quand tu veux préciser le type que tu crées.',
   },
+  'attr-8': {
+    title: 'Fais-le survivre au wrangle',
+    prompt: 'Ce code calcule une valeur de hauteur 0–1 — mais la stocke dans une **variable locale**, donc elle s\'évapore dès que le wrangle se termine. **Exécute-le tel quel et regarde le premier check échouer.**\n\nRépare-le : stocke la valeur comme **attribut float** à la place, pour qu\'un nœud en aval puisse vraiment la lire. Relis-la avec `@height` pour la couleur en niveaux de gris.',
+    checks: [
+      'Un attribut "height" existe sur la géométrie (f@height, pas float height)',
+      'height va de 0 en bas → 1 en haut',
+      'Les points sont teintés en niveaux de gris selon height (sombre en bas, clair en haut)',
+    ],
+    explanation: 'Un seul token faisait toute la différence. `float height` ne vit qu\'à l\'intérieur de cette exécution du wrangle ; `f@height` est écrit sur chaque point et voyage en aval avec la géométrie — un autre wrangle, un nœud Color, ou un rendu peuvent tous le lire plus tard. Confondre ces deux formes est probablement l\'erreur de débutant la plus courante en VEX.',
+  },
   // ── params ──
   'params-1': {
     title: 'Que fait réellement le déplacement d\'un slider créé depuis `chf("amplitude")` ?',
@@ -596,9 +606,15 @@ export const FR_EXERCISES: Record<string, ExTranslation> = {
   },
   'fit-3': {
     title: 'Remappe une valeur déjà entre 0 et 1',
-    codeLines: ['// x est déjà entre 0 et 1 (ex: une valeur de bruit). Remappe-le vers 0.2-0.9.', 'float c = ___(x, 0.2, 0.9);'],
+    codeLines: [
+      '// noise() est déjà entre 0 et 1. Remappe-le vers 0.2-0.9 pour que',
+      '// les points les plus sombres ne soient jamais tout noirs, ni tout blancs.',
+      'float n = noise(@P * 2.0);',
+      'float c = ___(n, 0.2, 0.9);',
+      '@Cd = {c, c, c};',
+    ],
     hints: ['La variante de fit pour les entrées déjà entre 0 et 1'],
-    explanation: '`fit01(x, nmin, nmax)` est un raccourci pour `fit(x, 0, 1, nmin, nmax)` — utilise-la quand l\'entrée est déjà connue pour être entre 0 et 1.',
+    explanation: '`fit01(n, nmin, nmax)` est un raccourci pour `fit(n, 0, 1, nmin, nmax)` — utilise-la quand l\'entrée est déjà connue pour être entre 0 et 1. Dans l\'aperçu, aucun point n\'est jamais tout noir ni tout blanc : tout le dégradé vit entre 0.2 et 0.9.',
   },
   'fit-4': {
     title: 'Que retourne `fit01(1.5, 0, 10)` ?',
@@ -678,9 +694,15 @@ export const FR_EXERCISES: Record<string, ExTranslation> = {
   },
   'cl-2': {
     title: 'Garde une valeur dans une plage',
-    codeLines: ['// Empêche speed de dépasser 1.0, et de descendre sous 0', 'float speed = ___(rawSpeed, 0.0, 1.0);'],
+    codeLines: [
+      '// raw dépasse largement 1 vers le haut — contrains-le',
+      '// dans 0..1 avant de l\'utiliser comme canal de couleur.',
+      'float raw  = @P.y * 2.0;',
+      'float safe = ___(raw, 0.0, 1.0);',
+      '@Cd = {safe, 0.1, 0.2};',
+    ],
     hints: ['Force une valeur à rester dans [min, max]'],
-    explanation: '`clamp(rawSpeed, 0.0, 1.0)` est la méthode standard pour garder une valeur calculée dans une plage sûre.',
+    explanation: '`clamp(raw, 0.0, 1.0)` est la méthode standard pour garder une valeur calculée dans une plage sûre. Regarde l\'aperçu : le rouge monte le long de la sphère, puis **sature** — toute la région du haut est également rouge parce que tout ce qui dépassait 1.0 a été ramené exactement à 1.0.',
   },
   'cl-3': {
     title: 'Que retourne `lerp(10, 20, 0.5)` ?',
@@ -704,9 +726,13 @@ export const FR_EXERCISES: Record<string, ExTranslation> = {
   },
   'cl-6': {
     title: 'Mélange deux couleurs',
-    codeLines: ['// Mélange du bleu vers le jaune selon t', '@Cd = ___({0, 0, 1}, {1, 1, 0}, t);'],
+    codeLines: [
+      '// Mélange du bleu (bas) vers le jaune (haut) selon la hauteur',
+      'float t = fit(@P.y, -1.0, 1.0, 0.0, 1.0);',
+      '@Cd = ___({0, 0, 1}, {1, 1, 0}, t);',
+    ],
     hints: ['Interpole entre deux couleurs selon t'],
-    explanation: '`lerp(a, b, t)` est la méthode standard pour mélanger deux couleurs — fonctionne exactement pareil sur des vecteurs que sur des floats.',
+    explanation: '`lerp(a, b, t)` est la méthode standard pour mélanger deux couleurs — ça fonctionne exactement pareil sur des vecteurs que sur des floats, en interpolant chaque canal. L\'aperçu montre le résultat : bleu pur à t=0, jaune pur à t=1, tous les mélanges entre les deux.',
   },
   // ── dot-cross ──
   'dc-1': {

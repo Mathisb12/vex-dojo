@@ -474,6 +474,45 @@ export const CURRICULUM: Module[] = [
             explanation: '`f@result = 2.0;` explicitly declares `result` as a **float attribute**. Unlike `float scratch = 2.0;` (a local variable, gone after this wrangle), an attribute is written onto the geometry and still exists downstream. The bare `@result = 2.0;` form would do the same thing here — `f@` is just the explicit version, useful when you want to be clear about the type you\'re creating.',
             xp: 20,
           },
+          {
+            kind: 'code',
+            id: 'attr-8',
+            title: 'Make it survive the wrangle',
+            prompt: 'This code computes a 0–1 height value — but stores it in a **local variable**, so it evaporates the instant the wrangle finishes. **Run it as-is and watch the first check fail.**\n\nFix it: store the value as a **float attribute** instead, so a downstream node could actually read it. Read it back with `@height` for the grayscale color.',
+            starterCode: '// "height" is LOCAL — it dies when the wrangle ends.\n// Change ONE thing so it persists on the geometry.\nfloat height = fit(@P.y, -1.0, 1.0, 0.0, 1.0);\n\n@Cd = {height, height, height};\n',
+            solutionCode: 'f@height = fit(@P.y, -1.0, 1.0, 0.0, 1.0);\n\n@Cd = {@height, @height, @height};\n',
+            checks: [
+              {
+                description: 'A "height" attribute exists on the geometry (f@height, not float height)',
+                test: (pts) => pts.every(p => typeof p.height === 'number'),
+              },
+              {
+                description: 'height goes 0 at the bottom → 1 at the top',
+                test: (pts) => {
+                  const bot = pts.filter(p => p.P.y < -0.8)
+                  const top = pts.filter(p => p.P.y > 0.8)
+                  if (!bot.length || !top.length) return false
+                  return bot.every(p => (p.height as number) < 0.2) && top.every(p => (p.height as number) > 0.8)
+                },
+              },
+              {
+                description: 'Points are shaded grayscale by height (dark bottom, bright top)',
+                test: (pts) => {
+                  const bot = pts.filter(p => p.P.y < -0.5)
+                  const top = pts.filter(p => p.P.y > 0.5)
+                  if (!bot.length || !top.length) return false
+                  const avg = (arr: typeof pts) => arr.reduce((s, p) => s + p.Cd.x, 0) / arr.length
+                  const grayscale = pts.every(p => Math.abs(p.Cd.x - p.Cd.y) < 0.05 && Math.abs(p.Cd.y - p.Cd.z) < 0.05)
+                  return grayscale && avg(top) > avg(bot) + 0.3
+                },
+              },
+            ],
+            pointShape: 'sphere',
+            pointCount: 200,
+            startWithStarter: true,
+            explanation: 'One token was the whole difference. `float height` lives only inside this single wrangle run; `f@height` is written onto every point and travels downstream with the geometry — another wrangle, a Color node, or a render can all read it later. Mixing these two up is probably the most common beginner mistake in VEX.',
+            xp: 25,
+          },
         ],
       },
 
@@ -604,6 +643,7 @@ export const CURRICULUM: Module[] = [
             ],
             pointShape: 'sphere',
             pointCount: 200,
+            startWithStarter: true,
             chRamps: [{ name: 'falloff', stops: [{ pos: 0, value: 0 }, { pos: 0.3, value: 0.1 }, { pos: 1, value: 1 }] }],
             explanation: '`chramp("falloff", t)` turns height into a brightness value that follows the ramp\'s actual shape, not just a straight blend — this ramp stays dark for the first third before rising, so the bottom of the sphere reads noticeably darker than a simple linear fade would give you.',
             xp: 25,
@@ -635,6 +675,7 @@ export const CURRICULUM: Module[] = [
             ],
             pointShape: 'sphere',
             pointCount: 200,
+            startWithStarter: true,
             chParams: [{ name: 'brightness', label: 'Brightness', min: 0, max: 1, default: 0.6 }],
             explanation: 'Dragging the slider changes what `chf("brightness")` returns, which changes `b`, which changes the color every point gets — live, without editing the code. That\'s the whole point of exposing a value as a parameter instead of hardcoding it.',
             xp: 25,
@@ -876,13 +917,18 @@ export const CURRICULUM: Module[] = [
             id: 'fit-3',
             title: 'Remap a value that\'s already 0–1',
             codeLines: [
-              '// x is already 0-1 (e.g. a noise value). Map it to a 0.2-0.9 range.',
-              'float c = ___(x, 0.2, 0.9);',
+              '// noise() is already 0-1. Remap it to 0.2-0.9 so the',
+              '// darkest points are never fully black, nor fully white.',
+              'float n = noise(@P * 2.0);',
+              'float c = ___(n, 0.2, 0.9);',
+              '@Cd = {c, c, c};',
             ],
             answers: ['fit01'],
             hints: ['The fit variant for inputs that are already 0–1'],
-            explanation: '`fit01(x, nmin, nmax)` is shorthand for `fit(x, 0, 1, nmin, nmax)` — use it whenever the input is already known to be 0–1.',
+            explanation: '`fit01(n, nmin, nmax)` is shorthand for `fit(n, 0, 1, nmin, nmax)` — use it whenever the input is already known to be 0–1. In the preview, no point is ever pure black or pure white: the whole gradient lives inside 0.2–0.9.',
             xp: 15,
+            pointShape: 'sphere',
+            pointCount: 200,
           },
           {
             kind: 'mcq',
@@ -1089,13 +1135,18 @@ export const CURRICULUM: Module[] = [
             id: 'cl-2',
             title: 'Keep a value inside a range',
             codeLines: [
-              '// Force speed to never exceed 1.0, and never go below 0',
-              'float speed = ___(rawSpeed, 0.0, 1.0);',
+              '// raw overshoots way past 1 near the top — clamp it',
+              '// into 0..1 before using it as a color channel.',
+              'float raw  = @P.y * 2.0;',
+              'float safe = ___(raw, 0.0, 1.0);',
+              '@Cd = {safe, 0.1, 0.2};',
             ],
             answers: ['clamp'],
             hints: ['Forces a value to stay inside [min, max]'],
-            explanation: '`clamp(rawSpeed, 0.0, 1.0)` is the standard way to keep any computed value inside a safe range.',
+            explanation: '`clamp(raw, 0.0, 1.0)` is the standard way to keep any computed value inside a safe range. Look at the preview: red ramps up the sphere, then **saturates** — the whole upper region is equally red because everything past 1.0 got clamped down to exactly 1.0.',
             xp: 15,
+            pointShape: 'sphere',
+            pointCount: 200,
           },
           {
             kind: 'mcq',
@@ -1141,13 +1192,16 @@ export const CURRICULUM: Module[] = [
             id: 'cl-6',
             title: 'Blend two colors',
             codeLines: [
-              '// Blend from blue to yellow based on t',
+              '// Blend from blue (bottom) to yellow (top) based on height',
+              'float t = fit(@P.y, -1.0, 1.0, 0.0, 1.0);',
               '@Cd = ___({0, 0, 1}, {1, 1, 0}, t);',
             ],
             answers: ['lerp'],
             hints: ['Interpolates between two colors based on t'],
-            explanation: '`lerp(a, b, t)` is the standard way to blend between two colors — works exactly the same on vectors as it does on floats.',
+            explanation: '`lerp(a, b, t)` is the standard way to blend between two colors — it works exactly the same on vectors as on floats, interpolating each channel. The preview shows the result: pure blue at t=0, pure yellow at t=1, every mix in between.',
             xp: 15,
+            pointShape: 'sphere',
+            pointCount: 200,
           },
         ],
       },
