@@ -226,10 +226,19 @@ export const FR_LEARN_CARDS: Record<string, { title: string; body: string; keyPo
     title: 'noise() — une variation organique',
     body: "`noise(position)` est un **aléatoire lisse**. Contrairement à `rand()`, des entrées voisines donnent des sorties voisines — le bruit est continu. Cela crée une variation organique et fluide plutôt qu'un aléatoire en pics.\n\nPasser `@P` (la position 3D du point) en entrée signifie que des points voisins dans l'espace obtiennent des valeurs de bruit similaires, ce qui semble naturel.",
     keyPoints: [
-      'noise(pos) → float 0..1, lisse entre voisins',
+      'noise(pos) → float 0..1 (médiane 0.5), lisse entre voisins',
       'Passer @P pour une variation spatialement cohérente',
       "Multiplier l'entrée pour contrôler la fréquence",
       'Utiliser noise() pour des effets organiques et naturels',
+    ],
+  },
+  'learn-noise-3': {
+    title: 'Façonner le bruit : fréquence et contraste',
+    body: "Deux réglages que tu utiliseras tout le temps :\n\n- **Fréquence** — mets l'entrée à l'échelle : `noise(@P * 5)` tasse plus de variation dans le même espace (détail plus fin). `noise(@P * 0.5)` l'étire.\n- **Contraste** — le bruit va de 0 à 1 mais sa **médiane est 0.5** : la plupart des valeurs s'entassent au milieu, donc le bruit brut a l'air d'un gris plat. Étire le milieu avec `fit(n, 0.3, 0.7, 0, 1)` pour retrouver de vrais sombres et de vrais clairs.",
+    keyPoints: [
+      'noise(@P * f) — plus f est grand, plus le détail est fin',
+      'Le bruit brut s\'entasse autour de 0.5 — plat par défaut',
+      'fit(n, 0.3, 0.7, 0, 1) étire le milieu sur toute la plage',
     ],
   },
   'learn-circ-1': {
@@ -935,6 +944,33 @@ export const FR_EXERCISES: Record<string, ExTranslation> = {
     prompt: 'Donne à chaque point une **couleur grise aléatoire** et un **déplacement Y aléatoire** (±0.3 unités).\n\nChaque canal et chaque axe doit varier indépendamment par point — utilise des graines différentes pour chacun.',
     checks: ['Les couleurs varient entre les points', "Les positions Y sont déplacées (pas tous sur la surface de la sphère)"],
     explanation: 'Pour obtenir des valeurs indépendantes pour la couleur et le déplacement, utilise des graines différentes : `rand(@ptnum)` et `rand(@ptnum * 7 + 13)`. Même graine de base mais "sel" différent.',
+  },
+  'noise-4': {
+    title: 'Tu recalcules le même wrangle deux fois avec `rand(@ptnum)`. Les couleurs changent-elles ?',
+    explanation: '`rand()` est basé sur une graine — la même graine retourne toujours la même valeur, et `@ptnum` ne change pas entre les calculs. Chaque point garde exactement la même couleur, pour toujours. Ce déterminisme est ce qui rend rand() fiable pour le rendu : la frame 1 et la frame 400 sont d\'accord.',
+    choices: ['Non — même graine, même résultat, à chaque fois', 'Oui — rand() donne de nouvelles valeurs à chaque calcul', 'Seulement au premier calcul après le chargement de la scène', 'Ça alterne entre deux motifs'],
+  },
+  'noise-5': {
+    title: 'Comparé à `noise(@P)`, à quoi ressemble `noise(@P * 8)` ?',
+    explanation: 'Multiplier la position d\'entrée compresse l\'espace : le motif qui s\'étalait sur 8 unités tient maintenant dans 1. Même bruit, échantillonné 8× "plus vite" — un détail bien plus fin et chargé. La plage de sortie ne change pas du tout, seulement la vitesse à laquelle les valeurs varient entre points voisins.',
+    choices: ['Un détail bien plus fin et chargé dans le même espace', 'Des valeurs 8× plus lumineuses', 'Le même motif, juste plus lent à calculer', 'Un dégradé parfaitement lisse de haut en bas'],
+  },
+  'noise-6': {
+    title: 'Détail plus fin + plus de contraste',
+    codeLines: [
+      '// Plus l\'échelle d\'entrée est grande, plus le détail est fin',
+      'float n = noise(@P * ___);   // essaie 5.0',
+      '// Le bruit brut colle à 0.5 — étire le milieu pour le contraste',
+      'float c = fit(n, 0.3, 0.7, 0.0, 1.0);',
+      '@Cd = {c, c, c};',
+    ],
+    hints: ['N\'importe quelle échelle entre ~2 et 20 — regarde l\'aperçu devenir plus chargé quand elle grandit'],
+    explanation: 'Mettre l\'entrée à l\'échelle tasse plus de variation dans la même sphère — c\'est le réglage de fréquence. La ligne `fit()` étire ensuite le milieu encombré (0.3–0.7) sur toute la plage 0–1, transformant un gris plat en vrais sombres et vrais clairs.',
+  },
+  'noise-7': {
+    title: 'Tu colores les points avec `noise(@P)` brut et tout a l\'air d\'un gris plat et uniforme. Pourquoi ?',
+    explanation: 'Directement depuis la doc : la sortie de noise "est dans la plage 0-1 avec une médiane de 0.5". La plupart des valeurs s\'entassent au milieu ; les vrais sombres et clairs sont rares. Étire le milieu vers l\'extérieur — `fit(n, 0.3, 0.7, 0, 1)` — et le contraste revient.',
+    choices: ['Le bruit s\'entasse autour de 0.5 — remappe-le pour le contraste', 'noise() ne marche que sur les grilles, pas les sphères', '@P doit être normalisé avant d\'appeler noise()', 'Le viewport ignore tes couleurs'],
   },
   'noise-3': {
     title: 'Surface organique',
