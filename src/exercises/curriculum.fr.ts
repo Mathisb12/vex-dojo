@@ -7,6 +7,7 @@ export const FR_MODULES: Record<string, { title: string }> = {
   math: { title: 'Maths et vecteurs' },
   control: { title: 'Structures de contrôle' },
   noise: { title: 'Bruit et motifs' },
+  bridge: { title: 'Temps et dégradés' },
   patterns: { title: 'Motifs procéduraux' },
   'custom-attrs': { title: 'Attributs personnalisés' },
   combined: { title: 'Techniques combinées' },
@@ -26,6 +27,8 @@ export const FR_LESSONS: Record<string, { title: string; description: string }> 
   conditionals: { title: 'Si / Sinon', description: 'Brancher la logique selon des conditions' },
   loops: { title: 'Boucles', description: 'for, while, break & continue' },
   'noise-basics': { title: 'Bruit et aléatoire', description: 'rand, noise, et motifs organiques' },
+  animation: { title: 'Anime avec @Time', description: 'Fais bouger tes wrangles' },
+  'relbbox-gradients': { title: 'relbbox() — des dégradés propres', description: 'Des dégradés 0–1 insensibles à la taille de l\'objet' },
   circles: { title: 'Cercles et spirales', description: 'Placer des points avec cos/sin' },
   'modulo-patterns': { title: 'Motifs répétitifs', description: 'Rayures, anneaux et damiers' },
   'attr-creation': { title: 'Créer des attributs', description: 'Exporter tes propres données avec @monAttr' },
@@ -239,6 +242,26 @@ export const FR_LEARN_CARDS: Record<string, { title: string; body: string; keyPo
       'noise(@P * f) — plus f est grand, plus le détail est fin',
       'Le bruit brut s\'entasse autour de 0.5 — plat par défaut',
       'fit(n, 0.3, 0.7, 0, 1) étire le milieu sur toute la plage',
+    ],
+  },
+  'learn-anim-1': {
+    title: '@Time — l\'horloge de lecture',
+    body: "Tout ce que tu as écrit jusqu'ici est figé. `@Time` dé-fige : c'est le temps de lecture en **secondes**, et il change à chaque frame — donc tout code qui le lit produit un résultat différent à chaque frame. C'est ça, l'animation en VEX.\n\nDeux motifs couvrent la plupart des cas :\n- `sin(@Time)` — oscillation douce, aller-retour sans fin\n- `noise(@P + @Time)` — le motif de bruit **défile** dans l'espace au fil du temps\n\n(`@Frame` est la même horloge en frames plutôt qu'en secondes — frame = temps × 24 aux 24 fps par défaut de Houdini.)",
+    keyPoints: [
+      '@Time = temps de lecture en secondes — change à chaque frame',
+      'sin(@Time) → oscillation douce sans fin',
+      'noise(@P + @Time) → le motif défile avec le temps',
+      '@Frame = @Time × fps (24 par défaut)',
+    ],
+  },
+  'learn-relbbox-1': {
+    title: 'Arrête de coder tes dégradés en dur',
+    body: "Jusqu'ici on construisait les dégradés de hauteur avec `fit(@P.y, -1, 1, 0, 1)` — ce qui suppose silencieusement que l'objet fait exactement 2 unités de haut et est centré. Change l'échelle de la géométrie et le dégradé casse.\n\n`relbbox(0, @P)` corrige ça : il retourne ta position **relative à la bounding box** de la géométrie — `{0,0,0}` au coin min, `{1,1,1}` au coin max, quelle que soit la taille. `.y` est un dégradé bas→haut tout prêt, pour *n'importe quel* objet.",
+    keyPoints: [
+      'relbbox(0, @P) → position relative à la bbox, 0..1 par axe',
+      '{0,0,0} au coin min, {1,1,1} au coin max — peu importe la taille',
+      '.y = dégradé bas→haut instantané, .x et .z marchent aussi',
+      'Le remplaçant insensible à la taille de fit(@P.y, min, max, 0, 1)',
     ],
   },
   'learn-circ-1': {
@@ -977,6 +1000,60 @@ export const FR_EXERCISES: Record<string, ExTranslation> = {
     prompt: 'Utilise `noise(@P)` pour créer un déplacement organique sur la sphère.\n\n- Déplace `@P` dans une direction en utilisant le bruit\n- Colore les points selon la valeur du bruit\n- Le résultat doit sembler bosselé et organique, pas plat',
     checks: ['Les points sont déplacés (plage Y > 0.3)', 'Les couleurs varient entre les points'],
     explanation: '`noise(@P)` donne des valeurs spatialement cohérentes — les points voisins ont un bruit similaire. Déplacer le long de `@N` (normale) pousse les points vers l\'extérieur/intérieur pour un aspect bosselé.',
+  },
+  // ── animation ──
+  'anim-1': {
+    title: 'Que contient `@Time` ?',
+    explanation: '`@Time` est le temps de lecture en **secondes** (0.0 au début de la timeline). Comme il change à chaque frame, tout code qui le lit se réévalue vers quelque chose de nouveau à chaque frame — c\'est ce qui fait bouger les wrangles.',
+    choices: ['Le temps de lecture en secondes', 'Le numéro de la frame courante', 'Le temps qu\'a mis le wrangle à calculer', 'Une valeur aléatoire qui change à chaque calcul'],
+  },
+  'anim-2': {
+    title: 'Dé-fige une vague',
+    codeLines: [
+      '// Cette vague est figée. Ajoute l\'horloge à sa phase pour qu\'elle bouge.',
+      '@P.y += sin(@P.x * 2.0 + ___) * 0.3;',
+    ],
+    hints: ['L\'horloge de lecture, en secondes'],
+    explanation: 'Ajouter `@Time` à la phase du sinus décale toute la vague un peu plus à chaque frame — appuie sur play dans l\'exercice suivant pour la voir vraiment bouger.',
+  },
+  'anim-3': {
+    title: 'Ta première animation',
+    prompt: 'Fais **onduler cette grille dans le temps** : déplace `@P.y` avec un sinus dont la phase inclut `@Time`, et donne une couleur aux points.\n\nPuis appuie sur **▶ à côté de @Time** et regarde-la bouger — c\'est ton code qui tourne une fois par point, à chaque frame.',
+    checks: ['Le déplacement lit @Time (sinon rien ne peut bouger)', 'Le déplacement Y varie à travers la grille (une vraie vague)'],
+    explanation: 'La phase `@P.x * 2.0 + @Time * 3.0` mélange espace et temps : la partie `@P.x` donne sa forme à la vague, la partie `@Time` la fait glisser. Scrub ou lance le contrôle @Time — dans le vrai Houdini, c\'est juste appuyer sur play sur la timeline.',
+  },
+  'anim-4': {
+    title: 'Bruit vivant',
+    prompt: 'Fais **dériver le bruit** : colore la sphère avec `noise()`, mais décale la position d\'entrée avec `@Time` pour que le motif défile quand tu appuies sur play.\n\nBonus : déplace le long de `@N` avec la même valeur pour une surface organique qui respire.',
+    checks: ['L\'entrée du noise inclut @Time (pour que le motif puisse dériver)', 'Les couleurs varient entre les points (c\'est le bruit qui les pilote)'],
+    explanation: 'Ajouter `@Time` à la position d\'entrée du bruit fait glisser le point d\'échantillonnage à travers le champ de bruit — le motif semble couler sur la surface. Cette seule astuce alimente une énorme part des effets de "surface vivante" en production.',
+  },
+  // ── relbbox-gradients ──
+  'rb-1': {
+    title: 'Que retourne `relbbox(0, @P)` pour un point tout en bas, au coin minimum de la géométrie ?',
+    explanation: '`relbbox` normalise la position par rapport à la bounding box : le coin min correspond à `{0,0,0}` et le coin max à `{1,1,1}`, quelle que soit la taille de l\'objet.',
+    choices: ['{0, 0, 0}', '{1, 1, 1}', 'La position monde du point, inchangée', '-1'],
+  },
+  'rb-2': {
+    title: 'Un dégradé qui survit à toutes les échelles',
+    codeLines: [
+      '// 0 en bas de la bbox, 1 en haut — quelle que soit la taille',
+      'vector rel = ___(0, @P);',
+      '@Cd = {rel.y, rel.y, rel.y};',
+    ],
+    hints: ['Position relative dans la bounding box'],
+    explanation: '`relbbox(0, @P).y` est LE dégradé de hauteur idiomatique de Houdini — zéro nombre codé en dur, donc il continue de marcher quand la géométrie change de taille.',
+  },
+  'rb-3': {
+    title: 'Ton dégradé `fit(@P.y, -1, 1, 0, 1)` a cassé après un scale ×10 du modèle. Pourquoi ?',
+    explanation: 'Le `-1` et le `1` étaient les bornes de l\'*ancien* objet — codées en dur. Après le scale, @P.y va de -10 à 10, donc le fit sature presque immédiatement. `relbbox(0, @P).y` mesure contre la vraie bounding box, donc il ne périme jamais.',
+    choices: ['Les -1..1 codés en dur ne correspondent plus à l\'objet — utilise relbbox à la place', 'fit() ne marche plus sur les objets de plus de 2 unités', '@P.y devient en lecture seule après un scale', 'Le dégradé est bon — c\'est le viewport qui est faux'],
+  },
+  'rb-4': {
+    title: 'Heat-map sur n\'importe quel objet',
+    prompt: 'Colore la sphère comme une carte de chaleur — bleu froid à la base, orange chaud au sommet — en utilisant `relbbox` pour que ça marche sur **n\'importe quelle** géométrie, et `lerp()` pour le mélange.\n\nRègle de l\'exercice : aucune borne codée en dur (pas de `fit(@P.y, -1, 1, …)`).',
+    checks: ['Utilise relbbox (aucune borne codée en dur)', 'Le sommet de la sphère est plus chaud que la base'],
+    explanation: '`lerp(froid, chaud, relbbox(0, @P).y)` est un dégradé de hauteur de qualité production en une ligne : redimensionne l\'objet, et ça continue juste de marcher. C\'est exactement le motif derrière la plupart des setups "dégradé le long d\'un objet".',
   },
   // ── circles ──
   'circ-1': {

@@ -171,6 +171,14 @@ export const VEX_SIGNATURES: Record<string, FnSignature> = {
     doc: 'Reads a float node parameter by name — the explicit, recommended form of ch(). In real Houdini, referencing chf("name") lets you create a spare slider parameter for it on the node.',
     params: [{ label: 'channel: string', doc: 'Parameter name, e.g. "amplitude".' }],
   },
+  relbbox: {
+    label: 'relbbox(input: int, pos: vector) → vector',
+    doc: 'Relative position inside the input geometry\'s bounding box: {0,0,0} at the min corner, {1,1,1} at the max. The size-proof way to get a 0..1 gradient along any object.',
+    params: [
+      { label: 'input: int', doc: 'Which node input to measure against — 0 in these exercises.' },
+      { label: 'pos: vector', doc: 'The position to normalize, usually @P.' },
+    ],
+  },
   chramp: {
     label: 'chramp(channel: string, pos: float) → float',
     doc: 'Samples a ramp parameter at position pos (0..1, clamped). Lets an artist control a value with a curve instead of a single slider.',

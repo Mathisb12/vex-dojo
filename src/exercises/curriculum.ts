@@ -1954,7 +1954,214 @@ export const CURRICULUM: Module[] = [
   },
 
   // ══════════════════════════════════════════════════════════════════════════
-  // TIER 2 — MODULE 5: Procedural Patterns
+  // TIER 2 — MODULE 5: Time & Gradients (the bridge into real-Houdini idioms)
+  // ══════════════════════════════════════════════════════════════════════════
+  {
+    id: 'bridge',
+    title: 'Time & Gradients',
+    icon: '🎬',
+    tier: 2,
+    lessons: [
+      {
+        id: 'animation',
+        title: 'Animate with @Time',
+        icon: '▶️',
+        description: 'Make your wrangles move',
+        learnCards: [
+          {
+            kind: 'learn',
+            id: 'learn-anim-1',
+            title: '@Time — the playback clock',
+            body: 'Everything you\'ve written so far is frozen. `@Time` unfreezes it: it\'s the playback time in **seconds**, and it changes every frame — so any code that reads it produces a different result every frame. That\'s all animation is in VEX.\n\nTwo patterns cover most cases:\n- `sin(@Time)` — smooth oscillation, back and forth forever\n- `noise(@P + @Time)` — the noise pattern **scrolls** through space over time\n\n(`@Frame` is the same clock in frames instead of seconds — frame = time × 24 at Houdini\'s default 24 fps.)',
+            codeExample: '// A wave that actually waves\n@P.y += sin(@P.x * 2.0 + @Time * 3.0) * 0.3;\n\n// Living noise — the pattern drifts\nfloat n = noise(@P * 2.0 + @Time);\n@Cd = {n, n, n};',
+            keyPoints: [
+              '@Time = playback time in seconds — changes every frame',
+              'sin(@Time) → smooth endless oscillation',
+              'noise(@P + @Time) → the pattern scrolls over time',
+              '@Frame = @Time × fps (24 by default)',
+            ],
+          },
+        ],
+        exercises: [
+          {
+            kind: 'mcq',
+            id: 'anim-1',
+            title: 'What does `@Time` contain?',
+            explanation: '`@Time` is the playback time in **seconds** (0.0 at the start of the timeline). Since it changes every frame, any code that reads it re-evaluates to something new each frame — that\'s what makes wrangles animate.',
+            choices: [
+              { text: 'The playback time in seconds', correct: true },
+              { text: 'The current frame number', correct: false },
+              { text: 'How long the wrangle took to cook', correct: false },
+              { text: 'A random value that changes each cook', correct: false },
+            ],
+            xp: 10,
+          },
+          {
+            kind: 'fill',
+            id: 'anim-2',
+            title: 'Un-freeze a wave',
+            codeLines: [
+              '// This wave is frozen. Add the clock to its phase so it moves.',
+              '@P.y += sin(@P.x * 2.0 + ___) * 0.3;',
+            ],
+            answers: ['@Time'],
+            hints: ['The playback clock, in seconds'],
+            explanation: 'Adding `@Time` to the sine\'s phase shifts the whole wave sideways a little more every frame — press play in the next exercise to actually watch it.',
+            xp: 15,
+          },
+          {
+            kind: 'code',
+            id: 'anim-3',
+            title: 'Your first animation',
+            prompt: 'Make this grid **wave over time**: displace `@P.y` with a sine whose phase includes `@Time`, and give the points a color.\n\nThen press **▶ next to @Time** and watch it move — that\'s your code running once per point, every frame.',
+            starterCode: '// Phase = space + time. Try sin(@P.x * 2.0 + @Time * 3.0)\n@P.y += ___;\n@Cd = {0.3, 0.8, 1.0};\n',
+            solutionCode: '@P.y += sin(@P.x * 2.0 + @Time * 3.0) * 0.3;\n@Cd = {0.3, 0.8, 1.0};\n',
+            checks: [
+              {
+                description: 'The displacement reads @Time (otherwise nothing can move)',
+                test: (_pts, _out, code) => /@Time\b/.test(code),
+              },
+              {
+                description: 'Y displacement varies across the grid (a real wave)',
+                test: (pts) => {
+                  const side = Math.ceil(Math.sqrt(pts.length))
+                  const row = pts.slice(0, side)
+                  const range = Math.max(...row.map(p => p.P.y)) - Math.min(...row.map(p => p.P.y))
+                  return range > 0.15
+                },
+              },
+            ],
+            pointShape: 'grid',
+            pointCount: 400,
+            explanation: 'The phase `@P.x * 2.0 + @Time * 3.0` mixes space and time: the `@P.x` part shapes the wave, the `@Time` part slides it. Scrub or play the @Time control — in real Houdini this is just pressing play on the timeline.',
+            xp: 25,
+          },
+          {
+            kind: 'code',
+            id: 'anim-4',
+            title: 'Living noise',
+            prompt: 'Make the noise **drift**: color the sphere with `noise()`, but offset the position input by `@Time` so the pattern scrolls when you press play.\n\nBonus: displace along `@N` with the same value for a breathing, organic surface.',
+            starterCode: '// noise(@P * frequency + @Time) drifts over time\nfloat n = noise(___);\n@Cd = {n, n * 0.5, 1.0 - n};\n@P += @N * (n - 0.5) * 0.4;\n',
+            solutionCode: 'float n = noise(@P * 2.0 + @Time);\n@Cd = {n, n * 0.5, 1.0 - n};\n@P += @N * (n - 0.5) * 0.4;\n',
+            checks: [
+              {
+                description: 'The noise input includes @Time (so the pattern can drift)',
+                test: (_pts, _out, code) => /noise\s*\([^)]*@Time/.test(code),
+              },
+              {
+                description: 'Colors vary between points (noise is driving them)',
+                test: (pts) => {
+                  const first = pts[0]
+                  return pts.slice(1, 30).some(p => Math.abs(p.Cd.x - first.Cd.x) > 0.1)
+                },
+              },
+            ],
+            pointShape: 'sphere',
+            pointCount: 300,
+            explanation: 'Adding `@Time` to the noise\'s input position slides the sampling point through the noise field — the pattern appears to flow across the surface. This one trick powers a huge share of "living surface" effects in production.',
+            xp: 25,
+          },
+        ],
+      },
+
+      {
+        id: 'relbbox-gradients',
+        title: 'relbbox() — clean gradients',
+        icon: '🌡️',
+        description: 'Size-proof 0–1 gradients along any object',
+        learnCards: [
+          {
+            kind: 'learn',
+            id: 'learn-relbbox-1',
+            title: 'Stop hardcoding your gradients',
+            body: 'Until now we\'ve built height gradients with `fit(@P.y, -1, 1, 0, 1)` — which silently assumes the object is exactly 2 units tall and centered. Scale the geometry and the gradient breaks.\n\n`relbbox(0, @P)` fixes that: it returns your position **relative to the geometry\'s bounding box** — `{0,0,0}` at the min corner, `{1,1,1}` at the max, whatever the size. `.y` is a ready-made bottom-to-top gradient for *any* object.',
+            codeExample: '// Works on a 2-unit sphere, a 300-unit building, anything:\nvector rel = relbbox(0, @P);\n@Cd = {rel.y, rel.y, rel.y};  // black at the base, white at the top\n\n// Pairs beautifully with chramp:\nfloat g = chramp("falloff", rel.y);',
+            keyPoints: [
+              'relbbox(0, @P) → position relative to the bbox, 0..1 per axis',
+              '{0,0,0} at the min corner, {1,1,1} at the max — any size',
+              '.y = instant bottom-to-top gradient, .x and .z work too',
+              'The size-proof replacement for fit(@P.y, min, max, 0, 1)',
+            ],
+          },
+        ],
+        exercises: [
+          {
+            kind: 'mcq',
+            id: 'rb-1',
+            title: 'What does `relbbox(0, @P)` return for a point at the very bottom corner of the geometry?',
+            explanation: '`relbbox` normalizes the position against the bounding box: the min corner maps to `{0,0,0}` and the max corner to `{1,1,1}`, no matter how big the object is.',
+            choices: [
+              { text: '{0, 0, 0}', correct: true },
+              { text: '{1, 1, 1}', correct: false },
+              { text: 'The point\'s world position, unchanged', correct: false },
+              { text: '-1', correct: false },
+            ],
+            xp: 10,
+          },
+          {
+            kind: 'fill',
+            id: 'rb-2',
+            title: 'A gradient that survives any scale',
+            codeLines: [
+              '// 0 at the bottom of the bbox, 1 at the top — whatever the size',
+              'vector rel = ___(0, @P);',
+              '@Cd = {rel.y, rel.y, rel.y};',
+            ],
+            answers: ['relbbox'],
+            hints: ['Relative position inside the bounding box'],
+            explanation: '`relbbox(0, @P).y` is the idiomatic Houdini height gradient — zero hardcoded numbers, so it keeps working when the geometry changes size.',
+            xp: 15,
+            pointShape: 'sphere',
+            pointCount: 200,
+          },
+          {
+            kind: 'mcq',
+            id: 'rb-3',
+            title: 'Your `fit(@P.y, -1, 1, 0, 1)` gradient broke after the model was scaled up 10×. Why?',
+            explanation: 'The `-1` and `1` were the *old* object\'s bounds — hardcoded. After scaling, @P.y spans -10..10, so the fit saturates almost immediately. `relbbox(0, @P).y` measures against the actual bounding box, so it never goes stale.',
+            choices: [
+              { text: 'The hardcoded -1..1 no longer matches the object — use relbbox instead', correct: true },
+              { text: 'fit() stops working on objects larger than 2 units', correct: false },
+              { text: '@P.y becomes read-only after a scale', correct: false },
+              { text: 'The gradient is fine — the viewport is wrong', correct: false },
+            ],
+            xp: 15,
+          },
+          {
+            kind: 'code',
+            id: 'rb-4',
+            title: 'Heat-map any object',
+            prompt: 'Color the sphere like a heat map — cold blue at the base, hot orange at the top — using `relbbox` so it would work on **any** geometry, and `lerp()` for the blend.\n\nRule of the exercise: no hardcoded bounds (no `fit(@P.y, -1, 1, …)`).',
+            starterCode: '// 1. rel = relbbox(0, @P)\n// 2. @Cd = lerp(cold, hot, rel.y)\n',
+            solutionCode: 'vector rel = relbbox(0, @P);\n@Cd = lerp({0.1, 0.2, 0.7}, {1.0, 0.5, 0.1}, rel.y);\n',
+            checks: [
+              {
+                description: 'Uses relbbox (no hardcoded bounds)',
+                test: (_pts, _out, code) => /\brelbbox\s*\(/.test(code) && !/fit\s*\(\s*@P\.y/.test(code),
+              },
+              {
+                description: 'Top of the sphere is warmer than the bottom',
+                test: (pts) => {
+                  const top = pts.filter(p => p.P.y > 0.5)
+                  const bot = pts.filter(p => p.P.y < -0.5)
+                  if (!top.length || !bot.length) return false
+                  const avg = (arr: typeof pts, c: 'x' | 'z') => arr.reduce((s, p) => s + p.Cd[c], 0) / arr.length
+                  return avg(top, 'x') > avg(bot, 'x') + 0.3 && avg(bot, 'z') > avg(top, 'z') + 0.3
+                },
+              },
+            ],
+            pointShape: 'sphere',
+            pointCount: 250,
+            explanation: '`lerp(cold, hot, relbbox(0, @P).y)` is a production-grade height gradient in one line: resize the object, and it just keeps working. This is the exact pattern behind most "gradient along an object" setups.',
+            xp: 30,
+          },
+        ],
+      },
+    ],
+  },
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // TIER 2 — MODULE 6: Procedural Patterns
   // ══════════════════════════════════════════════════════════════════════════
   {
     id: 'patterns',
