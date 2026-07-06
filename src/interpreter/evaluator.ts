@@ -41,6 +41,14 @@ export type ChannelValues = Record<string, number>
 export interface RampStop { pos: number; value: number }
 export type RampValues = Record<string, RampStop[]>
 
+// Per-cook globals: the playback clock (@Time) and the input geometry's
+// bounding box (computed once in runVex, consumed by relbbox()).
+export interface VexGlobals {
+  Time?: number
+  bboxMin?: { x: number; y: number; z: number }
+  bboxMax?: { x: number; y: number; z: number }
+}
+
 function sampleRamp(stops: RampStop[], pos: number): number {
   if (stops.length === 0) return 0
   const clamped = Math.min(Math.max(pos, 0), 1)
@@ -91,7 +99,11 @@ class Environment {
 class Evaluator {
   private attrs!: PointAttrs
 
-  constructor(private chValues: ChannelValues = {}, private ramps: RampValues = {}) { }
+  constructor(
+    private chValues: ChannelValues = {},
+    private ramps: RampValues = {},
+    private globals: VexGlobals = {},
+  ) { }
 
   runForPoint(ast: Program, point: PointAttrs): void {
     this.attrs = point
@@ -219,6 +231,11 @@ class Evaluator {
       }
       case 'ptnum': return mkInt(a.ptnum)
       case 'numpt': return mkInt(a.numpt)
+      // Playback clock — a per-cook global, not per-point data. Read-only:
+      // writes fall through to the dynamic case below but reads always come
+      // back here, so shadowing @Time never sticks.
+      case 'Time': return mkFloat(this.globals.Time ?? 0)
+      case 'Frame': return mkFloat((this.globals.Time ?? 0) * 24)
       default: {
         // dynamic user attributes — preserve whatever shape they were stored
         // in (number, {x,y,z}, or string), then optionally cast if this read
@@ -299,6 +316,20 @@ class Evaluator {
       const pos = toFloat(this.evalExpr(node.args[1], env))
       const stops = this.ramps[channel] ?? [{ pos: 0, value: 0 }, { pos: 1, value: 1 }]
       return mkFloat(sampleRamp(stops, pos))
+    }
+    // relbbox(0, @P) or the deprecated relbbox(@P): relative position inside
+    // the input geometry's bounding box — {0,0,0} at the min corner, {1,1,1}
+    // at the max (per SideFX docs). Needs the whole-geometry bbox, which pure
+    // BUILTINS can't see, hence the special case here.
+    if (node.name === 'relbbox') {
+      const posArg = node.args.length >= 2 ? node.args[1] : node.args[0]
+      const p = toVec(this.evalExpr(posArg, env))
+      const lo = this.globals.bboxMin ?? { x: 0, y: 0, z: 0 }
+      const hi = this.globals.bboxMax ?? { x: 1, y: 1, z: 1 }
+      // A flat axis (zero extent) has no meaningful gradient — report the
+      // middle rather than dividing by zero.
+      const rel = (v: number, a: number, b: number) => (b - a) < 1e-9 ? 0.5 : (v - a) / (b - a)
+      return mkVec(rel(p.x, lo.x, hi.x), rel(p.y, lo.y, hi.y), rel(p.z, lo.z, hi.z))
     }
     const fn = BUILTINS[node.name]
     if (!fn) throw new Error(`Unknown function '${node.name}'`)
@@ -508,13 +539,26 @@ export function runVex(
   points: PointAttrs[],
   chValues: ChannelValues = {},
   ramps: RampValues = {},
+  globals: VexGlobals = {},
 ): RunResult {
   ;(globalThis as any).__vex_output__ = ''
   let error: string | null = null
 
+  // relbbox() measures against the INPUT geometry's bounds — computed once
+  // here, before any point moves.
+  if (points.length > 0 && (!globals.bboxMin || !globals.bboxMax)) {
+    const lo = { x: Infinity, y: Infinity, z: Infinity }
+    const hi = { x: -Infinity, y: -Infinity, z: -Infinity }
+    for (const p of points) {
+      lo.x = Math.min(lo.x, p.P.x); lo.y = Math.min(lo.y, p.P.y); lo.z = Math.min(lo.z, p.P.z)
+      hi.x = Math.max(hi.x, p.P.x); hi.y = Math.max(hi.y, p.P.y); hi.z = Math.max(hi.z, p.P.z)
+    }
+    globals = { ...globals, bboxMin: lo, bboxMax: hi }
+  }
+
   try {
     const ast = parse(code)
-    const ev = new Evaluator(chValues, ramps)
+    const ev = new Evaluator(chValues, ramps, globals)
     for (const pt of points) {
       ev.runForPoint(ast, pt)
     }

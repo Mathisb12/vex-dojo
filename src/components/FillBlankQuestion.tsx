@@ -4,7 +4,9 @@ import { useLang } from '../i18n/LanguageContext'
 import { PointCloudViewer } from '../visualization/PointCloudViewer'
 import { VectorArrowViewer } from '../visualization/VectorArrowViewer'
 import { runVex, makeDefaultPoints, type PointAttrs } from '../interpreter/evaluator'
+import { detectChannelParams } from '../interpreter/channels'
 import { ExerciseHeader } from './ExerciseHeader'
+import { ChannelSliders } from './ChannelSliders'
 
 interface Props {
   exercise: FillBlankExercise
@@ -68,16 +70,25 @@ export function FillBlankQuestion({ exercise, icon, onComplete }: Props) {
 
   // Live preview: substitute blanks and run through the VEX interpreter (debounced)
   const previewCode = useMemo(() => buildPreviewCode(exercise.codeLines, answers), [exercise.codeLines, answers])
+
+  // Any ch()/chf() in the snippet (fixed lines or filled blanks) spawns a live
+  // slider, exactly like in the code exercises.
+  const [chValues, setChValues] = useState<Record<string, number>>({})
+  const autoParams = useMemo(
+    () => detectChannelParams(previewCode ?? exercise.codeLines.join('\n')),
+    [previewCode, exercise.codeLines]
+  )
+
   useEffect(() => {
     if (!hasPreview) return
     if (previewCode === null) { setPreviewPoints(basePoints.current); return }
     const timer = setTimeout(() => {
       const pts = basePoints.current.map(p => ({ ...p, P: { ...p.P }, Cd: { ...p.Cd }, N: { ...p.N } }))
-      const result = runVex(previewCode, pts)
+      const result = runVex(previewCode, pts, chValues)
       if (!result.error) setPreviewPoints(result.points)
     }, 400)
     return () => clearTimeout(timer)
-  }, [previewCode, hasPreview])
+  }, [previewCode, hasPreview, chValues])
 
   const codeBlock = (
     <div className="bg-vex-bg border border-vex-border rounded-xl p-4 font-mono text-sm overflow-x-auto">
@@ -168,6 +179,15 @@ export function FillBlankQuestion({ exercise, icon, onComplete }: Props) {
         </div>
       ) : (
         codeBlock
+      )}
+
+      {hasPreview && autoParams.length > 0 && (
+        <ChannelSliders
+          params={autoParams}
+          values={chValues}
+          onChange={(name, value) => setChValues(v => ({ ...v, [name]: value }))}
+          hint={t('chparams.houdiniNote')}
+        />
       )}
 
       {/* Hints — hidden by default, revealed on demand */}

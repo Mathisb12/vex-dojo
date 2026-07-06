@@ -1,7 +1,8 @@
-import { useState, useEffect, useRef, useCallback } from 'react'
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react'
 import Editor from '@monaco-editor/react'
 import { PointCloudViewer } from '../visualization/PointCloudViewer'
 import { runVex, makeDefaultPoints, type PointAttrs } from '../interpreter/evaluator'
+import { detectChannelParams, referencesTime } from '../interpreter/channels'
 import type { CodeExercise } from '../exercises/types'
 import { useLang } from '../i18n/LanguageContext'
 import { registerVexEditorFeatures } from './vexMonacoLanguage'
@@ -36,6 +37,18 @@ export function CodeQuestion({ exercise, icon, onComplete }: Props) {
   )
   const basePoints = useRef(makeDefaultPoints(exercise.pointCount, exercise.pointShape))
 
+  // Houdini's "spare parameters", automated: any ch()/chf()/chi() the player
+  // types spawns a live slider, and @Time/@Frame spawns the playback control.
+  const autoParams = useMemo(() => detectChannelParams(code, exercise.chParams ?? []), [code, exercise.chParams])
+  const allParams = useMemo(() => [...(exercise.chParams ?? []), ...autoParams], [exercise.chParams, autoParams])
+  const usesTime = useMemo(() => referencesTime(code), [code])
+  const [timeVal, setTimeVal] = useState(0)
+  const [playing, setPlaying] = useState(false)
+  // Effects with other deps read the clock through a ref so a scrub between
+  // debounces can't hand them a stale value.
+  const timeRef = useRef(0)
+  const setTime = (v: number) => { timeRef.current = v; setTimeVal(v) }
+
   // Auto-run on code change (debounced)
   const runTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   useEffect(() => {
@@ -49,17 +62,35 @@ export function CodeQuestion({ exercise, icon, onComplete }: Props) {
   // slider drag is already a "final" value the player wants to see live.
   const chTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   useEffect(() => {
-    if (!exercise.chParams?.length) return
     if (chTimer.current) clearTimeout(chTimer.current)
     chTimer.current = setTimeout(() => { runCode(code, chValues) }, 80)
     return () => { if (chTimer.current) clearTimeout(chTimer.current) }
   }, [chValues])
+
+  // Playback loop — ~12fps is plenty for a teaching preview and keeps the
+  // interpreter re-runs cheap.
+  useEffect(() => {
+    if (!playing || !usesTime) return
+    const id = setInterval(() => {
+      setTimeVal(t => {
+        const next = t + 0.08 >= 10 ? 0 : +(t + 0.08).toFixed(2)
+        timeRef.current = next
+        return next
+      })
+    }, 80)
+    return () => clearInterval(id)
+  }, [playing, usesTime])
+
+  // Scrubbing or playback re-runs immediately (each tick is a final value).
+  useEffect(() => { runCode(code, chValues) }, [timeVal])
 
   // Reset base points when exercise changes
   useEffect(() => {
     basePoints.current = makeDefaultPoints(exercise.pointCount, exercise.pointShape)
     setCode(initialCode)
     setChValues(Object.fromEntries((exercise.chParams ?? []).map(p => [p.name, p.default])))
+    setPlaying(false)
+    setTime(0)
     setRan(false)
     setAllPass(false)
     setShowSolution(false)
@@ -75,7 +106,7 @@ export function CodeQuestion({ exercise, icon, onComplete }: Props) {
       N: { ...p.N },
     }))
     const ramps = Object.fromEntries((exercise.chRamps ?? []).map(r => [r.name, r.stops]))
-    const result = runVex(src, pts, chVals, ramps)
+    const result = runVex(src, pts, chVals, ramps, { Time: timeRef.current })
     setPoints(result.points)
     setOutput(result.output)
     setError(result.error)
@@ -193,11 +224,18 @@ export function CodeQuestion({ exercise, icon, onComplete }: Props) {
             )}
           </div>
 
-          {exercise.chParams && exercise.chParams.length > 0 && (
+          {(allParams.length > 0 || usesTime) && (
             <ChannelSliders
-              params={exercise.chParams}
+              params={allParams}
               values={chValues}
               onChange={(name, value) => setChValues(v => ({ ...v, [name]: value }))}
+              hint={autoParams.length > 0 ? t('chparams.houdiniNote') : undefined}
+              time={usesTime ? {
+                value: timeVal,
+                playing,
+                onScrub: (v) => { setPlaying(false); setTime(v) },
+                onTogglePlay: () => setPlaying(p => !p),
+              } : null}
             />
           )}
 
