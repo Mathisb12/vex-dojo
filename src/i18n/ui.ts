@@ -65,6 +65,8 @@ export const UI_STRINGS = {
     'code.hintApplied': 'Hint inserted — adapt it to finish the exercise',
     'viewer.controls': 'drag to orbit · scroll to zoom',
     'chparams.title': 'Live parameters',
+    'credits.madeBy': 'Made by',
+    'credits.copied': 'copied!',
   },
   fr: {
     'app.tagline': 'Apprends le VEX de Houdini',
@@ -130,6 +132,8 @@ export const UI_STRINGS = {
     'code.hintApplied': "Indice inséré — adapte-le pour terminer l'exercice",
     'viewer.controls': 'glisser pour pivoter · molette pour zoomer',
     'chparams.title': 'Paramètres en direct',
+    'credits.madeBy': 'Créé par',
+    'credits.copied': 'copié !',
   },
 } satisfies Record<Lang, Record<string, string>>
 

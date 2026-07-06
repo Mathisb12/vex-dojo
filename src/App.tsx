@@ -6,6 +6,7 @@ import { LearnCardView } from './components/LearnCardView'
 import { LessonPath } from './components/LessonPath'
 import { KIND_BADGE_STYLE } from './components/KindBadge'
 import { GrainOverlay } from './components/GrainOverlay'
+import { FooterCredits } from './components/FooterCredits'
 import { useProgress } from './hooks/useProgress'
 import { getLocalizedCurriculum, getTotalXP } from './exercises/curriculum'
 import type { Exercise, Lesson, LearnCard, Module } from './exercises/types'
@@ -354,7 +355,7 @@ function Sidebar({
         )}
       </div>
 
-      {/* Reset progress */}
+      {/* Reset progress + credits */}
       <div className="px-3 py-3 border-t border-vex-border">
         <button
           onClick={onReset}
@@ -363,6 +364,7 @@ function Sidebar({
           {t('app.resetProgress')}
         </button>
       </div>
+      <FooterCredits />
     </aside>
   )
 }
