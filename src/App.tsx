@@ -201,6 +201,7 @@ function Sidebar({
   level,
   onReset,
   onClose,
+  onCollapse,
 }: {
   modules: Module[]
   completedIds: Set<string>
@@ -212,6 +213,8 @@ function Sidebar({
   onReset: () => void
   // Mobile drawer only — closes the overlay; invisible at lg+.
   onClose: () => void
+  // Desktop only — collapses the static column; invisible under lg.
+  onCollapse: () => void
 }) {
   const { t, lang, toggleLang } = useLang()
   const tier1Modules = modules.filter(m => m.tier === 1)
@@ -308,6 +311,14 @@ function Sidebar({
           >
             ✕
           </button>
+          <button
+            onClick={onCollapse}
+            aria-label="Collapse sidebar"
+            title={t('sidebar.collapse')}
+            className="hidden lg:block w-8 h-8 rounded-lg border border-vex-border text-vex-muted hover:text-vex-orange hover:border-vex-orange/50 transition-colors flex-shrink-0"
+          >
+            ⟨
+          </button>
         </div>
 
         <div className="flex items-center gap-2 mb-3">
@@ -388,6 +399,9 @@ function AppInner() {
   // Mobile-only: the sidebar becomes an overlay drawer under lg. Desktop
   // ignores this entirely (always visible, static).
   const [sidebarOpen, setSidebarOpen] = useState(false)
+  // Desktop-only: fully collapses the static sidebar column; the compact
+  // header bar (with ☰) takes over until it's expanded again.
+  const [desktopCollapsed, setDesktopCollapsed] = useState(false)
   const totalXP = useMemo(() => getTotalXP(), [])
   const curriculum = useMemo(() => getLocalizedCurriculum(lang), [lang])
   // Cosmetic only — derived from XP, never persisted, purely for the sidebar's level pill.
@@ -441,11 +455,12 @@ function AppInner() {
         />
       )}
 
-      {/* Sidebar: overlay drawer under lg, plain static column at lg+ */}
+      {/* Sidebar: overlay drawer under lg, plain static column at lg+.
+          When collapsed on desktop it's removed from the flow entirely. */}
       <div
         className={`fixed inset-y-0 left-0 z-40 transition-transform duration-200 lg:static lg:z-auto lg:transition-none ${
           sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
-        }`}
+        } ${desktopCollapsed ? 'lg:hidden' : ''}`}
       >
         <Sidebar
           modules={curriculum}
@@ -457,15 +472,18 @@ function AppInner() {
           level={level}
           onReset={handleReset}
           onClose={() => setSidebarOpen(false)}
+          onCollapse={() => setDesktopCollapsed(true)}
         />
       </div>
 
       <main className="flex-1 overflow-hidden flex flex-col min-w-0">
-        {/* Mobile-only header: the drawer toggle lives here */}
-        <div className="lg:hidden flex items-center gap-2.5 px-3 py-2 border-b border-vex-border flex-shrink-0">
+        {/* Compact header: the drawer toggle. Always shown on mobile; on
+            desktop only when the sidebar has been collapsed. */}
+        <div className={`flex items-center gap-2.5 px-3 py-2 border-b border-vex-border flex-shrink-0 ${desktopCollapsed ? 'lg:flex' : 'lg:hidden'}`}>
           <button
-            onClick={() => setSidebarOpen(true)}
+            onClick={() => { setSidebarOpen(true); setDesktopCollapsed(false) }}
             aria-label="Menu"
+            title={t('sidebar.expand')}
             className="w-9 h-9 rounded-lg border border-vex-border text-vex-muted hover:text-vex-orange hover:border-vex-orange/50 transition-colors text-lg leading-none"
           >
             ☰
