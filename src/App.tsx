@@ -143,9 +143,9 @@ function LessonPlayer({
             🔥 {streak}
           </span>
         )}
-        <div className="flex items-center gap-2 ml-auto w-44 flex-shrink-0">
+        <div className="flex items-center gap-2 ml-auto sm:w-44 flex-shrink-0">
           <span className="text-vex-muted text-xs font-mono whitespace-nowrap hidden md:inline">{t('lesson.progressLabel')}</span>
-          <div className="flex-1 bg-vex-surface rounded-full h-2 border border-vex-border">
+          <div className="hidden sm:block flex-1 bg-vex-surface rounded-full h-2 border border-vex-border">
             <div
               className="h-full bg-vex-orange rounded-full transition-all duration-500"
               style={{ width: `${progress}%` }}
@@ -200,6 +200,7 @@ function Sidebar({
   streak,
   level,
   onReset,
+  onClose,
 }: {
   modules: Module[]
   completedIds: Set<string>
@@ -209,6 +210,8 @@ function Sidebar({
   streak: number
   level: number
   onReset: () => void
+  // Mobile drawer only — closes the overlay; invisible at lg+.
+  onClose: () => void
 }) {
   const { t, lang, toggleLang } = useLang()
   const tier1Modules = modules.filter(m => m.tier === 1)
@@ -273,7 +276,7 @@ function Sidebar({
   }
 
   return (
-    <aside className="w-72 border-r border-vex-border flex flex-col bg-vex-bg overflow-hidden">
+    <aside className="w-72 h-full border-r border-vex-border flex flex-col bg-vex-bg overflow-hidden">
       {/* Logo */}
       <div className="px-5 py-4 border-b border-vex-border">
         <div className="flex items-center gap-2 mb-3">
@@ -298,6 +301,13 @@ function Sidebar({
               EN
             </button>
           </div>
+          <button
+            onClick={onClose}
+            aria-label="Close menu"
+            className="lg:hidden w-8 h-8 rounded-lg border border-vex-border text-vex-muted hover:text-vex-orange hover:border-vex-orange/50 transition-colors flex-shrink-0"
+          >
+            ✕
+          </button>
         </div>
 
         <div className="flex items-center gap-2 mb-3">
@@ -375,6 +385,9 @@ function AppInner() {
   const { state, completeExercise, resetProgress } = useProgress()
   const { lang, t } = useLang()
   const [activeLesson, setActiveLesson] = useState<{ lesson: Lesson; moduleId: string } | null>(null)
+  // Mobile-only: the sidebar becomes an overlay drawer under lg. Desktop
+  // ignores this entirely (always visible, static).
+  const [sidebarOpen, setSidebarOpen] = useState(false)
   const totalXP = useMemo(() => getTotalXP(), [])
   const curriculum = useMemo(() => getLocalizedCurriculum(lang), [lang])
   // Cosmetic only — derived from XP, never persisted, purely for the sidebar's level pill.
@@ -398,6 +411,7 @@ function AppInner() {
 
   const handleSelectLesson = (lesson: Lesson, moduleId: string) => {
     setActiveLesson({ lesson, moduleId })
+    setSidebarOpen(false)
   }
 
   const handleCompleteExercise = (exerciseId: string, xp: number) => {
@@ -408,6 +422,7 @@ function AppInner() {
     if (window.confirm(t('app.resetConfirm'))) {
       resetProgress()
       setActiveLesson(null)
+      setSidebarOpen(false)
     }
   }
 
@@ -417,34 +432,66 @@ function AppInner() {
       style={{ background: 'radial-gradient(130% 100% at 82% -15%, #141b27 0%, #0d1117 52%)' }}
     >
       <GrainOverlay />
-      <Sidebar
-        modules={curriculum}
-        completedIds={state.completedExercises}
-        onSelectLesson={handleSelectLesson}
-        xp={state.xp}
-        totalXP={totalXP}
-        streak={state.streak}
-        level={level}
-        onReset={handleReset}
-      />
 
-      <main className="flex-1 overflow-hidden flex flex-col">
-        {activeLessonLocalized ? (
-          <LessonPlayer
-            lesson={activeLessonLocalized.lesson}
-            moduleTitle={activeModuleTitle}
-            completedIds={state.completedExercises}
-            streak={state.streak}
-            onComplete={handleCompleteExercise}
-            onBack={() => setActiveLesson(null)}
-          />
-        ) : (
-          <LessonPath
-            modules={curriculum}
-            completedIds={state.completedExercises}
-            onSelectLesson={handleSelectLesson}
-          />
-        )}
+      {/* Mobile backdrop — tap anywhere outside the drawer to close it */}
+      {sidebarOpen && (
+        <div
+          className="fixed inset-0 bg-black/60 z-30 lg:hidden"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+
+      {/* Sidebar: overlay drawer under lg, plain static column at lg+ */}
+      <div
+        className={`fixed inset-y-0 left-0 z-40 transition-transform duration-200 lg:static lg:z-auto lg:transition-none ${
+          sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
+        }`}
+      >
+        <Sidebar
+          modules={curriculum}
+          completedIds={state.completedExercises}
+          onSelectLesson={handleSelectLesson}
+          xp={state.xp}
+          totalXP={totalXP}
+          streak={state.streak}
+          level={level}
+          onReset={handleReset}
+          onClose={() => setSidebarOpen(false)}
+        />
+      </div>
+
+      <main className="flex-1 overflow-hidden flex flex-col min-w-0">
+        {/* Mobile-only header: the drawer toggle lives here */}
+        <div className="lg:hidden flex items-center gap-2.5 px-3 py-2 border-b border-vex-border flex-shrink-0">
+          <button
+            onClick={() => setSidebarOpen(true)}
+            aria-label="Menu"
+            className="w-9 h-9 rounded-lg border border-vex-border text-vex-muted hover:text-vex-orange hover:border-vex-orange/50 transition-colors text-lg leading-none"
+          >
+            ☰
+          </button>
+          <span className="w-7 h-7 rounded-lg bg-vex-orange flex items-center justify-center text-black font-bold text-sm">@</span>
+          <span className="text-vex-text font-bold text-sm">VEX Dojo</span>
+        </div>
+
+        <div className="flex-1 min-h-0 flex flex-col overflow-hidden">
+          {activeLessonLocalized ? (
+            <LessonPlayer
+              lesson={activeLessonLocalized.lesson}
+              moduleTitle={activeModuleTitle}
+              completedIds={state.completedExercises}
+              streak={state.streak}
+              onComplete={handleCompleteExercise}
+              onBack={() => setActiveLesson(null)}
+            />
+          ) : (
+            <LessonPath
+              modules={curriculum}
+              completedIds={state.completedExercises}
+              onSelectLesson={handleSelectLesson}
+            />
+          )}
+        </div>
       </main>
     </div>
   )

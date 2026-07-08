@@ -75,7 +75,7 @@ export function LessonPath({
   }, [modules, completedIds, onSelectLesson])
 
   return (
-    <div className="flex-1 overflow-y-auto px-10 py-[46px]">
+    <div className="flex-1 overflow-y-auto px-4 py-8 sm:px-10 sm:py-[46px]">
       <div className="max-w-[780px] mx-auto">
         <div className="flex items-start justify-between mb-8 gap-4">
           <div>
