@@ -516,7 +516,7 @@ export const FR_EXERCISES: Record<string, ExTranslation> = {
   },
   'attr-8': {
     title: 'Fais-le survivre au wrangle',
-    prompt: 'Ce code calcule une valeur de hauteur 0–1 — mais la stocke dans une **variable locale**, donc elle s\'évapore dès que le wrangle se termine. **Exécute-le tel quel et regarde le premier check échouer.**\n\nRépare-le : stocke la valeur comme **attribut float** à la place, pour qu\'un nœud en aval puisse vraiment la lire. Relis-la avec `@height` pour la couleur en niveaux de gris.',
+    prompt: 'Ça devrait teinter la sphère selon la hauteur — mais elle sort **noire**. Regarde bien : la valeur est calculée dans une **variable locale** `float height`, alors que la couleur lit l\'**attribut** `@height`. Ce sont deux choses différentes, et `@height` n\'a jamais été écrit.\n\n**Exécute-le et regarde les checks échouer.** Puis change **un seul token** sur la ligne 3 pour que la valeur atterrisse vraiment sur `@height`.',
     checks: [
       'Un attribut "height" existe sur la géométrie (f@height, pas float height)',
       'height va de 0 en bas → 1 en haut',

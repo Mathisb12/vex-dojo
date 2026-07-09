@@ -478,8 +478,8 @@ export const CURRICULUM: Module[] = [
             kind: 'code',
             id: 'attr-8',
             title: 'Make it survive the wrangle',
-            prompt: 'This code computes a 0–1 height value — but stores it in a **local variable**, so it evaporates the instant the wrangle finishes. **Run it as-is and watch the first check fail.**\n\nFix it: store the value as a **float attribute** instead, so a downstream node could actually read it. Read it back with `@height` for the grayscale color.',
-            starterCode: '// "height" is LOCAL — it dies when the wrangle ends.\n// Change ONE thing so it persists on the geometry.\nfloat height = fit(@P.y, -1.0, 1.0, 0.0, 1.0);\n\n@Cd = {height, height, height};\n',
+            prompt: 'This should shade the sphere by height — but it comes out **black**. Look closely: the value is computed into a **local variable** `float height`, while the color reads the **attribute** `@height`. Those are two different things, and `@height` was never written.\n\n**Run it and watch the checks fail.** Then change **one token** on line 3 so the value actually lands on `@height`.',
+            starterCode: '// The sphere is BLACK — the height value never reaches @height.\n// float height (local) and @height (attribute) are NOT the same.\n// Change ONE token on the line below so they line up.\nfloat height = fit(@P.y, -1.0, 1.0, 0.0, 1.0);\n\n@Cd = {@height, @height, @height};\n',
             solutionCode: 'f@height = fit(@P.y, -1.0, 1.0, 0.0, 1.0);\n\n@Cd = {@height, @height, @height};\n',
             checks: [
               {
