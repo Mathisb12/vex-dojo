@@ -235,7 +235,8 @@ class Evaluator {
       // writes fall through to the dynamic case below but reads always come
       // back here, so shadowing @Time never sticks.
       case 'Time': return mkFloat(this.globals.Time ?? 0)
-      case 'Frame': return mkFloat((this.globals.Time ?? 0) * 24)
+      // Houdini's convention: frame = time × fps + 1, so frame 1 is time 0.
+      case 'Frame': return mkFloat((this.globals.Time ?? 0) * 24 + 1)
       default: {
         // dynamic user attributes — preserve whatever shape they were stored
         // in (number, {x,y,z}, or string), then optionally cast if this read

@@ -77,11 +77,12 @@ export const FR_LEARN_CARDS: Record<string, { title: string; body: string; keyPo
   },
   'learn-attr-1': {
     title: 'Les attributs : le préfixe @',
-    body: "Un **attribut** est une valeur nommée stockée sur la géométrie — chaque point peut avoir sa propre position, couleur, normale, etc.\n\nEn VEX, on lit et écrit les attributs avec le préfixe `@`. Lire `@P` donne la position du point courant. Écrire `@Cd = ...` change sa couleur.\n\nLes attributs (tout ce qui a un `@`) persistent après le wrangle — ils font partie des données de la géométrie. C'est différent des variables locales de la leçon précédente : `float maVar = 2;` (sans `@`) n'est qu'un espace de calcul temporaire pour ce wrangle — ça disparaît dès que le nœud suivant tourne. Seuls les noms préfixés par `@` sont vraiment sauvegardés sur la géométrie.\n\nLors de la création d'un nouvel attribut, tu peux préciser son type juste avant le `@` : `f@nom` (float), `i@nom` (int), `v@nom` (vector), `s@nom` (string). Un `@nom = ...` nu fonctionne aussi — VEX déduit le type depuis ce que tu assignes — mais le préfixe explicite rend ton intention sans ambiguïté.",
+    body: "Un **attribut** est une valeur nommée stockée sur la géométrie — chaque point peut avoir sa propre position, couleur, normale, etc.\n\nEn VEX, on lit et écrit les attributs avec le préfixe `@`. Lire `@P` donne la position du point courant. Écrire `@Cd = ...` change sa couleur.\n\nLes attributs (tout ce qui a un `@`) persistent après le wrangle — ils font partie des données de la géométrie. C'est différent des variables locales de la leçon précédente : `float maVar = 2;` (sans `@`) n'est qu'un espace de calcul temporaire pour ce wrangle — ça disparaît dès que le nœud suivant tourne. Seuls les noms préfixés par `@` sont vraiment sauvegardés sur la géométrie.\n\nLors de la création d'un nouvel attribut, précise son type juste avant le `@` : `f@nom` (float), `i@nom` (int), `v@nom` (vector), `s@nom` (string).\n\n**Important :** un `@nom` nu, sans préfixe, défaut en **float**. Pour un float c'est bon (`f@` est optionnel), mais pour tout le reste tu *dois* utiliser le préfixe — `v@col = {1,0,0}` est un vecteur, alors qu'un `@col = {1,0,0}` nu serait lu comme un float et donnerait de mauvais résultats. Houdini connaît déjà le type des attributs intégrés comme `@P`, `@Cd`, `@N`, donc eux n'ont jamais besoin de préfixe.",
     keyPoints: [
       '@ lit ou écrit un attribut de géométrie',
       'Les attributs (avec @) persistent sur la géométrie après le wrangle',
       'Les variables locales (sans @, ex. float x = 2;) ne persistent PAS',
+      'Un @nom nu défaut en float — utilise v@/i@/s@ pour les autres types',
       'f@/i@/v@/s@ typent explicitement un nouvel attribut (float/int/vector/string)',
     ],
   },
@@ -247,12 +248,12 @@ export const FR_LEARN_CARDS: Record<string, { title: string; body: string; keyPo
   },
   'learn-anim-1': {
     title: '@Time — l\'horloge de lecture',
-    body: "Tout ce que tu as écrit jusqu'ici est figé. `@Time` dé-fige : c'est le temps de lecture en **secondes**, et il change à chaque frame — donc tout code qui le lit produit un résultat différent à chaque frame. C'est ça, l'animation en VEX.\n\nDeux motifs couvrent la plupart des cas :\n- `sin(@Time)` — oscillation douce, aller-retour sans fin\n- `noise(@P + @Time)` — le motif de bruit **défile** dans l'espace au fil du temps\n\n(`@Frame` est la même horloge en frames plutôt qu'en secondes — frame = temps × 24 aux 24 fps par défaut de Houdini.)",
+    body: "Tout ce que tu as écrit jusqu'ici est figé. `@Time` dé-fige : c'est le temps de lecture en **secondes**, et il change à chaque frame — donc tout code qui le lit produit un résultat différent à chaque frame. C'est ça, l'animation en VEX.\n\nDeux motifs couvrent la plupart des cas :\n- `sin(@Time)` — oscillation douce, aller-retour sans fin\n- `noise(@P + @Time)` — le motif de bruit **défile** dans l'espace au fil du temps\n\n(`@Frame` est la même horloge comptée en frames plutôt qu'en secondes. Aux 24 fps par défaut de Houdini, elles se correspondent par `frame = temps × 24 + 1` — la frame **1** est le temps 0, la frame 25 le temps 1 s.)",
     keyPoints: [
       '@Time = temps de lecture en secondes — change à chaque frame',
       'sin(@Time) → oscillation douce sans fin',
       'noise(@P + @Time) → le motif défile avec le temps',
-      '@Frame = @Time × fps (24 par défaut)',
+      '@Frame = @Time × fps + 1 (frame 1 = temps 0, à 24 fps)',
     ],
   },
   'learn-relbbox-1': {
@@ -306,10 +307,10 @@ export const FR_LEARN_CARDS: Record<string, { title: string; body: string; keyPo
   },
   'learn-ca-1': {
     title: 'Attributs personnalisés — stocker ses propres données',
-    body: "Tu n'es pas limité à `@P`, `@Cd` et `@N`. Tu peux **créer n'importe quel attribut** en écrivant dans `@tonnom`. Houdini le crée automatiquement à la première écriture.\n\nLes attributs personnalisés sont utiles pour :\n- **Masquer** des opérations en aval (ex. un float `@mask` 0–1)\n- **Transmettre des données** entre nœuds (calculer dans un wrangle, utiliser dans un autre)\n- **Contrôler des effets** de façon non destructive\n\nPar convention, on préfixe le nom par le type : `f@mask` pour un float, `v@customColor` pour un vecteur — mais dans les wrangles VEX, `@mask` fonctionne pareil.",
+    body: "Tu n'es pas limité à `@P`, `@Cd` et `@N`. Tu peux **créer n'importe quel attribut** en écrivant dedans — Houdini le crée automatiquement à la première écriture.\n\nLes attributs personnalisés sont utiles pour :\n- **Masquer** des opérations en aval (ex. un float `@mask` 0–1)\n- **Transmettre des données** entre nœuds (calculer dans un wrangle, utiliser dans un autre)\n- **Contrôler des effets** de façon non destructive\n\nNomme-le par son type : un `@mask` nu est un **float** (donc `@mask` et `f@mask` sont identiques). Mais un **vecteur** personnalisé doit utiliser `v@` — `v@customColor = {1,0,0}`. Sans le `v@`, Houdini le traite comme un float et abîme ton vecteur.",
     keyPoints: [
       'Écrire @monattr = valeur crée un attribut personnalisé',
-      "Houdini détecte automatiquement le type depuis la valeur",
+      "Un attribut @ nu est un float — utilise v@ pour un vecteur, i@ pour un int, s@ pour une string",
       'Les attributs personnalisés persistent après le wrangle — utilisables en aval',
       'Pattern courant : calculer un mask, l\'utiliser plus tard',
     ],
@@ -1123,14 +1124,14 @@ export const FR_EXERCISES: Record<string, ExTranslation> = {
   },
   'mod-code-2': {
     title: 'Anneaux concentriques',
-    prompt: 'Crée des **anneaux colorés concentriques** sur la sphère. Utilise `length(@P)` comme coordonnée radiale et divise-la en bandes.\n\n- 5 anneaux visibles (contrôle avec le facteur d\'échelle)\n- Alterne entre deux couleurs contrastées\n- Donne aux anneaux une variation de largeur avec du bruit (bonus optionnel)',
+    prompt: 'Crée des **anneaux colorés concentriques** sur cette grille plate. `length(@P)` est la distance de chaque point au centre — quantifie-la en bandes.\n\n- Plusieurs anneaux visibles (contrôle avec le facteur d\'échelle)\n- Alterne entre deux couleurs contrastées\n\n(Les anneaux ont besoin d\'une forme où la distance *varie* — une grille plate est parfaite. Sur une sphère, chaque point est à la même distance du centre, donc cette astuce ne montrerait rien.)',
     checks: ['Au moins 2 bandes de couleur distinctes visibles', 'Couleurs pas toutes identiques (anneaux visibles)'],
-    explanation: '`length(@P)` sur une sphère vaut toujours ~1, donc multiplie par une échelle plus grande (comme 5) pour créer plusieurs anneaux. Les anneaux apparaissent où `dist` franchit des limites entières.',
+    explanation: '`length(@P)` sur la grille croît de 0 au centre à ~1,4 aux coins. `int(dist * 5)` découpe ça en bandes entières, et `% 2` alterne leur couleur — des anneaux concentriques. Augmente l\'échelle pour des anneaux plus serrés. (C\'est exactement pour ça qu\'une sphère ne marcherait pas : là, chaque point est à distance ~1 du centre, donc rien à découper.)',
   },
   // ── attr-creation ──
   'ca-1': {
     title: 'Tu écris `@speed = 3.5;` dans un wrangle. Quel type est créé ?',
-    explanation: '`3.5` est un littéral float, donc Houdini crée un attribut `float` nommé `speed`. Si tu avais écrit `@speed = {1,0,0}` ce serait un vecteur.',
+    explanation: 'Un `@nom` nu défaut en **float**, et `3.5` est un float — donc tu obtiens un attribut `float` nommé `speed`. Attention : `@speed = {1,0,0}` ne te donnerait PAS un vecteur — un `@` nu est toujours float, donc tu aurais de mauvais résultats. Utilise `v@speed` quand tu veux un vecteur.',
     choices: ['float', 'int', 'vector', 'string'],
   },
   'ca-fill-1': {
