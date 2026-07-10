@@ -66,12 +66,13 @@ export const FR_LEARN_CARDS: Record<string, { title: string; body: string; keyPo
   },
   'learn-var-2': {
     title: 'Les vecteurs sont partout',
-    body: "En 3D, presque tout est un vecteur : positions, couleurs, directions, normales.\n\nUn vecteur `{x, y, z}` regroupe trois floats. Tu peux accéder à chaque composante avec un **point** : `v.x`, `v.y`, `v.z`.\n\nLes couleurs utilisent le même type — le rouge c'est `.x`, le vert `.y`, le bleu `.z`.\n\nIl existe une seconde façon de construire un vecteur : la fonction `set(x, y, z)`. Elle fait exactement la même chose que `{x, y, z}` — utilise celle qui te semble la plus lisible selon le contexte.",
+    body: "En 3D, presque tout est un vecteur : positions, couleurs, directions, normales.\n\nUn vecteur `{x, y, z}` regroupe trois floats. Tu peux accéder à chaque composante avec un **point** : `v.x`, `v.y`, `v.z`.\n\nLes couleurs utilisent le même type — le rouge c'est `.x`, le vert `.y`, le bleu `.z`.\n\nIl existe une seconde façon de construire un vecteur : la fonction `set(x, y, z)`. Elle fait exactement la même chose que `{x, y, z}` — utilise celle qui te semble la plus lisible selon le contexte.\n\nUn raccourci pratique : assigner **un seul nombre** à un vecteur remplit les trois composantes — `vector v = 1;` devient `{1, 1, 1}`. C'est pour ça que `@Cd = 0.5;` donne un gris moyen.",
     keyPoints: [
       'vector regroupe 3 floats : {x, y, z}',
       'Les vecteurs ont des composantes .x .y .z',
       'Les couleurs sont aussi des vecteurs : .x=R, .y=G, .z=B',
       'set(x, y, z) construit un vecteur — identique à {x, y, z}',
+      'Un seul nombre remplit les 3 : vector v = 1 → {1, 1, 1}',
     ],
   },
   'learn-attr-1': {
@@ -459,9 +460,9 @@ export const FR_EXERCISES: Record<string, ExTranslation> = {
     explanation: '`col.x = 1;` réécrit uniquement la composante X via la notation par point — la même astuce fonctionne sur n\'importe quel vecteur, pas seulement `@Cd`.',
   },
   'var-6': {
-    title: 'Qu\'est-ce qui ne va pas avec `vector pos = 1.0;` ?',
-    explanation: 'Un `vector` regroupe toujours trois floats : `{x, y, z}`. Assigner un seul float directement est une erreur de type — il faut `vector pos = {1.0, 1.0, 1.0};` ou similaire.',
-    choices: ['Un vecteur a besoin de 3 valeurs entre accolades, ex. {1.0, 0.0, 0.0}', 'Rien — c\'est du VEX valide', '"vector" devrait être en majuscule', '1.0 devrait être écrit comme un int'],
+    title: 'Que crée `vector pos = 1.0;` ?',
+    explanation: 'Assigner un seul nombre à un vecteur est parfaitement valide en VEX — la valeur se **diffuse** sur les trois composantes, donc `pos` devient `{1, 1, 1}`. C\'est le même raccourci qui rend `@Cd = 0.5;` gris moyen (0.5 remplit R, G et B).',
+    choices: ['{1, 1, 1} — la valeur remplit les trois composantes', 'Une erreur de compilation — un vecteur a besoin de 3 valeurs entre accolades', '{1, 0, 0} — seule la première composante est définie', '{0, 0, 0} — l\'assignation est ignorée'],
   },
   'var-11': {
     title: 'Que stocke réellement `int x = 3.9;` dans `x` ?',
