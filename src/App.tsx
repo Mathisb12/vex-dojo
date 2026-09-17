@@ -527,6 +527,7 @@ function AppInner() {
               modules={curriculum}
               completedIds={state.completedExercises}
               onSelectLesson={handleSelectLesson}
+              onOpenPlayground={handleOpenPlayground}
             />
           )}
         </div>
