@@ -65,6 +65,20 @@ export function LearnCardView({ card, onContinue, current, total }: Props) {
         )
       })()}
 
+      {/* "So what" — where this shows up in a real shot */}
+      {card.inProduction && (
+        <div className="bg-vex-blue/5 border border-vex-blue/25 rounded-xl p-4 flex items-start gap-3">
+          <span className="text-vex-blue text-base leading-none mt-0.5 flex-shrink-0">🎬</span>
+          <div className="min-w-0">
+            <div className="text-xs text-vex-blue font-mono uppercase tracking-widest mb-1">{t('learn.inProduction')}</div>
+            <p
+              className="text-vex-text/80 text-sm leading-relaxed text-pretty"
+              dangerouslySetInnerHTML={{ __html: card.inProduction.replace(/`(.+?)`/g, '<code class="bg-black/30 text-vex-blue font-mono text-xs px-1 rounded">$1</code>') }}
+            />
+          </div>
+        </div>
+      )}
+
       {/* Code example */}
       {card.codeExample && (
         <div className="rounded-xl overflow-hidden border border-vex-border">

@@ -22,6 +22,7 @@ export const CURRICULUM: Module[] = [
             kind: 'learn',
             id: 'learn-intro-1',
             title: 'What is VEX?',
+            inProduction: 'Almost every Houdini effect you have seen has a wrangle somewhere inside it — scattering debris across a shattered wall, jittering a crowd so no two people move alike, colouring an ocean by wave height. It is the shortest path from an idea in your head to something on screen.',
             body: 'VEX is the **expression language at the heart of Houdini**. It lets you write custom logic that runs directly on geometry — changing positions, colors, normals, and any other attribute you can imagine.\n\nVEX is **C-like** in syntax: curly braces, semicolons, typed variables. If you\'ve written C, C++, or GLSL, you\'ll feel at home.',
             codeExample: '// This VEX code runs once per point\n// and paints every point orange\n@Cd = {1.0, 0.4, 0.0};',
             keyPoints: [
@@ -137,6 +138,7 @@ export const CURRICULUM: Module[] = [
             kind: 'learn',
             id: 'learn-var-1',
             title: 'The basic types',
+            inProduction: 'Types are where most “why is my attribute wrong?” bugs come from. An `int` silently drops the decimals, so `0.9` becomes `0`; a `float` assigned into a vector slot fills all three channels at once. Choosing the right type up front saves an afternoon of debugging.',
             body: 'VEX requires you to declare the **type** of every variable. Here are the three you\'ll use for plain values:\n\n- `int` — whole numbers: `0`, `-3`, `42`\n- `float` — decimal numbers: `0.5`, `3.14`, `-1.0`\n- `string` — text: `"hello"`\n\nThe type keyword always comes **before** the variable name. (There\'s a fourth type, `vector`, for 3D values like positions and colors — it gets its own lesson right after this one.)',
             codeExample: 'int    count = 10;\nfloat  scale = 2.5;\nstring name  = "my_point";',
             keyPoints: [
@@ -336,6 +338,7 @@ export const CURRICULUM: Module[] = [
             kind: 'learn',
             id: 'learn-attr-1',
             title: 'Attributes: the @ prefix',
+            inProduction: 'Attributes are how departments hand work to each other. Layout writes `@pscale` on scattered trees, FX reads it to size the destruction chunks, lighting reads `@Cd` to vary the shader — and nobody has to open anybody else\'s scene file.',
             body: 'An **attribute** is a named value stored on geometry — every point can have its own position, color, normal, etc.\n\nIn VEX, you read and write attributes with the `@` prefix. Reading `@P` gives you the current point\'s position. Writing `@Cd = ...` sets its color.\n\nAttributes (anything with `@`) persist after the wrangle — they\'re part of the geometry data. This is different from the local variables from the previous lesson: `float myVar = 2;` (no `@`) is just scratch space for this wrangle — it\'s gone as soon as the next node runs. Only `@`-prefixed names actually get saved onto the geometry.\n\nWhen creating a brand-new attribute, spell out its type right before the `@`: `f@name` (float), `i@name` (int), `v@name` (vector), `s@name` (string).\n\n**Important:** a bare `@name` with no prefix defaults to **float**. For a float that\'s fine (`f@` is optional), but for anything else you *must* use the prefix — `v@col = {1,0,0}` is a vector, while a bare `@col = {1,0,0}` would be misread as a float and give wrong results. Houdini already knows the type of built-ins like `@P`, `@Cd`, `@N`, so those never need a prefix.',
             codeExample: '// Reading an attribute\nvector myPos = @P;\nfloat  height = @P.y;\n\n// Writing an attribute — persists on the geometry\n@Cd = {1.0, 0.0, 0.0};  // paint red (@Cd is a known vector)\n@P.y += 0.5;             // lift up\n\n// New custom attributes: prefix by type\nf@speed    = 2.5;             // bare @speed would also be float\nv@velocity = {1.0, 0.0, 0.0}; // MUST be v@ — bare @ would break it\n\n// This does NOT persist — it\'s a local variable, not an attribute\nfloat scratch = 2.0;',
             keyPoints: [
@@ -529,6 +532,7 @@ export const CURRICULUM: Module[] = [
             kind: 'learn',
             id: 'learn-params-1',
             title: 'ch() and chf() — reading parameters',
+            inProduction: 'This is the moment your code stops being yours and becomes a tool. Wrap the wrangle in an HDA, promote the `ch()` sliders onto its interface, and a colleague can dial the effect in without ever opening the code.',
             visual: 'wrangle-params',
             body: 'In real Houdini, a wrangle node has its own parameter interface — sliders an artist can drag without touching the code. `chf("name")` **reads** the current value of a parameter called "name" (it returns 0 if that parameter doesn\'t exist yet).\n\nCreating the actual slider is a separate step: a button next to the code editor ("Create spare parameter for each ch()") scans your code and adds a real, draggable parameter for every `chf()`/`ch()` call it finds. So `chf()` itself only reads — the button is what creates.\n\n`ch()` is ambiguous about the value\'s type, so real VEX docs recommend the explicit typed forms instead: `chf("name")` for a float, `chi("name")` for an int.',
             codeExample: '// Hardcoded — works, but an artist has to edit code to tweak it\nfloat amp = 0.4;\n\n// Same idea, but driven by a node parameter\nfloat amp = chf("amplitude");\n// -> click "Create spare parameter" and a slider named\n//    "amplitude" appears on the node, ready to drag',
@@ -844,6 +848,7 @@ export const CURRICULUM: Module[] = [
             kind: 'learn',
             id: 'learn-fit-1',
             title: 'Remapping values with fit()',
+            inProduction: '`fit()` is the glue between anything and anything else. Noise comes out −1 to 1, opacity wants 0 to 1, a scale wants 0.5 to 3 — `fit()` is the single line that connects them, and it is probably the function you will type most often.',
             body: '`fit(x, omin, omax, nmin, nmax)` is one of the most useful VEX functions.\n\nIt **remaps** a value from one range into another. If `x` is in `[omin, omax]`, the result is in `[nmin, nmax]`.\n\nExample: Y position goes from -1 to 1. You want to use it as a color (0 to 1). `fit(@P.y, -1, 1, 0, 1)` does exactly that.\n\nTwo shortcuts exist for the common case where the input is already 0–1: `fit01(x, nmin, nmax)` is exactly `fit(x, 0, 1, nmin, nmax)`, `fit10(x, nmin, nmax)` is the same but with the input direction reversed. **None of these clamp** — if `x` falls outside the range they assume, the result just extrapolates past `[nmin, nmax]`. If you need the input forced into range first, combine with `clamp()`.',
             codeExample: '// Map Y height (-1..1) to a 0..1 range\nfloat t = fit(@P.y, -1.0, 1.0, 0.0, 1.0);\n\n// t = 0 at the bottom, 1 at the top\n@Cd = {t, 0.0, 0.0}; // dark red → bright red\n\n// fit01: input already 0..1, remap to a custom range\nfloat brightness = fit01(t, 0.2, 0.9);',
             keyPoints: [
@@ -986,6 +991,7 @@ export const CURRICULUM: Module[] = [
             kind: 'learn',
             id: 'learn-vec-1',
             title: 'length() and normalize()',
+            inProduction: '`length()` gives you falloff from a source: a shockwave that fades with distance, a magnet that only grabs nearby points. `normalize()` keeps the direction and throws the distance away — exactly what you want to push points outwards at an even speed.',
             body: '`length(v)` returns the **magnitude** of a vector — the distance from the origin to the tip.\n\nFormula: `sqrt(x² + y² + z²)`\n\n`normalize(v)` returns a vector with the **same direction** but length exactly 1. A vector with length 1 is called a **unit vector** and is essential for directions, normals, and dot products.\n\nThere\'s also `distance(a, b)` — shorthand for `length(a - b)`, the distance between two points instead of from the origin.',
             codeExample: 'vector v = {3, 4, 0};\nfloat  l = length(v);      // 5.0\nvector n = normalize(v);   // {0.6, 0.8, 0.0}\n\n// Distance from origin to current point\nfloat dist = length(@P);\n\n// Distance between two arbitrary points\nfloat d2 = distance({0,0,0}, {3,4,0}); // 5.0, same as length() of the difference',
             keyPoints: [
@@ -1108,6 +1114,7 @@ export const CURRICULUM: Module[] = [
             kind: 'learn',
             id: 'learn-clamp-lerp-1',
             title: 'clamp() and lerp()',
+            inProduction: '`clamp()` is a safety rail: it stops one noise spike from launching a point into orbit. `lerp()` is how anything transitions — a dissolve, a morph, a wipe are all a 0-to-1 blend between two states.',
             body: '`clamp(x, min, max)` forces a value to stay inside a range — anything below `min` becomes `min`, anything above `max` becomes `max`. It\'s the easiest way to squeeze a distance (or anything unbounded) into a clean 0–1 range before using it as a color.\n\n`lerp(a, b, t)` **interpolates** between two values. At `t=0` you get `a`, at `t=1` you get `b`, in between you get a smooth mix. Works on floats and vectors alike. Like `fit()`/`fit01()`, `lerp()` does **not** clamp `t` — if you pass `t=1.5`, it overshoots past `b`. `clamp()` is the only one of these that actually forces a value into range.',
             codeExample: 'float dist = length(@P);\nfloat t = clamp(dist, 0.0, 1.0); // force into 0..1\n\nfloat  midway = lerp(10.0, 20.0, 0.5);          // 15.0\nvector mix    = lerp({0,0,0}, {10,10,10}, 0.25); // {2.5, 2.5, 2.5}\n\n// lerp does NOT clamp t — this overshoots past b\nfloat over = lerp(0.0, 10.0, 1.5); // 15.0, past b!',
             keyPoints: [
@@ -1219,6 +1226,7 @@ export const CURRICULUM: Module[] = [
             kind: 'learn',
             id: 'learn-dot-cross-1',
             title: 'dot() and cross()',
+            inProduction: '`dot()` against a light direction is the basis of every diffuse shader; `dot()` against the camera direction is how you find rim-lit edges or hide backfacing points. `cross()` builds the perpendicular axis you need to spin points around an arbitrary axis.',
             body: '`dot(a, b)` returns a single float: the **dot product**. It measures how aligned two vectors are. If both are unit vectors, `dot(a, b)` ranges from **-1** (opposite directions) to **+1** (same direction), with **0** meaning perpendicular.\n\n`cross(a, b)` returns a **vector** that is perpendicular to both `a` and `b` — useful for finding "the direction sideways" relative to two other directions (like building a local coordinate frame).',
             codeExample: 'vector a = {1, 0, 0};\nvector b = {0, 1, 0};\nfloat  d = dot(a, b);    // 0.0 (perpendicular)\nfloat  d2 = dot(a, a);   // 1.0 (same direction as itself)\n\nvector c = cross(a, b);  // {0, 0, 1} — perpendicular to both a and b',
             keyPoints: [
@@ -1336,6 +1344,7 @@ export const CURRICULUM: Module[] = [
             kind: 'learn',
             id: 'learn-if-1',
             title: 'Conditional logic in VEX',
+            inProduction: 'Conditionals let one wrangle handle a whole shot: points below the waterline turn blue, chunks more than 5 units from the impact stay still, every third building gets a different roof. One node, many rules.',
             body: 'VEX uses the same `if/else` syntax as C. The condition goes in parentheses; the body in curly braces.\n\nYou can compare:\n- Numbers: `<`, `>`, `<=`, `>=`, `==`, `!=`\n- The `%` (modulo) operator is useful for patterns: `@ptnum % 2 == 0` is true for every other point.\n\nConditions can be combined with `&&` (and) and `||` (or).\n\nFor more than two outcomes, chain with `else if`: it checks the first condition, then only checks the next one if the first was false, and so on — only one branch ever runs.',
             codeExample: '// Branch based on position\nif (@P.y > 0.0) {\n    @Cd = {1, 1, 0}; // top: yellow\n} else {\n    @Cd = {0, 0, 1}; // bottom: blue\n}\n\n// Checkerboard pattern\nif (@ptnum % 2 == 0) {\n    @Cd = {1, 1, 1};\n}\n\n// Three-way split with else if\nif (@P.y > 0.3) {\n    @Cd = {1, 1, 0};   // top\n} else if (@P.y < -0.3) {\n    @Cd = {0, 0, 1};   // bottom\n} else {\n    @Cd = {1, 1, 1};   // middle\n}',
             keyPoints: [
@@ -1522,6 +1531,7 @@ export const CURRICULUM: Module[] = [
             kind: 'learn',
             id: 'learn-loop-1',
             title: 'The for loop',
+            inProduction: 'Loops are how you reach things the wrangle is not running over — walking every point of a curve to measure its length, averaging a point\'s neighbours to blur an attribute, or stacking several octaves of noise into one detailed result.',
             body: 'A `for` loop repeats code a fixed number of times. It has three parts in the parentheses:\n1. **Init** — runs once before the loop (`int i = 0`)\n2. **Condition** — checked before each iteration; stop when false (`i < 10`)\n3. **Increment** — runs after each body (`i++`)\n\n`i++` is shorthand for `i += 1`.',
             codeExample: '// Accumulate a sum: 0+1+2+3+4 = 10\nfloat total = 0;\nfor (int i = 0; i < 5; i++) {\n    total += i;\n}\n// total is now 10\n\n// Count down\nfor (int i = 10; i > 0; i--) {\n    printf("%d\\n", i);\n}',
             keyPoints: [
@@ -1767,6 +1777,7 @@ export const CURRICULUM: Module[] = [
             kind: 'learn',
             id: 'learn-noise-1',
             title: 'rand() — controlled randomness',
+            inProduction: '`rand(@ptnum)` is the workhorse of variation: a different size for every scattered rock, a different start frame for every crowd walk cycle, a different tint for every leaf. And because it is deterministic, tomorrow\'s render still matches today\'s playblast.',
             body: '`rand(seed)` returns a **pseudo-random float between 0 and 1**. It\'s deterministic: the same seed always gives the same result, so your geometry is stable across renders.\n\nUsing `@ptnum` as the seed gives each point a unique but stable random value. Perfect for per-point variation.',
             codeExample: '// Each point gets a unique random value\nfloat r = rand(@ptnum);\n@Cd = {r, r, r}; // random greyscale\n\n// Random height offset\n@P.y += rand(@ptnum) * 0.5 - 0.25;',
             keyPoints: [
@@ -1780,6 +1791,7 @@ export const CURRICULUM: Module[] = [
             kind: 'learn',
             id: 'learn-noise-2',
             title: 'noise() — organic variation',
+            inProduction: '`noise()` is where things stop looking computer-generated. Terrain, rust, clouds, muscle wobble, the crackle on a fireball — they are nearly all the same noise field, read at different scales.',
             body: '`noise(position)` is **smooth random**. Unlike `rand()`, neighboring inputs give neighboring outputs — the noise is continuous. This creates organic, flowing variation instead of spiky random.\n\nPassing `@P` (the point\'s 3D position) as input means nearby points in space get similar noise values, which looks natural.',
             codeExample: '// Organic displacement\nfloat n = noise(@P);        // 0..1\n@P.y  += (n - 0.5) * 0.6;  // offset from center\n@Cd    = {n, n * 0.3, 1 - n};',
             keyPoints: [
@@ -1793,6 +1805,7 @@ export const CURRICULUM: Module[] = [
             kind: 'learn',
             id: 'learn-noise-3',
             title: 'Shaping noise: frequency & contrast',
+            inProduction: 'Frequency and contrast are the two dials you will actually spend your time on. The same noise at low frequency is rolling hills and at high frequency is gravel; push the contrast and soft smoke becomes hard-edged cloud banks.',
             body: 'Two knobs you\'ll use constantly:\n\n- **Frequency** — scale the input: `noise(@P * 5)` packs more variation into the same space (finer detail). `noise(@P * 0.5)` stretches it out.\n- **Contrast** — noise is 0–1 but its **median is 0.5**: most values crowd the middle, so raw noise looks flat grey. Stretch the middle out with `fit(n, 0.3, 0.7, 0, 1)` to get real darks and brights.',
             codeExample: 'float n = noise(@P * 5.0);            // finer detail\nfloat c = fit(n, 0.3, 0.7, 0.0, 1.0); // punchier contrast\n@Cd = {c, c, c};',
             keyPoints: [
@@ -1974,6 +1987,7 @@ export const CURRICULUM: Module[] = [
             kind: 'learn',
             id: 'learn-anim-1',
             title: '@Time — the playback clock',
+            inProduction: 'Every animated effect that is not keyframed runs on `@Time` — drifting clouds, a pulsing energy shield, noise crawling across a surface. Swap `@Time` for `@Time * 0.2` and the whole thing slows down without touching a single key.',
             body: 'Everything you\'ve written so far is frozen. `@Time` unfreezes it: it\'s the playback time in **seconds**, and it changes every frame — so any code that reads it produces a different result every frame. That\'s all animation is in VEX.\n\nTwo patterns cover most cases:\n- `sin(@Time)` — smooth oscillation, back and forth forever\n- `noise(@P + @Time)` — the noise pattern **scrolls** through space over time\n\n(`@Frame` is the same clock counted in frames instead of seconds. At Houdini\'s default 24 fps they line up as `frame = time × 24 + 1` — frame **1** is time 0, frame 25 is time 1s.)',
             codeExample: '// A wave that actually waves\n@P.y += sin(@P.x * 2.0 + @Time * 3.0) * 0.3;\n\n// Living noise — the pattern drifts\nfloat n = noise(@P * 2.0 + @Time);\n@Cd = {n, n, n};',
             keyPoints: [
@@ -2076,6 +2090,7 @@ export const CURRICULUM: Module[] = [
             kind: 'learn',
             id: 'learn-relbbox-1',
             title: 'Stop hardcoding your gradients',
+            inProduction: 'This is what makes a setup reusable. Hardcode `@P.y / 5` and your effect breaks the moment someone hands you a bigger model; `relbbox()` means the same gradient works on a teacup and on a skyscraper.',
             body: 'Until now we\'ve built height gradients with `fit(@P.y, -1, 1, 0, 1)` — which silently assumes the object is exactly 2 units tall and centered. Scale the geometry and the gradient breaks.\n\n`relbbox(0, @P)` fixes that: it returns your position **relative to the geometry\'s bounding box** — `{0,0,0}` at the min corner, `{1,1,1}` at the max, whatever the size. `.y` is a ready-made bottom-to-top gradient for *any* object.',
             codeExample: '// Works on a 2-unit sphere, a 300-unit building, anything:\nvector rel = relbbox(0, @P);\n@Cd = {rel.y, rel.y, rel.y};  // black at the base, white at the top\n\n// Pairs beautifully with chramp:\nfloat g = chramp("falloff", rel.y);',
             keyPoints: [
@@ -2181,6 +2196,7 @@ export const CURRICULUM: Module[] = [
             kind: 'learn',
             id: 'learn-circ-1',
             title: 'Circular motion with cos() and sin()',
+            inProduction: 'This is circular motion without animating anything: orbiting sparks, a spiral of points climbing a staircase, the swirl around a tornado core, the ripples crossing a water surface.',
             body: '`cos(angle)` and `sin(angle)` are the key to placing things on a circle. Given an **angle in radians**, they return the X and Z coordinates of a point on a unit circle.\n\nTo place `@numpt` points evenly around a circle:\n1. Compute each point\'s angle: `t * 2 * 3.14159` where `t` is 0 to 1\n2. Set `@P.x = cos(angle) * radius`\n3. Set `@P.z = sin(angle) * radius`',
             codeExample: 'float t     = @ptnum / float(@numpt); // 0..1\nfloat angle = t * 2.0 * 3.14159;     // 0..2PI\nfloat radius = 1.5;\n\n@P.x = cos(angle) * radius;\n@P.y = 0.0;\n@P.z = sin(angle) * radius;',
             keyPoints: [
@@ -2306,6 +2322,7 @@ export const CURRICULUM: Module[] = [
             kind: 'learn',
             id: 'learn-mod-1',
             title: 'Modulo and int() for patterns',
+            inProduction: 'Modulo is the pattern maker: floor tiles, brick offsets, runway stripes, “every 4th point gets a light”. Paired with `rand()` it is also how you split a crowd into groups that each behave differently.',
             body: 'Two functions unlock almost all repeating patterns:\n\n- `%` (modulo) gives the **remainder** after division: `7 % 3 = 1`. Use it to create periodicity.\n- `int(x)` truncates a float to an integer. Combining `int(@P.x * scale) % n` creates **quantized stripes**.\n\nThe trick: multiply by a scale to control stripe frequency, then modulo by 2 for alternation.',
             codeExample: '// Alternating stripes along X (scale=3)\nint stripe = int(@P.x * 3.0 + 10.0) % 2;\n// stripe = 0 or 1, alternates every 1/3 unit\n\nif (stripe == 0) {\n    @Cd = {1.0, 0.5, 0.0}; // orange\n} else {\n    @Cd = {0.1, 0.1, 0.2}; // dark\n}',
             keyPoints: [
@@ -2477,6 +2494,7 @@ export const CURRICULUM: Module[] = [
             kind: 'learn',
             id: 'learn-ca-2',
             title: 'Attribute masking',
+            inProduction: 'Masks are how big setups stay controllable. You paint or compute a 0-to-1 `@mask`, then every downstream effect multiplies by it — so the erosion only bites into the cliff face and the wind only shakes the outer leaves.',
             body: 'A **mask** is a float attribute with values 0 to 1 that controls the **intensity** of an effect. Instead of a hard if/else, multiply by the mask for smooth, blended results.\n\n`@P.y += @mask * strength` — points with `@mask = 1` get full displacement, `@mask = 0` get none.\n\nMasks are the professional way to blend effects.',
             codeExample: '// Noise-based mask — smooth 0..1 per point\n@mask = noise(@P * 3.0);\n\n// Soft displacement using the mask\n@P.y    += @mask * 0.6;\n\n// Color: white where displaced, dark where not\n@Cd = {@mask, @mask * 0.8, 1.0 - @mask};\n\n// Hard mask (threshold)\nif (@mask > 0.5) {\n    @Cd = {1.0, 0.4, 0.0};\n}',
             keyPoints: [
@@ -2619,6 +2637,7 @@ export const CURRICULUM: Module[] = [
             kind: 'learn',
             id: 'learn-comb-2',
             title: 'For loops for accumulated effects',
+            inProduction: 'Stacking octaves in a loop is literally how FBM terrain, cloud and planet-surface shaders are built. One loop and a handful of lines give you detail at every scale instead of one flat layer of noise.',
             body: 'Loops unlock **fbm (fractal brownian motion)** — layering noise at increasing frequencies and decreasing amplitudes. This creates highly detailed, natural-looking surfaces.\n\nEach "octave" adds a finer layer of detail. The classic formula:\n```\nnoise(pos) + 0.5 * noise(pos*2) + 0.25 * noise(pos*4) + ...\n```\n\nThis is how terrain, clouds, and organic surfaces are made in production VFX.',
             codeExample: '// FBM: 4 octaves of noise\nfloat fbm    = 0;\nfloat amp    = 0.5;\nvector freq  = @P;\n\nfor (int i = 0; i < 4; i++) {\n    fbm  += noise(freq) * amp;\n    freq *= 2.0;   // double frequency\n    amp  *= 0.5;   // halve amplitude\n}\n\n@P += normalize(@P) * (fbm - 0.5) * 0.5;\n@Cd = {fbm, fbm * 0.6, 1.0 - fbm};',
             keyPoints: [
@@ -2735,7 +2754,7 @@ export const CURRICULUM: Module[] = [
 function localizeLearnCard(card: LearnCard): LearnCard {
   const t = FR_LEARN_CARDS[card.id]
   if (!t) return card
-  return { ...card, title: t.title ?? card.title, body: t.body ?? card.body, keyPoints: t.keyPoints ?? card.keyPoints }
+  return { ...card, title: t.title ?? card.title, body: t.body ?? card.body, keyPoints: t.keyPoints ?? card.keyPoints, inProduction: t.inProduction ?? card.inProduction }
 }
 
 function localizeExercise(ex: Exercise): Exercise {

@@ -35,8 +35,9 @@ export const FR_LESSONS: Record<string, { title: string; description: string }> 
   'multi-step': { title: 'Effets multi-étapes', description: 'Combiner boucles, bruit, conditions et maths' },
 }
 
-export const FR_LEARN_CARDS: Record<string, { title: string; body: string; keyPoints?: string[] }> = {
+export const FR_LEARN_CARDS: Record<string, { title: string; body: string; keyPoints?: string[]; inProduction?: string }> = {
   'learn-intro-1': {
+    inProduction: 'Presque tous les effets Houdini que tu as vus cachent un wrangle quelque part — éparpiller des débris sur un mur qui explose, décaler une foule pour que personne ne bouge pareil, colorer un océan selon la hauteur des vagues. C\'est le chemin le plus court entre une idée et quelque chose à l\'écran.',
     title: "Qu'est-ce que VEX ?",
     body: "VEX est le **langage d'expression au cœur de Houdini**. Il te permet d'écrire une logique personnalisée qui s'exécute directement sur la géométrie — modifier positions, couleurs, normales, et tout autre attribut imaginable.\n\nVEX a une syntaxe **proche du C** : accolades, points-virgules, variables typées. Si tu as déjà écrit du C, C++ ou GLSL, tu seras en terrain familier.",
     keyPoints: [
@@ -56,6 +57,7 @@ export const FR_LEARN_CARDS: Record<string, { title: string; body: string; keyPo
     ],
   },
   'learn-var-1': {
+    inProduction: 'Les types sont la source de la plupart des bugs « pourquoi mon attribut est faux ? ». Un `int` jette les décimales sans prévenir, donc `0.9` devient `0` ; un `float` envoyé dans un vecteur remplit les trois canaux d\'un coup. Choisir le bon type dès le départ t\'évite un après-midi de debug.',
     title: 'Les types de base',
     body: "VEX t'oblige à déclarer le **type** de chaque variable. Voici les trois que tu utiliseras pour des valeurs simples :\n\n- `int` — nombres entiers : `0`, `-3`, `42`\n- `float` — nombres décimaux : `0.5`, `3.14`, `-1.0`\n- `string` — texte : `\"hello\"`\n\nLe mot-clé de type vient toujours **avant** le nom de la variable. (Il existe un quatrième type, `vector`, pour les valeurs 3D comme les positions et les couleurs — il a sa propre leçon juste après celle-ci.)",
     keyPoints: [
@@ -76,6 +78,7 @@ export const FR_LEARN_CARDS: Record<string, { title: string; body: string; keyPo
     ],
   },
   'learn-attr-1': {
+    inProduction: 'Les attributs sont la façon dont les départements se passent le travail. Le layout écrit `@pscale` sur les arbres éparpillés, les FX le lisent pour dimensionner les morceaux de destruction, l\'éclairage lit `@Cd` pour varier le shader — et personne n\'a besoin d\'ouvrir la scène de l\'autre.',
     title: 'Les attributs : le préfixe @',
     body: "Un **attribut** est une valeur nommée stockée sur la géométrie — chaque point peut avoir sa propre position, couleur, normale, etc.\n\nEn VEX, on lit et écrit les attributs avec le préfixe `@`. Lire `@P` donne la position du point courant. Écrire `@Cd = ...` change sa couleur.\n\nLes attributs (tout ce qui a un `@`) persistent après le wrangle — ils font partie des données de la géométrie. C'est différent des variables locales de la leçon précédente : `float maVar = 2;` (sans `@`) n'est qu'un espace de calcul temporaire pour ce wrangle — ça disparaît dès que le nœud suivant tourne. Seuls les noms préfixés par `@` sont vraiment sauvegardés sur la géométrie.\n\nLors de la création d'un nouvel attribut, précise son type juste avant le `@` : `f@nom` (float), `i@nom` (int), `v@nom` (vector), `s@nom` (string).\n\n**Important :** un `@nom` nu, sans préfixe, défaut en **float**. Pour un float c'est bon (`f@` est optionnel), mais pour tout le reste tu *dois* utiliser le préfixe — `v@col = {1,0,0}` est un vecteur, alors qu'un `@col = {1,0,0}` nu serait lu comme un float et donnerait de mauvais résultats. Houdini connaît déjà le type des attributs intégrés comme `@P`, `@Cd`, `@N`, donc eux n'ont jamais besoin de préfixe.",
     keyPoints: [
@@ -98,6 +101,7 @@ export const FR_LEARN_CARDS: Record<string, { title: string; body: string; keyPo
     ],
   },
   'learn-params-1': {
+    inProduction: 'C\'est le moment où ton code arrête d\'être le tien et devient un outil. Tu enfermes le wrangle dans un HDA, tu remontes les sliders `ch()` sur son interface, et un collègue règle l\'effet sans jamais ouvrir le code.',
     title: 'ch() et chf() — lire des paramètres',
     body: "Dans le vrai Houdini, un nœud wrangle a sa propre interface de paramètres — des sliders qu'un artiste peut déplacer sans toucher au code. `chf(\"nom\")` **lit** la valeur actuelle d'un paramètre appelé \"nom\" (ça retourne 0 si ce paramètre n'existe pas encore).\n\nCréer le slider lui-même est une étape séparée : un bouton à côté de l'éditeur de code (« Create spare parameter for each ch() ») scanne ton code et ajoute un vrai paramètre, déplaçable, pour chaque `chf()`/`ch()` trouvé. Donc `chf()` ne fait que lire — c'est le bouton qui crée.\n\n`ch()` est ambigu sur le type de la valeur, donc la doc VEX recommande les formes typées explicites à la place : `chf(\"nom\")` pour un float, `chi(\"nom\")` pour un int.",
     keyPoints: [
@@ -128,6 +132,7 @@ export const FR_LEARN_CARDS: Record<string, { title: string; body: string; keyPo
     ],
   },
   'learn-fit-1': {
+    inProduction: '`fit()` est la colle entre n\'importe quoi et n\'importe quoi d\'autre. Le bruit sort entre −1 et 1, une opacité veut 0 à 1, une échelle veut 0.5 à 3 — `fit()` est la ligne qui les relie, et c\'est probablement la fonction que tu taperas le plus souvent.',
     title: 'Remapper des valeurs avec fit()',
     body: "`fit(x, omin, omax, nmin, nmax)` est l'une des fonctions VEX les plus utiles.\n\nElle **remappe** une valeur d'une plage vers une autre. Si `x` est dans `[omin, omax]`, le résultat est dans `[nmin, nmax]`.\n\nExemple : la position Y va de -1 à 1. Tu veux l'utiliser comme couleur (0 à 1). `fit(@P.y, -1, 1, 0, 1)` fait exactement ça.\n\nDeux raccourcis existent pour le cas courant où l'entrée est déjà entre 0 et 1 : `fit01(x, nmin, nmax)` est exactement `fit(x, 0, 1, nmin, nmax)`, `fit10(x, nmin, nmax)` fait pareil mais avec la direction d'entrée inversée. **Aucune des deux ne limite la valeur** — si `x` sort de la plage supposée, le résultat extrapole simplement hors de `[nmin, nmax]`. Si tu veux forcer l'entrée dans la plage d'abord, combine avec `clamp()`.",
     keyPoints: [
@@ -138,6 +143,7 @@ export const FR_LEARN_CARDS: Record<string, { title: string; body: string; keyPo
     ],
   },
   'learn-vec-1': {
+    inProduction: '`length()` te donne une atténuation depuis une source : une onde de choc qui s\'estompe avec la distance, un aimant qui n\'attrape que les points proches. `normalize()` garde la direction et jette la distance — exactement ce qu\'il faut pour pousser des points vers l\'extérieur à vitesse constante.',
     title: 'length() et normalize()',
     body: "`length(v)` retourne la **magnitude** d'un vecteur — la distance entre l'origine et la pointe.\n\nFormule : `sqrt(x² + y² + z²)`\n\n`normalize(v)` retourne un vecteur de **même direction** mais de longueur exactement 1. Un vecteur de longueur 1 s'appelle un **vecteur unitaire**, essentiel pour les directions, normales et produits scalaires.\n\nIl existe aussi `distance(a, b)` — un raccourci pour `length(a - b)`, la distance entre deux points plutôt que depuis l'origine.",
     keyPoints: [
@@ -148,6 +154,7 @@ export const FR_LEARN_CARDS: Record<string, { title: string; body: string; keyPo
     ],
   },
   'learn-clamp-lerp-1': {
+    inProduction: '`clamp()` est un garde-fou : il empêche un pic de bruit d\'envoyer un point en orbite. `lerp()` est la base de toute transition — un fondu, un morph, un balayage ne sont qu\'un mélange de 0 à 1 entre deux états.',
     title: 'clamp() et lerp()',
     body: "`clamp(x, min, max)` force une valeur à rester dans une plage donnée — tout ce qui est sous `min` devient `min`, tout ce qui est au-dessus de `max` devient `max`. C'est le moyen le plus simple de ramener une distance (ou n'importe quelle valeur non bornée) dans une plage propre de 0 à 1 avant de l'utiliser comme couleur.\n\n`lerp(a, b, t)` **interpole** entre deux valeurs. À `t=0` on obtient `a`, à `t=1` on obtient `b`, entre les deux un mélange. Fonctionne sur les floats et les vecteurs. Comme `fit()`/`fit01()`, `lerp()` ne limite **pas** `t` — si tu passes `t=1.5`, ça dépasse `b`. `clamp()` est la seule de ces fonctions qui force vraiment une valeur dans une plage.",
     keyPoints: [
@@ -158,6 +165,7 @@ export const FR_LEARN_CARDS: Record<string, { title: string; body: string; keyPo
     ],
   },
   'learn-dot-cross-1': {
+    inProduction: '`dot()` contre une direction de lumière est la base de tout shader diffus ; `dot()` contre la direction caméra sert à trouver les bords en contre-jour ou à masquer les points qui tournent le dos. `cross()` construit l\'axe perpendiculaire dont tu as besoin pour faire tourner des points autour d\'un axe quelconque.',
     title: 'dot() et cross()',
     body: "`dot(a, b)` retourne un seul float : le **produit scalaire**. Il mesure à quel point deux vecteurs sont alignés. Si les deux sont des vecteurs unitaires, `dot(a, b)` va de **-1** (directions opposées) à **+1** (même direction), avec **0** signifiant perpendiculaire.\n\n`cross(a, b)` retourne un **vecteur** perpendiculaire à `a` et `b` à la fois — utile pour trouver \"la direction de côté\" par rapport à deux autres directions (comme construire un repère local).",
     keyPoints: [
@@ -167,6 +175,7 @@ export const FR_LEARN_CARDS: Record<string, { title: string; body: string; keyPo
     ],
   },
   'learn-if-1': {
+    inProduction: 'Les conditions permettent à un seul wrangle de gérer tout un plan : les points sous la ligne d\'eau passent en bleu, les morceaux à plus de 5 unités de l\'impact ne bougent pas, un bâtiment sur trois reçoit un autre toit. Un nœud, plein de règles.',
     title: 'La logique conditionnelle en VEX',
     body: "VEX utilise la même syntaxe `if/else` que le C. La condition va entre parenthèses ; le corps entre accolades.\n\nTu peux comparer :\n- Des nombres : `<`, `>`, `<=`, `>=`, `==`, `!=`\n- L'opérateur `%` (modulo) est utile pour les motifs : `@ptnum % 2 == 0` est vrai pour un point sur deux.\n\nLes conditions peuvent se combiner avec `&&` (et) et `||` (ou).\n\nPour plus de deux cas, on chaîne avec `else if` : il vérifie la première condition, puis ne vérifie la suivante que si la première était fausse, et ainsi de suite — une seule branche s'exécute, jamais plusieurs.",
     keyPoints: [
@@ -178,6 +187,7 @@ export const FR_LEARN_CARDS: Record<string, { title: string; body: string; keyPo
     ],
   },
   'learn-loop-1': {
+    inProduction: 'Les boucles servent à atteindre ce sur quoi le wrangle ne tourne pas — parcourir tous les points d\'une courbe pour mesurer sa longueur, moyenner les voisins d\'un point pour flouter un attribut, ou empiler plusieurs octaves de bruit en un seul résultat détaillé.',
     title: 'La boucle for',
     body: "Une boucle `for` répète du code un nombre fixe de fois. Elle a trois parties entre les parenthèses :\n1. **Init** — s'exécute une fois avant la boucle (`int i = 0`)\n2. **Condition** — vérifiée avant chaque itération ; arrêt quand fausse (`i < 10`)\n3. **Incrément** — s'exécute après chaque corps (`i++`)\n\n`i++` est un raccourci pour `i += 1`.",
     keyPoints: [
@@ -218,6 +228,7 @@ export const FR_LEARN_CARDS: Record<string, { title: string; body: string; keyPo
     ],
   },
   'learn-noise-1': {
+    inProduction: '`rand(@ptnum)` est le cheval de bataille de la variation : une taille différente pour chaque caillou, une frame de départ différente pour chaque cycle de marche d\'une foule, une teinte différente pour chaque feuille. Et comme c\'est déterministe, le rendu de demain colle encore au playblast d\'aujourd\'hui.',
     title: 'rand() — un aléatoire contrôlé',
     body: "`rand(seed)` retourne un **float pseudo-aléatoire entre 0 et 1**. Il est déterministe : la même graine (seed) donne toujours le même résultat, donc ta géométrie reste stable entre les rendus.\n\nUtiliser `@ptnum` comme graine donne à chaque point une valeur aléatoire unique mais stable. Parfait pour une variation par point.",
     keyPoints: [
@@ -228,6 +239,7 @@ export const FR_LEARN_CARDS: Record<string, { title: string; body: string; keyPo
     ],
   },
   'learn-noise-2': {
+    inProduction: '`noise()` est le moment où ça arrête de faire « généré par ordinateur ». Terrain, rouille, nuages, tremblement des muscles, crépitement d\'une boule de feu — c\'est presque toujours le même champ de bruit, lu à différentes échelles.',
     title: 'noise() — une variation organique',
     body: "`noise(position)` est un **aléatoire lisse**. Contrairement à `rand()`, des entrées voisines donnent des sorties voisines — le bruit est continu. Cela crée une variation organique et fluide plutôt qu'un aléatoire en pics.\n\nPasser `@P` (la position 3D du point) en entrée signifie que des points voisins dans l'espace obtiennent des valeurs de bruit similaires, ce qui semble naturel.",
     keyPoints: [
@@ -238,6 +250,7 @@ export const FR_LEARN_CARDS: Record<string, { title: string; body: string; keyPo
     ],
   },
   'learn-noise-3': {
+    inProduction: 'La fréquence et le contraste sont les deux réglages sur lesquels tu vas réellement passer du temps. Le même bruit en basse fréquence donne des collines, en haute fréquence du gravier ; pousse le contraste et une fumée douce devient un banc de nuages aux bords nets.',
     title: 'Façonner le bruit : fréquence et contraste',
     body: "Deux réglages que tu utiliseras tout le temps :\n\n- **Fréquence** — mets l'entrée à l'échelle : `noise(@P * 5)` tasse plus de variation dans le même espace (détail plus fin). `noise(@P * 0.5)` l'étire.\n- **Contraste** — le bruit va de 0 à 1 mais sa **médiane est 0.5** : la plupart des valeurs s'entassent au milieu, donc le bruit brut a l'air d'un gris plat. Étire le milieu avec `fit(n, 0.3, 0.7, 0, 1)` pour retrouver de vrais sombres et de vrais clairs.",
     keyPoints: [
@@ -247,6 +260,7 @@ export const FR_LEARN_CARDS: Record<string, { title: string; body: string; keyPo
     ],
   },
   'learn-anim-1': {
+    inProduction: 'Tout effet animé qui n\'est pas en keyframes tourne sur `@Time` — nuages qui dérivent, bouclier d\'énergie qui pulse, bruit qui rampe sur une surface. Remplace `@Time` par `@Time * 0.2` et tout ralentit sans toucher une seule clé.',
     title: '@Time — l\'horloge de lecture',
     body: "Tout ce que tu as écrit jusqu'ici est figé. `@Time` dé-fige : c'est le temps de lecture en **secondes**, et il change à chaque frame — donc tout code qui le lit produit un résultat différent à chaque frame. C'est ça, l'animation en VEX.\n\nDeux motifs couvrent la plupart des cas :\n- `sin(@Time)` — oscillation douce, aller-retour sans fin\n- `noise(@P + @Time)` — le motif de bruit **défile** dans l'espace au fil du temps\n\n(`@Frame` est la même horloge comptée en frames plutôt qu'en secondes. Aux 24 fps par défaut de Houdini, elles se correspondent par `frame = temps × 24 + 1` — la frame **1** est le temps 0, la frame 25 le temps 1 s.)",
     keyPoints: [
@@ -257,6 +271,7 @@ export const FR_LEARN_CARDS: Record<string, { title: string; body: string; keyPo
     ],
   },
   'learn-relbbox-1': {
+    inProduction: 'C\'est ce qui rend un setup réutilisable. Écris `@P.y / 5` en dur et ton effet casse dès qu\'on te passe un modèle plus grand ; avec `relbbox()`, le même dégradé marche sur une tasse comme sur un gratte-ciel.',
     title: 'Arrête de coder tes dégradés en dur',
     body: "Jusqu'ici on construisait les dégradés de hauteur avec `fit(@P.y, -1, 1, 0, 1)` — ce qui suppose silencieusement que l'objet fait exactement 2 unités de haut et est centré. Change l'échelle de la géométrie et le dégradé casse.\n\n`relbbox(0, @P)` corrige ça : il retourne ta position **relative à la bounding box** de la géométrie — `{0,0,0}` au coin min, `{1,1,1}` au coin max, quelle que soit la taille. `.y` est un dégradé bas→haut tout prêt, pour *n'importe quel* objet.",
     keyPoints: [
@@ -267,6 +282,7 @@ export const FR_LEARN_CARDS: Record<string, { title: string; body: string; keyPo
     ],
   },
   'learn-circ-1': {
+    inProduction: 'C\'est du mouvement circulaire sans rien animer : étincelles en orbite, spirale de points qui monte un escalier, tourbillon autour du cœur d\'une tornade, rides qui traversent une surface d\'eau.',
     title: 'Mouvement circulaire avec cos() et sin()',
     body: "`cos(angle)` et `sin(angle)` sont la clé pour placer des points sur un cercle. Pour un **angle en radians**, ils retournent les coordonnées X et Z d'un point sur un cercle unitaire.\n\nPour placer `@numpt` points uniformément sur un cercle :\n1. Calculer l'angle de chaque point : `t * 2 * 3.14159` où `t` va de 0 à 1\n2. Définir `@P.x = cos(angle) * radius`\n3. Définir `@P.z = sin(angle) * radius`",
     keyPoints: [
@@ -286,6 +302,7 @@ export const FR_LEARN_CARDS: Record<string, { title: string; body: string; keyPo
     ],
   },
   'learn-mod-1': {
+    inProduction: 'Le modulo est la machine à motifs : carrelage, décalage des briques, bandes de piste d\'atterrissage, « un point sur 4 reçoit une lumière ». Associé à `rand()`, c\'est aussi comme ça qu\'on découpe une foule en groupes qui se comportent différemment.',
     title: 'Modulo et int() pour les motifs',
     body: "Deux fonctions débloquent presque tous les motifs répétitifs :\n\n- `%` (modulo) donne le **reste** d'une division : `7 % 3 = 1`. Utile pour créer de la périodicité.\n- `int(x)` tronque un float en entier. Combiner `int(@P.x * scale) % n` crée des **rayures quantifiées**.\n\nL'astuce : multiplier par une échelle pour contrôler la fréquence des rayures, puis modulo 2 pour l'alternance.",
     keyPoints: [
@@ -316,6 +333,7 @@ export const FR_LEARN_CARDS: Record<string, { title: string; body: string; keyPo
     ],
   },
   'learn-ca-2': {
+    inProduction: 'Les masques sont ce qui garde les gros setups contrôlables. Tu peins ou calcules un `@mask` entre 0 et 1, puis chaque effet en aval le multiplie — l\'érosion ne mord que sur la falaise, et le vent ne secoue que les feuilles extérieures.',
     title: 'Le masquage par attribut',
     body: "Un **mask** est un attribut float avec des valeurs de 0 à 1 qui contrôle l'**intensité** d'un effet. Plutôt qu'un if/else strict, on multiplie par le mask pour des résultats lisses et mélangés.\n\n`@P.y += @mask * strength` — les points avec `@mask = 1` reçoivent le déplacement complet, ceux avec `@mask = 0` n'en reçoivent aucun.\n\nLes masks sont la méthode professionnelle pour mélanger des effets.",
     keyPoints: [
@@ -336,6 +354,7 @@ export const FR_LEARN_CARDS: Record<string, { title: string; body: string; keyPo
     ],
   },
   'learn-comb-2': {
+    inProduction: 'Empiler des octaves dans une boucle, c\'est littéralement comme ça que sont construits les terrains FBM, les nuages et les surfaces de planète. Une boucle et quelques lignes te donnent du détail à toutes les échelles au lieu d\'une seule couche de bruit plate.',
     title: 'Boucles for pour des effets cumulés',
     body: "Les boucles débloquent le **fbm (fractal brownian motion)** — superposer du bruit à fréquences croissantes et amplitudes décroissantes. Cela crée des surfaces très détaillées et naturelles.\n\nChaque \"octave\" ajoute une couche de détail plus fine. La formule classique :\n```\nnoise(pos) + 0.5 * noise(pos*2) + 0.25 * noise(pos*4) + ...\n```\n\nC'est ainsi que terrains, nuages et surfaces organiques sont fabriqués en VFX de production.",
     keyPoints: [

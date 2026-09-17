@@ -60,6 +60,8 @@ export interface LearnCard {
   body: string          // plain text with **bold** and `code` markers
   codeExample?: string  // syntax-highlighted code block
   visual?: 'vector' | 'attributes' | 'loop' | 'wrangle-params' | 'ramp'  // optional diagram type
+  /** Where this actually gets used in a real VFX shot — the "so what" callout. */
+  inProduction?: string
   keyPoints?: string[]
 }
 
