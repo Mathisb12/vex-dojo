@@ -7,6 +7,7 @@ import { LessonPath } from './components/LessonPath'
 import { KIND_BADGE_STYLE } from './components/KindBadge'
 import { GrainOverlay } from './components/GrainOverlay'
 import { FooterCredits } from './components/FooterCredits'
+import { Playground } from './playground/Playground'
 import { useProgress } from './hooks/useProgress'
 import { getLocalizedCurriculum, getTotalXP } from './exercises/curriculum'
 import type { Exercise, Lesson, LearnCard, Module } from './exercises/types'
@@ -201,6 +202,8 @@ function Sidebar({
   level,
   onReset,
   onClose,
+  onOpenPlayground,
+  playgroundActive,
 }: {
   modules: Module[]
   completedIds: Set<string>
@@ -212,6 +215,8 @@ function Sidebar({
   onReset: () => void
   // Mobile drawer only — closes the overlay; invisible at lg+.
   onClose: () => void
+  onOpenPlayground: () => void
+  playgroundActive: boolean
 }) {
   const { t, lang, toggleLang } = useLang()
   const tier1Modules = modules.filter(m => m.tier === 1)
@@ -323,6 +328,19 @@ function Sidebar({
         </div>
 
         <XPBar xp={xp} total={totalXP} />
+
+        {/* Sandbox — never locked, so there's always somewhere to just play */}
+        <button
+          onClick={onOpenPlayground}
+          className={`mt-3 w-full flex items-center gap-2 px-3 py-2 rounded-xl border text-sm transition-colors ${
+            playgroundActive
+              ? 'border-vex-orange bg-vex-orange/10 text-vex-orange'
+              : 'border-vex-border text-vex-text hover:border-vex-orange/50 hover:text-vex-orange'
+          }`}
+        >
+          <span>🧪</span>
+          <span className="font-semibold">{t('playground.open')}</span>
+        </button>
       </div>
 
       {/* Module list */}
@@ -391,6 +409,8 @@ function AppInner() {
   // in the sidebar does both; the ☰ header brings it back.
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [desktopCollapsed, setDesktopCollapsed] = useState(false)
+  // The sandbox replaces the path view; picking a lesson leaves it.
+  const [playgroundOpen, setPlaygroundOpen] = useState(false)
 
   const closeSidebar = () => { setSidebarOpen(false); setDesktopCollapsed(true) }
   const openSidebar = () => { setSidebarOpen(true); setDesktopCollapsed(false) }
@@ -417,6 +437,13 @@ function AppInner() {
 
   const handleSelectLesson = (lesson: Lesson, moduleId: string) => {
     setActiveLesson({ lesson, moduleId })
+    setPlaygroundOpen(false)
+    setSidebarOpen(false)
+  }
+
+  const handleOpenPlayground = () => {
+    setPlaygroundOpen(true)
+    setActiveLesson(null)
     setSidebarOpen(false)
   }
 
@@ -463,6 +490,8 @@ function AppInner() {
           level={level}
           onReset={handleReset}
           onClose={closeSidebar}
+          onOpenPlayground={handleOpenPlayground}
+          playgroundActive={playgroundOpen && !activeLessonLocalized}
         />
       </div>
 
@@ -491,6 +520,8 @@ function AppInner() {
               onComplete={handleCompleteExercise}
               onBack={() => setActiveLesson(null)}
             />
+          ) : playgroundOpen ? (
+            <Playground />
           ) : (
             <LessonPath
               modules={curriculum}
