@@ -11,7 +11,7 @@ import { ChannelSliders } from './ChannelSliders'
 interface Props {
   exercise: FillBlankExercise
   icon: string
-  onComplete: (xp: number) => void
+  onComplete: (xp: number, clean: boolean) => void
 }
 
 // Matches numeric literals the way C-like languages parse them, so
@@ -71,6 +71,9 @@ export function FillBlankQuestion({ exercise, icon, onComplete }: Props) {
   // An alternative answer set that the learner matched instead of the taught
   // one — accepted, but worth a word on what it does differently.
   const [altNote, setAltNote] = useState<string | null>(null)
+  // A failed Check before getting it right means this was not recalled
+  // cleanly — the item drops back to the bottom review box.
+  const [missed, setMissed] = useState(false)
 
   const handleCheck = () => {
     const res = exercise.answers.map((expected, i) => matchesAnswer(answers[i], expected))
@@ -87,6 +90,7 @@ export function FillBlankQuestion({ exercise, icon, onComplete }: Props) {
       set.answers.every((expected, i) => matchesAnswer(answers[i], expected))
     )
     setAltNote(alt?.note ?? null)
+    if (!alt) setMissed(true)
     setResults(alt ? exercise.answers.map(() => true) : res)
     setChecked(true)
   }
@@ -278,7 +282,7 @@ export function FillBlankQuestion({ exercise, icon, onComplete }: Props) {
             dangerouslySetInnerHTML={{ __html: exercise.explanation.replace(/`(.+?)`/g, '<code class="bg-black/30 px-1 rounded text-vex-orange font-mono text-xs">$1</code>') }}
           />
           <button
-            onClick={() => onComplete(exercise.xp)}
+            onClick={() => onComplete(exercise.xp, !missed)}
             className="mt-3 px-5 py-2 bg-vex-green text-black font-semibold rounded-lg hover:bg-vex-green/90 transition-colors text-sm"
           >
             {t('common.continue')}

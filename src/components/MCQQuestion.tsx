@@ -6,7 +6,7 @@ import { ExerciseHeader } from './ExerciseHeader'
 interface Props {
   exercise: MCQExercise
   icon: string
-  onComplete: (xp: number) => void
+  onComplete: (xp: number, clean: boolean) => void
 }
 
 function shuffle<T>(arr: T[]): T[] {
@@ -21,6 +21,9 @@ function shuffle<T>(arr: T[]): T[] {
 export function MCQQuestion({ exercise, icon, onComplete }: Props) {
   const { t } = useLang()
   const [selected, setSelected] = useState<number | null>(null)
+  // Any wrong pick before the right one means this was not recalled cleanly,
+  // which sends the item back to the bottom review box.
+  const [missed, setMissed] = useState(false)
   const [answered, setAnswered] = useState(false)
   const [shake, setShake] = useState(false)
 
@@ -34,12 +37,13 @@ export function MCQQuestion({ exercise, icon, onComplete }: Props) {
     if (choice.correct) {
       setAnswered(true)
     } else {
+      setMissed(true)
       setShake(true)
       setTimeout(() => setShake(false), 450)
     }
   }
 
-  const handleContinue = () => onComplete(exercise.xp)
+  const handleContinue = () => onComplete(exercise.xp, !missed)
 
   const getChoiceStyle = (idx: number, choice: MCQChoice) => {
     const base = 'w-full text-left px-4 py-3 rounded-xl border transition-all duration-150 font-sans text-sm'

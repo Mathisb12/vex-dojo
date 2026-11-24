@@ -8,6 +8,7 @@ import { KIND_BADGE_STYLE } from './components/KindBadge'
 import { GrainOverlay } from './components/GrainOverlay'
 import { FooterCredits } from './components/FooterCredits'
 import { Playground } from './playground/Playground'
+import { buildReviewLesson, dueIds } from './exercises/review'
 import { useProgress } from './hooks/useProgress'
 import { getLocalizedCurriculum, getTotalXP } from './exercises/curriculum'
 import type { Exercise, Lesson, LearnCard, Module } from './exercises/types'
@@ -66,7 +67,7 @@ function LessonPlayer({
   moduleTitle: string
   completedIds: Set<string>
   streak: number
-  onComplete: (exerciseId: string, xp: number) => void
+  onComplete: (exerciseId: string, xp: number, clean: boolean) => void
   onBack: () => void
 }) {
   const { t } = useLang()
@@ -103,9 +104,9 @@ function LessonPlayer({
 
   const handleLearnContinue = () => advance()
 
-  const handleExerciseComplete = (xp: number) => {
+  const handleExerciseComplete = (xp: number, clean: boolean) => {
     if (step?.kind !== 'exercise') return
-    onComplete(step.exercise.id, xp)
+    onComplete(step.exercise.id, xp, clean)
     setCelebrating(true)
     setTimeout(() => {
       setCelebrating(false)
@@ -411,9 +412,16 @@ function AppInner() {
   const [desktopCollapsed, setDesktopCollapsed] = useState(false)
   // The sandbox replaces the path view; picking a lesson leaves it.
   const [playgroundOpen, setPlaygroundOpen] = useState(false)
+  // A review run in progress, frozen at the moment it was started.
+  const [reviewLesson, setReviewLesson] = useState<Lesson | null>(null)
 
   const closeSidebar = () => { setSidebarOpen(false); setDesktopCollapsed(true) }
   const openSidebar = () => { setSidebarOpen(true); setDesktopCollapsed(false) }
+  // Items whose review date has come round. Recomputed when progress changes —
+  // finishing a review pushes those items out to a later box, so the badge
+  // empties as you work through it.
+  const dueCount = useMemo(() => dueIds(state.records).length, [state.records])
+
   const totalXP = useMemo(() => getTotalXP(), [])
   const curriculum = useMemo(() => getLocalizedCurriculum(lang), [lang])
   // Cosmetic only — derived from XP, never persisted, purely for the sidebar's level pill.
@@ -438,17 +446,30 @@ function AppInner() {
   const handleSelectLesson = (lesson: Lesson, moduleId: string) => {
     setActiveLesson({ lesson, moduleId })
     setPlaygroundOpen(false)
+    setReviewLesson(null)
     setSidebarOpen(false)
   }
 
   const handleOpenPlayground = () => {
     setPlaygroundOpen(true)
     setActiveLesson(null)
+    setReviewLesson(null)
     setSidebarOpen(false)
   }
 
-  const handleCompleteExercise = (exerciseId: string, xp: number) => {
-    completeExercise(exerciseId, xp)
+  const handleCompleteExercise = (exerciseId: string, xp: number, clean = true) => {
+    completeExercise(exerciseId, xp, clean)
+  }
+
+  // Built once when the session starts, not on every answer — otherwise the
+  // list would shrink under the learner's feet as each item is graded.
+  const handleStartReview = () => {
+    const lesson = buildReviewLesson(curriculum, state.records, t('review.title'), t('review.subtitle'))
+    if (!lesson) return
+    setReviewLesson(lesson)
+    setActiveLesson(null)
+    setPlaygroundOpen(false)
+    setSidebarOpen(false)
   }
 
   const handleReset = () => {
@@ -511,7 +532,16 @@ function AppInner() {
         </div>
 
         <div className="flex-1 min-h-0 flex flex-col overflow-hidden">
-          {activeLessonLocalized ? (
+          {reviewLesson ? (
+            <LessonPlayer
+              lesson={reviewLesson}
+              moduleTitle={t('review.eyebrow')}
+              completedIds={new Set()}
+              streak={state.streak}
+              onComplete={handleCompleteExercise}
+              onBack={() => setReviewLesson(null)}
+            />
+          ) : activeLessonLocalized ? (
             <LessonPlayer
               lesson={activeLessonLocalized.lesson}
               moduleTitle={activeModuleTitle}
@@ -528,6 +558,8 @@ function AppInner() {
               completedIds={state.completedExercises}
               onSelectLesson={handleSelectLesson}
               onOpenPlayground={handleOpenPlayground}
+              onStartReview={handleStartReview}
+              dueCount={dueCount}
             />
           )}
         </div>

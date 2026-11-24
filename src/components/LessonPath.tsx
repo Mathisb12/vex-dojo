@@ -22,11 +22,15 @@ export function LessonPath({
   completedIds,
   onSelectLesson,
   onOpenPlayground,
+  onStartReview,
+  dueCount,
 }: {
   modules: Module[]
   completedIds: Set<string>
   onSelectLesson: (lesson: Lesson, moduleId: string) => void
   onOpenPlayground: () => void
+  onStartReview: () => void
+  dueCount: number
 }) {
   const { t } = useLang()
 
@@ -92,6 +96,49 @@ export function LessonPath({
             <div className="text-vex-muted text-xs">{t('path.completed')}</div>
           </div>
         </div>
+
+        {/* Spaced repetition. Shown even at zero, because the explanation of why
+            items come back is itself part of the teaching. */}
+        {dueCount > 0 ? (
+          <button
+            onClick={onStartReview}
+            className="w-full text-left mb-4 group rounded-2xl border border-vex-orange/40 bg-vex-orange/[0.07] p-4 sm:p-5 hover:border-vex-orange/70 transition-colors"
+          >
+            <div className="flex items-center gap-3 sm:gap-4">
+              <div className="w-10 h-10 rounded-xl bg-vex-orange/15 border border-vex-orange/30 flex items-center justify-center flex-shrink-0 text-lg">
+                🔁
+              </div>
+              <div className="min-w-0 flex-1">
+                <div className="text-vex-orange text-[11px] font-mono font-semibold uppercase tracking-widest mb-1">
+                  {t('review.eyebrow')}
+                </div>
+                <h2 className="text-vex-text font-bold text-base sm:text-lg leading-tight">
+                  {t('review.ctaTitle')} — {dueCount} {dueCount === 1 ? t('review.dueOne') : t('review.due')}
+                </h2>
+              </div>
+              <span className="flex-shrink-0 px-4 py-2 bg-vex-orange text-black font-bold rounded-xl text-sm">
+                {t('review.start')}
+              </span>
+            </div>
+          </button>
+        ) : (
+          <div className="w-full mb-4 rounded-2xl border border-vex-border bg-vex-surface/40 p-4 sm:p-5">
+            <div className="flex items-start gap-3 sm:gap-4">
+              <div className="w-10 h-10 rounded-xl bg-vex-surface border border-vex-border flex items-center justify-center flex-shrink-0 text-lg opacity-60">
+                🔁
+              </div>
+              <div className="min-w-0">
+                <div className="text-vex-muted text-[11px] font-mono font-semibold uppercase tracking-widest mb-1">
+                  {t('review.eyebrow')}
+                </div>
+                <h2 className="text-vex-text/70 font-semibold text-sm sm:text-base leading-tight mb-1">
+                  {t('review.ctaNone')}
+                </h2>
+                <p className="text-vex-muted text-sm leading-relaxed text-pretty">{t('review.ctaNoneBody')}</p>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* The path is locked step by step on purpose — this is the one door
             that is always open, so "what can VEX actually do?" has an answer

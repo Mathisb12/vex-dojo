@@ -1,7 +1,10 @@
 import { useState, useCallback, useEffect } from 'react'
+import { gradeItem, type ItemRecords } from '../exercises/review'
 
 interface ProgressState {
   completedExercises: Set<string>
+  /** Spaced-repetition state per exercise — when each one is due again. */
+  records: ItemRecords
   xp: number
   streak: number
   lastActiveDate: string
@@ -9,19 +12,36 @@ interface ProgressState {
 
 const STORAGE_KEY = 'vex-dojo-progress'
 
+const EMPTY = (): ProgressState => ({
+  completedExercises: new Set(), records: {}, xp: 0, streak: 0, lastActiveDate: '',
+})
+
 function loadProgress(): ProgressState {
   try {
     const raw = localStorage.getItem(STORAGE_KEY)
-    if (!raw) return { completedExercises: new Set(), xp: 0, streak: 0, lastActiveDate: '' }
+    if (!raw) return EMPTY()
     const parsed = JSON.parse(raw)
+    const completed: string[] = parsed.completedExercises ?? []
+    // Progress used to be a plain list of finished ids with no dates. Anyone
+    // mid-course keeps their work: every finished item enters box 0 and comes
+    // up for review tomorrow rather than being lost or dumped on them at once.
+    let records: ItemRecords = parsed.records ?? {}
+    if (!parsed.records) {
+      const now = Date.now()
+      records = {}
+      completed.forEach((id, i) => {
+        records[id] = { strength: 0, due: now + (i % 5) * 86_400_000, lastDone: now, lapses: 0 }
+      })
+    }
     return {
-      completedExercises: new Set(parsed.completedExercises ?? []),
+      completedExercises: new Set(completed),
+      records,
       xp: parsed.xp ?? 0,
       streak: parsed.streak ?? 0,
       lastActiveDate: parsed.lastActiveDate ?? '',
     }
   } catch {
-    return { completedExercises: new Set(), xp: 0, streak: 0, lastActiveDate: '' }
+    return EMPTY()
   }
 }
 
@@ -29,6 +49,7 @@ function saveProgress(state: ProgressState) {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify({
       completedExercises: Array.from(state.completedExercises),
+      records: state.records,
       xp: state.xp,
       streak: state.streak,
       lastActiveDate: state.lastActiveDate,
@@ -39,12 +60,17 @@ function saveProgress(state: ProgressState) {
 export function useProgress() {
   const [state, setState] = useState<ProgressState>(loadProgress)
 
-  const completeExercise = useCallback((exerciseId: string, xpGain: number) => {
+  // `clean` = answered correctly with no wrong attempt first. It decides
+  // whether the item moves up a box or drops back to the bottom.
+  const completeExercise = useCallback((exerciseId: string, xpGain: number, clean = true) => {
     setState(prev => {
-      if (prev.completedExercises.has(exerciseId)) return prev
+      const firstTime = !prev.completedExercises.has(exerciseId)
       const next: ProgressState = {
         completedExercises: new Set([...prev.completedExercises, exerciseId]),
-        xp: prev.xp + xpGain,
+        records: { ...prev.records, [exerciseId]: gradeItem(prev.records[exerciseId], clean) },
+        // Reviewing an item you already own is worth something, but not the
+        // full first-time award — otherwise XP just measures time spent.
+        xp: prev.xp + (firstTime ? xpGain : Math.ceil(xpGain / 3)),
         streak: prev.streak,
         lastActiveDate: new Date().toDateString(),
       }
@@ -64,7 +90,7 @@ export function useProgress() {
   }, [])
 
   const resetProgress = useCallback(() => {
-    const empty: ProgressState = { completedExercises: new Set(), xp: 0, streak: 0, lastActiveDate: '' }
+    const empty = EMPTY()
     saveProgress(empty)
     setState(empty)
   }, [])

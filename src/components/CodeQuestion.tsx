@@ -13,7 +13,7 @@ import { ChannelSliders } from './ChannelSliders'
 interface Props {
   exercise: CodeExercise
   icon: string
-  onComplete: (xp: number) => void
+  onComplete: (xp: number, clean: boolean) => void
 }
 
 export function CodeQuestion({ exercise, icon, onComplete }: Props) {
@@ -30,6 +30,9 @@ export function CodeQuestion({ exercise, icon, onComplete }: Props) {
   const [ran, setRan] = useState(false)
   const [allPass, setAllPass] = useState(false)
   const [showSolution, setShowSolution] = useState(false)
+  // A run that failed its checks, or peeking at the solution, means this
+  // was not solved cleanly — the item drops back to the bottom review box.
+  const [missed, setMissed] = useState(false)
   const [hintUsed, setHintUsed] = useState(false)
   const [isPending, setIsPending] = useState(false)
   const [chValues, setChValues] = useState<Record<string, number>>(() =>
@@ -120,10 +123,17 @@ export function CodeQuestion({ exercise, icon, onComplete }: Props) {
       setChecks(checkResults)
       const pass = checkResults.every(Boolean)
       setAllPass(pass)
+      return pass
     }
+    return false
   }, [exercise])
 
-  const handleRun = () => runCode(code, chValues)
+  // Only a deliberate Run counts against the learner. runCode itself also fires
+  // on a debounce while they type, and half-written code is not a wrong answer.
+  const handleRun = () => {
+    const pass = runCode(code, chValues)
+    if (!pass) setMissed(true)
+  }
 
   const handleHint = () => {
     setCode(exercise.starterCode)
@@ -279,7 +289,7 @@ export function CodeQuestion({ exercise, icon, onComplete }: Props) {
             dangerouslySetInnerHTML={{ __html: exercise.explanation.replace(/`(.+?)`/g, '<code class="bg-black/30 px-1 rounded text-vex-orange font-mono text-xs">$1</code>') }}
           />
           <button
-            onClick={() => onComplete(showSolution ? Math.floor(exercise.xp / 2) : exercise.xp)}
+            onClick={() => onComplete(showSolution ? Math.floor(exercise.xp / 2) : exercise.xp, !missed && !showSolution)}
             className="mt-3 px-5 py-2 bg-vex-green text-black font-semibold rounded-lg hover:bg-vex-green/90 transition-colors text-sm"
           >
             {t('common.continue')}
