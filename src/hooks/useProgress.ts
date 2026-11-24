@@ -8,12 +8,15 @@ interface ProgressState {
   xp: number
   streak: number
   lastActiveDate: string
+  /** Day the review prompt was last shown, so it asks once a day, not once a reload. */
+  reviewPromptedOn: string
 }
 
 const STORAGE_KEY = 'vex-dojo-progress'
 
 const EMPTY = (): ProgressState => ({
   completedExercises: new Set(), records: {}, xp: 0, streak: 0, lastActiveDate: '',
+  reviewPromptedOn: '',
 })
 
 function loadProgress(): ProgressState {
@@ -39,6 +42,7 @@ function loadProgress(): ProgressState {
       xp: parsed.xp ?? 0,
       streak: parsed.streak ?? 0,
       lastActiveDate: parsed.lastActiveDate ?? '',
+      reviewPromptedOn: parsed.reviewPromptedOn ?? '',
     }
   } catch {
     return EMPTY()
@@ -53,6 +57,7 @@ function saveProgress(state: ProgressState) {
       xp: state.xp,
       streak: state.streak,
       lastActiveDate: state.lastActiveDate,
+      reviewPromptedOn: state.reviewPromptedOn,
     }))
   } catch { /* ignore */ }
 }
@@ -73,6 +78,7 @@ export function useProgress() {
         xp: prev.xp + (firstTime ? xpGain : Math.ceil(xpGain / 3)),
         streak: prev.streak,
         lastActiveDate: new Date().toDateString(),
+        reviewPromptedOn: prev.reviewPromptedOn,
       }
       // Streak logic
       const today = new Date().toDateString()
@@ -95,10 +101,21 @@ export function useProgress() {
     setState(empty)
   }, [])
 
+  // Answering the prompt — either way — stops it asking again today.
+  const markReviewPrompted = useCallback(() => {
+    setState(prev => {
+      const today = new Date().toDateString()
+      if (prev.reviewPromptedOn === today) return prev
+      const next = { ...prev, reviewPromptedOn: today }
+      saveProgress(next)
+      return next
+    })
+  }, [])
+
   const isCompleted = useCallback((id: string) => state.completedExercises.has(id), [state])
 
   // Persist on mount if no data yet
   useEffect(() => { saveProgress(state) }, [])
 
-  return { state, completeExercise, resetProgress, isCompleted }
+  return { state, completeExercise, resetProgress, isCompleted, markReviewPrompted }
 }

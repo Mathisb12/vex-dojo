@@ -110,3 +110,20 @@ export function buildReviewLesson(
     exercises: picked,
   }
 }
+
+/**
+ * Which lessons the due items came from, commonest first. A prompt that says
+ * "fit(), Vectors and 3 others" is something you can decide about; a bare
+ * number is not.
+ */
+export function dueConcepts(modules: Module[], records: ItemRecords, now = Date.now()): string[] {
+  const due = new Set(dueIds(records, now))
+  const counted: { title: string; n: number }[] = []
+  for (const mod of modules) {
+    for (const lesson of mod.lessons) {
+      const n = lesson.exercises.filter(e => due.has(e.id)).length
+      if (n > 0) counted.push({ title: lesson.title, n })
+    }
+  }
+  return counted.sort((a, b) => b.n - a.n).map(c => c.title)
+}

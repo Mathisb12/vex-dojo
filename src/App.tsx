@@ -8,7 +8,8 @@ import { KIND_BADGE_STYLE } from './components/KindBadge'
 import { GrainOverlay } from './components/GrainOverlay'
 import { FooterCredits } from './components/FooterCredits'
 import { Playground } from './playground/Playground'
-import { buildReviewLesson, dueIds } from './exercises/review'
+import { buildReviewLesson, dueIds, dueConcepts } from './exercises/review'
+import { ReviewPrompt } from './components/ReviewPrompt'
 import { useProgress } from './hooks/useProgress'
 import { getLocalizedCurriculum, getTotalXP } from './exercises/curriculum'
 import type { Exercise, Lesson, LearnCard, Module } from './exercises/types'
@@ -402,7 +403,7 @@ function Sidebar({
 // ─── App Root ─────────────────────────────────────────────────────────────────
 
 function AppInner() {
-  const { state, completeExercise, resetProgress } = useProgress()
+  const { state, completeExercise, resetProgress, markReviewPrompted } = useProgress()
   const { lang, t } = useLang()
   const [activeLesson, setActiveLesson] = useState<{ lesson: Lesson; moduleId: string } | null>(null)
   // Mobile: the sidebar is an overlay drawer under lg (sidebarOpen).
@@ -421,6 +422,16 @@ function AppInner() {
   // finishing a review pushes those items out to a later box, so the badge
   // empties as you work through it.
   const dueCount = useMemo(() => dueIds(state.records).length, [state.records])
+
+  // Asked on arrival when something is due, and only once a day. Skipping is
+  // a real option — nagging on every reload would just train people to click
+  // it away without reading.
+  const [promptDismissed, setPromptDismissed] = useState(false)
+  const showReviewPrompt =
+    dueCount > 0 &&
+    !promptDismissed &&
+    state.reviewPromptedOn !== new Date().toDateString() &&
+    !activeLesson && !reviewLesson && !playgroundOpen
 
   const totalXP = useMemo(() => getTotalXP(), [])
   const curriculum = useMemo(() => getLocalizedCurriculum(lang), [lang])
@@ -463,7 +474,14 @@ function AppInner() {
 
   // Built once when the session starts, not on every answer — otherwise the
   // list would shrink under the learner's feet as each item is graded.
+  const handleSkipReview = () => {
+    setPromptDismissed(true)
+    markReviewPrompted()
+  }
+
   const handleStartReview = () => {
+    setPromptDismissed(true)
+    markReviewPrompted()
     const lesson = buildReviewLesson(curriculum, state.records, t('review.title'), t('review.subtitle'))
     if (!lesson) return
     setReviewLesson(lesson)
@@ -530,6 +548,15 @@ function AppInner() {
           <span className="w-7 h-7 rounded-lg bg-vex-orange flex items-center justify-center text-black font-bold text-sm">@</span>
           <span className="text-vex-text font-bold text-sm">VEX Dojo</span>
         </div>
+
+        {showReviewPrompt && (
+          <ReviewPrompt
+            dueCount={dueCount}
+            concepts={dueConcepts(curriculum, state.records)}
+            onStart={handleStartReview}
+            onSkip={handleSkipReview}
+          />
+        )}
 
         <div className="flex-1 min-h-0 flex flex-col overflow-hidden">
           {reviewLesson ? (
