@@ -45,7 +45,7 @@ float t = fit(@P.y, -1.0, 1.0, 0.0, 1.0);
     code: `// noise() is smooth, so neighbours move together: organic, not spiky
 float n = noise(@P * 2.5);
 @P += @N * (n - 0.5) * 0.5;
-@Cd = {n, n * 0.5, 1.0 - n};
+@Cd = set(n, n * 0.5, 1.0 - n);
 `,
   },
   {
@@ -143,7 +143,7 @@ vector light = normalize({0.5, 1.0, 0.3});
 float d = dot(@N, light);
 
 float shade = fit(d, -1.0, 1.0, 0.05, 1.0);
-@Cd = {shade, shade * 0.95, shade * 0.85};
+@Cd = set(shade, shade * 0.95, shade * 0.85);
 `,
   },
   {
@@ -161,7 +161,7 @@ float amount = chf("displace");
 
 float n = noise(@P * 3.0);
 @P += @N * (n - 0.5) * amount * 2.0;
-@Cd = {n, 0.5, 1.0 - n};
+@Cd = set(n, 0.5, 1.0 - n);
 `,
   },
   {

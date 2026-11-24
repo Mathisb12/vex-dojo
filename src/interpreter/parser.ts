@@ -323,13 +323,25 @@ class Parser {
       return e
     }
 
-    // Vector literal {x, y, z}
+    // Vector literal {x, y, z}. Real VEX only allows CONSTANTS between the
+    // braces — `{t, 0, 0}` with a variable in it is a syntax error in Houdini,
+    // and set(t, 0, 0) is what you write instead. Verified against Houdini
+    // 22.0.429, so we reject it here too rather than teaching code that will
+    // not compile in a real wrangle.
     if (t.kind === 'LBRACE') {
       this.advance()
       const x = this.parseExpr(); this.expect('COMMA')
       const y = this.parseExpr(); this.expect('COMMA')
       const z = this.parseExpr()
       this.expect('RBRACE')
+      for (const comp of [x, y, z]) {
+        if (!isConstExpr(comp)) {
+          throw new Error(
+            'Syntax error: {} only accepts constant numbers in VEX. ' +
+            'To build a vector from variables use set(a, b, c).'
+          )
+        }
+      }
       return { kind: 'VectorLiteral', x, y, z } as VectorLiteral
     }
 
@@ -393,4 +405,14 @@ function exprToTarget(e: Expr): AssignTarget | null {
 
 export function parse(src: string): Program {
   return new Parser(src).parse()
+}
+
+// A {} component is legal only if it folds to a constant: a number, or +/- and
+// arithmetic on constants. Anything that reads a variable or an attribute makes
+// the literal a syntax error in a real wrangle.
+function isConstExpr(e: Expr): boolean {
+  if (e.kind === 'Literal') return true
+  if (e.kind === 'UnaryExpr') return isConstExpr(e.operand)
+  if (e.kind === 'BinaryExpr') return isConstExpr(e.left) && isConstExpr(e.right)
+  return false
 }

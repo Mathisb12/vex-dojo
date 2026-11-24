@@ -484,8 +484,8 @@ export const CURRICULUM: Module[] = [
             id: 'attr-8',
             title: 'Make it survive the wrangle',
             prompt: 'This should shade the sphere by height — but it comes out **black**. Look closely: the value is computed into a **local variable** `float height`, while the color reads the **attribute** `@height`. Those are two different things, and `@height` was never written.\n\n**Run it and watch the checks fail.** Then change **one token** on line 3 so the value actually lands on `@height`.',
-            starterCode: '// The sphere is BLACK — the height value never reaches @height.\n// float height (local) and @height (attribute) are NOT the same.\n// Change ONE token on the line below so they line up.\nfloat height = fit(@P.y, -1.0, 1.0, 0.0, 1.0);\n\n@Cd = {@height, @height, @height};\n',
-            solutionCode: 'f@height = fit(@P.y, -1.0, 1.0, 0.0, 1.0);\n\n@Cd = {@height, @height, @height};\n',
+            starterCode: '// The sphere is BLACK — the height value never reaches @height.\n// float height (local) and @height (attribute) are NOT the same.\n// Change ONE token on the line below so they line up.\nfloat height = fit(@P.y, -1.0, 1.0, 0.0, 1.0);\n\n@Cd = set(@height, @height, @height);\n',
+            solutionCode: 'f@height = fit(@P.y, -1.0, 1.0, 0.0, 1.0);\n\n@Cd = set(@height, @height, @height);\n',
             checks: [
               {
                 description: 'A "height" attribute exists on the geometry (f@height, not float height)',
@@ -660,7 +660,7 @@ export const CURRICULUM: Module[] = [
             title: 'Live brightness slider',
             prompt: 'Color every point with a flat grayscale brightness, driven by a **live parameter** instead of a hardcoded number.\n\nThe `chf("brightness")` call is already there for you — just use `b` to set `@Cd`. Drag the slider on the right and watch the color change live.',
             starterCode: '// "brightness" is a live slider — drag it on the right!\nfloat b = chf("brightness");\n@Cd = ___;\n',
-            solutionCode: 'float b = chf("brightness");\n@Cd = {b, b, b};\n',
+            solutionCode: 'float b = chf("brightness");\n@Cd = set(b, b, b);\n',
             checks: [
               {
                 description: 'Reads the brightness parameter with chf("brightness")',
@@ -850,7 +850,7 @@ export const CURRICULUM: Module[] = [
             title: 'Remapping values with fit()',
             inProduction: '`fit()` is the glue between anything and anything else. Noise comes out −1 to 1, opacity wants 0 to 1, a scale wants 0.5 to 3 — `fit()` is the single line that connects them, and it is probably the function you will type most often.',
             body: '`fit(x, omin, omax, nmin, nmax)` is one of the most useful VEX functions.\n\nIt **remaps** a value from one range into another. If `x` is in `[omin, omax]`, the result is in `[nmin, nmax]`.\n\nExample: Y position goes from -1 to 1. You want to use it as a color (0 to 1). `fit(@P.y, -1, 1, 0, 1)` does exactly that.\n\nTwo shortcuts exist for the common case where the input is already 0–1: `fit01(x, nmin, nmax)` is exactly `fit(x, 0, 1, nmin, nmax)`, `fit10(x, nmin, nmax)` is the same but with the input direction reversed. **None of these clamp** — if `x` falls outside the range they assume, the result just extrapolates past `[nmin, nmax]`. If you need the input forced into range first, combine with `clamp()`.',
-            codeExample: '// Map Y height (-1..1) to a 0..1 range\nfloat t = fit(@P.y, -1.0, 1.0, 0.0, 1.0);\n\n// t = 0 at the bottom, 1 at the top\n@Cd = {t, 0.0, 0.0}; // dark red → bright red\n\n// fit01: input already 0..1, remap to a custom range\nfloat brightness = fit01(t, 0.2, 0.9);',
+            codeExample: '// Map Y height (-1..1) to a 0..1 range\nfloat t = fit(@P.y, -1.0, 1.0, 0.0, 1.0);\n\n// t = 0 at the bottom, 1 at the top\n@Cd = set(t, 0.0, 0.0); // dark red → bright red\n\n// fit01: input already 0..1, remap to a custom range\nfloat brightness = fit01(t, 0.2, 0.9);',
             keyPoints: [
               'fit(x, omin, omax, nmin, nmax) remaps a range',
               'Useful for turning positions into color values',
@@ -879,7 +879,7 @@ export const CURRICULUM: Module[] = [
             title: 'Height gradient',
             prompt: 'Color the points based on their height (Y position).\n\nYou need a gradient from black to red: the bottom should be dark, the top bright red.\n\nWatch out: the sphere is centered, so its Y values range from about -1 to +1 — not 0 to 1.',
             starterCode: '// Use fit() to remap @P.y from (-1..1) to (0..1)\n// Then assign the result to @Cd.x\n// Set @Cd.y and @Cd.z to 0\n',
-            solutionCode: 'float t = fit(@P.y, -1.0, 1.0, 0.0, 1.0);\n@Cd = {t, 0.0, 0.0};\n',
+            solutionCode: 'float t = fit(@P.y, -1.0, 1.0, 0.0, 1.0);\n@Cd = set(t, 0.0, 0.0);\n',
             checks: [
               {
                 description: 'Green and blue channels are near zero — a pure red gradient',
@@ -928,7 +928,7 @@ export const CURRICULUM: Module[] = [
               '// darkest points are never fully black, nor fully white.',
               'float n = noise(@P * 2.0);',
               'float c = ___(n, 0.2, 0.9);',
-              '@Cd = {c, c, c};',
+              '@Cd = set(c, c, c);',
             ],
             answers: ['fit01'],
             hints: ['The fit variant for inputs that are already 0–1'],
@@ -1091,7 +1091,7 @@ export const CURRICULUM: Module[] = [
               '// Compute distance from origin to current point',
               'float dist = ___(@P);',
               '// Use dist to fade color: close=bright, far=dark',
-              '@Cd = {___, dist, dist};',
+              '@Cd = set(___, dist, dist);',
             ],
             answers: ['length', 'dist'],
             hints: ['Built-in that returns the magnitude', 'The variable we just computed'],
@@ -1148,7 +1148,7 @@ export const CURRICULUM: Module[] = [
               '// into 0..1 before using it as a color channel.',
               'float raw  = @P.y * 2.0;',
               'float safe = ___(raw, 0.0, 1.0);',
-              '@Cd = {safe, 0.1, 0.2};',
+              '@Cd = set(safe, 0.1, 0.2);',
             ],
             answers: ['clamp'],
             hints: ['Forces a value to stay inside [min, max]'],
@@ -1295,8 +1295,8 @@ export const CURRICULUM: Module[] = [
             id: 'dc-5',
             title: 'Shade by upward-facing normal',
             prompt: 'Color each point based on how much its surface normal points "up" (the +Y direction).\n\nUse `dot()` to measure the alignment between `@N` and `{0,1,0}` — that gives you a value from -1 to 1. Remap it to 0–1 with `fit()`, then use it as a grayscale color (same value on all 3 channels).',
-            starterCode: '// 1. dot(@N, up) → alignment from -1 to 1\n// 2. fit() that into 0..1\n// 3. @Cd = {t, t, t}\n',
-            solutionCode: 'float align = dot(@N, {0.0, 1.0, 0.0});\nfloat t = fit(align, -1.0, 1.0, 0.0, 1.0);\n@Cd = {t, t, t};\n',
+            starterCode: '// 1. dot(@N, up) → alignment from -1 to 1\n// 2. fit() that into 0..1\n// 3. @Cd = set(t, t, t)\n',
+            solutionCode: 'float align = dot(@N, {0.0, 1.0, 0.0});\nfloat t = fit(align, -1.0, 1.0, 0.0, 1.0);\n@Cd = set(t, t, t);\n',
             checks: [
               {
                 description: 'Top points (facing up) are brighter than bottom points (facing down)',
@@ -1779,7 +1779,7 @@ export const CURRICULUM: Module[] = [
             title: 'rand() — controlled randomness',
             inProduction: '`rand(@ptnum)` is the workhorse of variation: a different size for every scattered rock, a different start frame for every crowd walk cycle, a different tint for every leaf. And because it is deterministic, tomorrow\'s render still matches today\'s playblast.',
             body: '`rand(seed)` returns a **pseudo-random float between 0 and 1**. It\'s deterministic: the same seed always gives the same result, so your geometry is stable across renders.\n\nUsing `@ptnum` as the seed gives each point a unique but stable random value. Perfect for per-point variation.',
-            codeExample: '// Each point gets a unique random value\nfloat r = rand(@ptnum);\n@Cd = {r, r, r}; // random greyscale\n\n// Random height offset\n@P.y += rand(@ptnum) * 0.5 - 0.25;',
+            codeExample: '// Each point gets a unique random value\nfloat r = rand(@ptnum);\n@Cd = set(r, r, r); // random greyscale\n\n// Random height offset\n@P.y += rand(@ptnum) * 0.5 - 0.25;',
             keyPoints: [
               'rand(seed) → float 0..1',
               'Same seed → always same result (deterministic)',
@@ -1793,7 +1793,7 @@ export const CURRICULUM: Module[] = [
             title: 'noise() — organic variation',
             inProduction: '`noise()` is where things stop looking computer-generated. Terrain, rust, clouds, muscle wobble, the crackle on a fireball — they are nearly all the same noise field, read at different scales.',
             body: '`noise(position)` is **smooth random**. Unlike `rand()`, neighboring inputs give neighboring outputs — the noise is continuous. This creates organic, flowing variation instead of spiky random.\n\nPassing `@P` (the point\'s 3D position) as input means nearby points in space get similar noise values, which looks natural.',
-            codeExample: '// Organic displacement\nfloat n = noise(@P);        // 0..1\n@P.y  += (n - 0.5) * 0.6;  // offset from center\n@Cd    = {n, n * 0.3, 1 - n};',
+            codeExample: '// Organic displacement\nfloat n = noise(@P);        // 0..1\n@P.y  += (n - 0.5) * 0.6;  // offset from center\n@Cd    = set(n, n * 0.3, 1 - n);',
             keyPoints: [
               'noise(pos) → float 0..1 (median 0.5), smooth between neighbors',
               'Pass @P for spatially coherent variation',
@@ -1807,7 +1807,7 @@ export const CURRICULUM: Module[] = [
             title: 'Shaping noise: frequency & contrast',
             inProduction: 'Frequency and contrast are the two dials you will actually spend your time on. The same noise at low frequency is rolling hills and at high frequency is gravel; push the contrast and soft smoke becomes hard-edged cloud banks.',
             body: 'Two knobs you\'ll use constantly:\n\n- **Frequency** — scale the input: `noise(@P * 5)` packs more variation into the same space (finer detail). `noise(@P * 0.5)` stretches it out.\n- **Contrast** — noise is 0–1 but its **median is 0.5**: most values crowd the middle, so raw noise looks flat grey. Stretch the middle out with `fit(n, 0.3, 0.7, 0, 1)` to get real darks and brights.',
-            codeExample: 'float n = noise(@P * 5.0);            // finer detail\nfloat c = fit(n, 0.3, 0.7, 0.0, 1.0); // punchier contrast\n@Cd = {c, c, c};',
+            codeExample: 'float n = noise(@P * 5.0);            // finer detail\nfloat c = fit(n, 0.3, 0.7, 0.0, 1.0); // punchier contrast\n@Cd = set(c, c, c);',
             keyPoints: [
               'noise(@P * f) — bigger f = finer detail',
               'Raw noise crowds around 0.5 — flat by default',
@@ -1837,7 +1837,7 @@ export const CURRICULUM: Module[] = [
               '// Give each point a random value using its index',
               'float r = ___(@ptnum);',
               '// Use it as a green multiplier to get a warm red→orange tone',
-              '@Cd = {r, r * ___, 0.0};',
+              '@Cd = set(r, r * ___, 0.0);',
             ],
             answers: ['rand', { min: 0, max: 1 }],
             hints: ['Random function name', 'A float multiplier between 0 and 1 — watch the 3D preview, you want orange, not yellow or pure red'],
@@ -1865,7 +1865,7 @@ export const CURRICULUM: Module[] = [
             title: 'Random scatter',
             prompt: 'Give each point a **random grayscale color** and a **random Y displacement** (±0.3 units).\n\nEach channel and each axis should vary independently per point — use different seeds for each.',
             starterCode: '// Unique random value per point\nfloat r = rand(@ptnum);\n// Random Y displacement: range -0.3 to +0.3\n// Hint: rand() returns 0..1, so (rand() - 0.5) * 0.6 gives -0.3..0.3\n',
-            solutionCode: 'float r = rand(@ptnum);\n@Cd = {r, r, r};\n@P.y += (rand(@ptnum * 7 + 13) - 0.5) * 0.6;\n',
+            solutionCode: 'float r = rand(@ptnum);\n@Cd = set(r, r, r);\n@P.y += (rand(@ptnum * 7 + 13) - 0.5) * 0.6;\n',
             checks: [
               {
                 description: 'Colors vary between points',
@@ -1909,7 +1909,7 @@ export const CURRICULUM: Module[] = [
               'float n = noise(@P * ___);   // try 5.0',
               '// Raw noise hugs 0.5 — stretch the middle for contrast',
               'float c = fit(n, 0.3, 0.7, 0.0, 1.0);',
-              '@Cd = {c, c, c};',
+              '@Cd = set(c, c, c);',
             ],
             answers: [{ min: 2, max: 20 }],
             hints: ['Any scale from ~2 to 20 — watch the preview get busier as it grows'],
@@ -1937,7 +1937,7 @@ export const CURRICULUM: Module[] = [
             title: 'Organic surface',
             prompt: 'Use `noise(@P)` to create an organic displacement on the sphere.\n\n- Displace `@P` in some direction using noise\n- Color the points based on the noise value\n- The result should look bumpy and organic, not flat',
             starterCode: '// Get smooth noise at this point\'s position\nfloat n = noise(@P);\n// Displace and color...\n',
-            solutionCode: 'float n = noise(@P);\n@P += @N * (n - 0.5) * 0.5;\n@Cd = {n, n * 0.4, 1.0 - n};\n',
+            solutionCode: 'float n = noise(@P);\n@P += @N * (n - 0.5) * 0.5;\n@Cd = set(n, n * 0.4, 1.0 - n);\n',
             checks: [
               {
                 description: 'Points are displaced (Y range > 0.3)',
@@ -1989,7 +1989,7 @@ export const CURRICULUM: Module[] = [
             title: '@Time — the playback clock',
             inProduction: 'Every animated effect that is not keyframed runs on `@Time` — drifting clouds, a pulsing energy shield, noise crawling across a surface. Swap `@Time` for `@Time * 0.2` and the whole thing slows down without touching a single key.',
             body: 'Everything you\'ve written so far is frozen. `@Time` unfreezes it: it\'s the playback time in **seconds**, and it changes every frame — so any code that reads it produces a different result every frame. That\'s all animation is in VEX.\n\nTwo patterns cover most cases:\n- `sin(@Time)` — smooth oscillation, back and forth forever\n- `noise(@P + @Time)` — the noise pattern **scrolls** through space over time\n\n(`@Frame` is the same clock counted in frames instead of seconds. At Houdini\'s default 24 fps they line up as `frame = time × 24 + 1` — frame **1** is time 0, frame 25 is time 1s.)',
-            codeExample: '// A wave that actually waves\n@P.y += sin(@P.x * 2.0 + @Time * 3.0) * 0.3;\n\n// Living noise — the pattern drifts\nfloat n = noise(@P * 2.0 + @Time);\n@Cd = {n, n, n};',
+            codeExample: '// A wave that actually waves\n@P.y += sin(@P.x * 2.0 + @Time * 3.0) * 0.3;\n\n// Living noise — the pattern drifts\nfloat n = noise(@P * 2.0 + @Time);\n@Cd = set(n, n, n);',
             keyPoints: [
               '@Time = playback time in seconds — changes every frame',
               'sin(@Time) → smooth endless oscillation',
@@ -2057,8 +2057,8 @@ export const CURRICULUM: Module[] = [
             id: 'anim-4',
             title: 'Living noise',
             prompt: 'Make the noise **drift**: color the sphere with `noise()`, but offset the position input by `@Time` so the pattern scrolls when you press play.\n\nBonus: displace along `@N` with the same value for a breathing, organic surface.',
-            starterCode: '// noise(@P * frequency + @Time) drifts over time\nfloat n = noise(___);\n@Cd = {n, n * 0.5, 1.0 - n};\n@P += @N * (n - 0.5) * 0.4;\n',
-            solutionCode: 'float n = noise(@P * 2.0 + @Time);\n@Cd = {n, n * 0.5, 1.0 - n};\n@P += @N * (n - 0.5) * 0.4;\n',
+            starterCode: '// noise(@P * frequency + @Time) drifts over time\nfloat n = noise(___);\n@Cd = set(n, n * 0.5, 1.0 - n);\n@P += @N * (n - 0.5) * 0.4;\n',
+            solutionCode: 'float n = noise(@P * 2.0 + @Time);\n@Cd = set(n, n * 0.5, 1.0 - n);\n@P += @N * (n - 0.5) * 0.4;\n',
             checks: [
               {
                 description: 'The noise input includes @Time (so the pattern can drift)',
@@ -2092,7 +2092,7 @@ export const CURRICULUM: Module[] = [
             title: 'Stop hardcoding your gradients',
             inProduction: 'This is what makes a setup reusable. Hardcode `@P.y / 5` and your effect breaks the moment someone hands you a bigger model; `relbbox()` means the same gradient works on a teacup and on a skyscraper.',
             body: 'Until now we\'ve built height gradients with `fit(@P.y, -1, 1, 0, 1)` — which silently assumes the object is exactly 2 units tall and centered. Scale the geometry and the gradient breaks.\n\n`relbbox(0, @P)` fixes that: it returns your position **relative to the geometry\'s bounding box** — `{0,0,0}` at the min corner, `{1,1,1}` at the max, whatever the size. `.y` is a ready-made bottom-to-top gradient for *any* object.',
-            codeExample: '// Works on a 2-unit sphere, a 300-unit building, anything:\nvector rel = relbbox(0, @P);\n@Cd = {rel.y, rel.y, rel.y};  // black at the base, white at the top\n\n// Pairs beautifully with chramp:\nfloat g = chramp("falloff", rel.y);',
+            codeExample: '// Works on a 2-unit sphere, a 300-unit building, anything:\nvector rel = relbbox(0, @P);\n@Cd = set(rel.y, rel.y, rel.y);  // black at the base, white at the top\n\n// Pairs beautifully with chramp:\nfloat g = chramp("falloff", rel.y);',
             keyPoints: [
               'relbbox(0, @P) → position relative to the bbox, 0..1 per axis',
               '{0,0,0} at the min corner, {1,1,1} at the max — any size',
@@ -2122,7 +2122,7 @@ export const CURRICULUM: Module[] = [
             codeLines: [
               '// 0 at the bottom of the bbox, 1 at the top — whatever the size',
               'vector rel = ___(0, @P);',
-              '@Cd = {rel.y, rel.y, rel.y};',
+              '@Cd = set(rel.y, rel.y, rel.y);',
             ],
             answers: ['relbbox'],
             hints: ['Relative position inside the bounding box'],
@@ -2258,8 +2258,8 @@ export const CURRICULUM: Module[] = [
             id: 'circ-code-1',
             title: 'Arrange points in a circle',
             prompt: 'Rearrange all points into a perfect circle of radius **1.5** in the XZ plane (Y=0).\n\nAll points should be equally spaced. Color them based on their angle (use `t` to drive `@Cd.x`).',
-            starterCode: '// t = 0..1 across all points\nfloat t     = @ptnum / float(@numpt);\nfloat angle = ___;\n\n@P.x = ___;\n@P.y = 0.0;\n@P.z = ___;\n\n@Cd = {t, 0.3, 1.0 - t};\n',
-            solutionCode: 'float t     = @ptnum / float(@numpt);\nfloat angle = t * 2.0 * 3.14159;\n\n@P.x = cos(angle) * 1.5;\n@P.y = 0.0;\n@P.z = sin(angle) * 1.5;\n\n@Cd = {t, 0.3, 1.0 - t};\n',
+            starterCode: '// t = 0..1 across all points\nfloat t     = @ptnum / float(@numpt);\nfloat angle = ___;\n\n@P.x = ___;\n@P.y = 0.0;\n@P.z = ___;\n\n@Cd = set(t, 0.3, 1.0 - t);\n',
+            solutionCode: 'float t     = @ptnum / float(@numpt);\nfloat angle = t * 2.0 * 3.14159;\n\n@P.x = cos(angle) * 1.5;\n@P.y = 0.0;\n@P.z = sin(angle) * 1.5;\n\n@Cd = set(t, 0.3, 1.0 - t);\n',
             checks: [
               {
                 description: 'All points roughly the same distance from origin (~1.5)',
@@ -2285,8 +2285,8 @@ export const CURRICULUM: Module[] = [
             id: 'circ-code-2',
             title: 'Build a helix',
             prompt: 'Transform the points into a **3D helix** — a circle that rises along Y.\n\n- 3 full rotations (`t * 6 * 3.14159`)\n- Radius: 1.0\n- Y rises from 0 to 2.0\n- Color based on height',
-            starterCode: 'float t     = @ptnum / float(@numpt);\nfloat angle = ___;\n\n@P.x = cos(angle) * 1.0;\n@P.z = sin(angle) * 1.0;\n@P.y = ___;\n\n@Cd = {t, 1.0 - t, 0.5};\n',
-            solutionCode: 'float t     = @ptnum / float(@numpt);\nfloat angle = t * 6.0 * 3.14159;\n\n@P.x = cos(angle) * 1.0;\n@P.z = sin(angle) * 1.0;\n@P.y = t * 2.0;\n\n@Cd = {t, 1.0 - t, 0.5};\n',
+            starterCode: 'float t     = @ptnum / float(@numpt);\nfloat angle = ___;\n\n@P.x = cos(angle) * 1.0;\n@P.z = sin(angle) * 1.0;\n@P.y = ___;\n\n@Cd = set(t, 1.0 - t, 0.5);\n',
+            solutionCode: 'float t     = @ptnum / float(@numpt);\nfloat angle = t * 6.0 * 3.14159;\n\n@P.x = cos(angle) * 1.0;\n@P.z = sin(angle) * 1.0;\n@P.y = t * 2.0;\n\n@Cd = set(t, 1.0 - t, 0.5);\n',
             checks: [
               {
                 description: 'Points form a circle in XZ (radius ~1.0)',
@@ -2482,7 +2482,7 @@ export const CURRICULUM: Module[] = [
             id: 'learn-ca-1',
             title: 'Custom attributes — storing your own data',
             body: 'You\'re not limited to `@P`, `@Cd` and `@N`. You can **create any attribute** by writing to it — Houdini creates it automatically on the first write.\n\nCustom attributes are useful for:\n- **Masking** downstream operations (e.g. a `@mask` float 0–1)\n- **Passing data** between nodes (compute in one wrangle, use in another)\n- **Controlling effects** non-destructively\n\nName it by type: a bare `@mask` is a **float** (so `@mask` and `f@mask` are the same). But a custom **vector** must use `v@` — `v@customColor = {1,0,0}`. Skip the `v@` and Houdini treats it as a float and mangles your vector.',
-            codeExample: '// Float attribute "mask" — bare @ is float, so this is fine\nfloat n = noise(@P * 2.0);\n@mask = n;\n\n// Custom VECTOR attribute — MUST use v@\nv@mycolor = {rand(@ptnum), 0.5, 1.0 - rand(@ptnum)};\n\n// Use @mask to control displacement\n@P.y += @mask * 0.8;  // read it back',
+            codeExample: '// Float attribute "mask" — bare @ is float, so this is fine\nfloat n = noise(@P * 2.0);\n@mask = n;\n\n// Custom VECTOR attribute — MUST use v@\nv@mycolor = set(rand(@ptnum), 0.5, 1.0 - rand(@ptnum));\n\n// Use @mask to control displacement\n@P.y += @mask * 0.8;  // read it back',
             keyPoints: [
               'Write @myattr = value to create a custom attribute',
               'A bare @ attribute is a float — use v@ for a custom vector, i@ for int, s@ for string',
@@ -2496,7 +2496,7 @@ export const CURRICULUM: Module[] = [
             title: 'Attribute masking',
             inProduction: 'Masks are how big setups stay controllable. You paint or compute a 0-to-1 `@mask`, then every downstream effect multiplies by it — so the erosion only bites into the cliff face and the wind only shakes the outer leaves.',
             body: 'A **mask** is a float attribute with values 0 to 1 that controls the **intensity** of an effect. Instead of a hard if/else, multiply by the mask for smooth, blended results.\n\n`@P.y += @mask * strength` — points with `@mask = 1` get full displacement, `@mask = 0` get none.\n\nMasks are the professional way to blend effects.',
-            codeExample: '// Noise-based mask — smooth 0..1 per point\n@mask = noise(@P * 3.0);\n\n// Soft displacement using the mask\n@P.y    += @mask * 0.6;\n\n// Color: white where displaced, dark where not\n@Cd = {@mask, @mask * 0.8, 1.0 - @mask};\n\n// Hard mask (threshold)\nif (@mask > 0.5) {\n    @Cd = {1.0, 0.4, 0.0};\n}',
+            codeExample: '// Noise-based mask — smooth 0..1 per point\n@mask = noise(@P * 3.0);\n\n// Soft displacement using the mask\n@P.y    += @mask * 0.6;\n\n// Color: white where displaced, dark where not\n@Cd = set(@mask, @mask * 0.8, 1.0 - @mask);\n\n// Hard mask (threshold)\nif (@mask > 0.5) {\n    @Cd = {1.0, 0.4, 0.0};\n}',
             keyPoints: [
               'Mask = float 0..1 controlling effect intensity',
               '@P.y += @mask * strength → smooth displacement',
@@ -2574,8 +2574,8 @@ export const CURRICULUM: Module[] = [
             id: 'ca-code-2',
             title: 'Two-attribute layering',
             prompt: 'Use **two separate attributes** to create a layered effect:\n\n1. `@largeMask = noise(@P * 1.0)` — large-scale variation\n2. `@detailMask = noise(@P * 5.0)` — fine detail\n3. Combine them: `@P.y += (@largeMask * 0.6) + (@detailMask * 0.15)`\n4. Color: use `@largeMask` for hue, `@detailMask` for brightness',
-            starterCode: '// Large-scale noise\n@largeMask = noise(@P * 1.0);\n\n// Fine detail noise\n@detailMask = noise(@P * ___);\n\n// Layered displacement\n@P.y += (@largeMask * 0.6) + (____ * 0.15);\n\n// Color\n@Cd = {____, @largeMask * @detailMask, 1.0 - @largeMask};\n',
-            solutionCode: '@largeMask = noise(@P * 1.0);\n@detailMask = noise(@P * 5.0);\n\n@P.y += (@largeMask * 0.6) + (@detailMask * 0.15);\n\n@Cd = {@largeMask, @largeMask * @detailMask, 1.0 - @largeMask};\n',
+            starterCode: '// Large-scale noise\n@largeMask = noise(@P * 1.0);\n\n// Fine detail noise\n@detailMask = noise(@P * ___);\n\n// Layered displacement\n@P.y += (@largeMask * 0.6) + (____ * 0.15);\n\n// Color\n@Cd = set(____, @largeMask * @detailMask, 1.0 - @largeMask);\n',
+            solutionCode: '@largeMask = noise(@P * 1.0);\n@detailMask = noise(@P * 5.0);\n\n@P.y += (@largeMask * 0.6) + (@detailMask * 0.15);\n\n@Cd = set(@largeMask, @largeMask * @detailMask, 1.0 - @largeMask);\n',
             checks: [
               {
                 description: 'Large Y displacement range (> 0.5)',
@@ -2639,7 +2639,7 @@ export const CURRICULUM: Module[] = [
             title: 'For loops for accumulated effects',
             inProduction: 'Stacking octaves in a loop is literally how FBM terrain, cloud and planet-surface shaders are built. One loop and a handful of lines give you detail at every scale instead of one flat layer of noise.',
             body: 'Loops unlock **fbm (fractal brownian motion)** — layering noise at increasing frequencies and decreasing amplitudes. This creates highly detailed, natural-looking surfaces.\n\nEach "octave" adds a finer layer of detail. The classic formula:\n```\nnoise(pos) + 0.5 * noise(pos*2) + 0.25 * noise(pos*4) + ...\n```\n\nThis is how terrain, clouds, and organic surfaces are made in production VFX.',
-            codeExample: '// FBM: 4 octaves of noise\nfloat fbm    = 0;\nfloat amp    = 0.5;\nvector freq  = @P;\n\nfor (int i = 0; i < 4; i++) {\n    fbm  += noise(freq) * amp;\n    freq *= 2.0;   // double frequency\n    amp  *= 0.5;   // halve amplitude\n}\n\n@P += normalize(@P) * (fbm - 0.5) * 0.5;\n@Cd = {fbm, fbm * 0.6, 1.0 - fbm};',
+            codeExample: '// FBM: 4 octaves of noise\nfloat fbm    = 0;\nfloat amp    = 0.5;\nvector freq  = @P;\n\nfor (int i = 0; i < 4; i++) {\n    fbm  += noise(freq) * amp;\n    freq *= 2.0;   // double frequency\n    amp  *= 0.5;   // halve amplitude\n}\n\n@P += normalize(@P) * (fbm - 0.5) * 0.5;\n@Cd = set(fbm, fbm * 0.6, 1.0 - fbm);',
             keyPoints: [
               'FBM = sum of noise at increasing frequencies',
               'Each octave: freq *= 2, amp *= 0.5',
