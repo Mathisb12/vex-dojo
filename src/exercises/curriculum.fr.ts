@@ -36,6 +36,17 @@ export const FR_LESSONS: Record<string, { title: string; description: string }> 
 }
 
 export const FR_LEARN_CARDS: Record<string, { title: string; body: string; keyPoints?: string[]; inProduction?: string }> = {
+  'learn-vec-set': {
+    title: 'Les constantes entre accolades, les variables dans set()',
+    inProduction: "C'est la première erreur que presque tout le monde rencontre dans un wrangle. Tu calcules une valeur, tu essaies de la mettre dans une couleur avec des accolades, Houdini refuse — et la correction est toujours la même : remplacer les accolades par `set()`.",
+    body: "Un vecteur reste **trois floats** dans les deux cas. Mais les deux façons de l'écrire ne sont pas interchangeables.\n\n`{1.0, 0.0, 0.0}` est un **littéral** : Houdini le résout à la compilation, donc tout ce qu'il contient doit être un nombre brut. Mets-y une variable et ça ne compile plus — c'est une erreur de syntaxe, pas un avertissement.\n\n`set()` construit un vecteur à partir de **n'importe quoi** : variables, attributs, résultats de fonctions, calculs.\n\nEn pratique, presque tous les vecteurs que tu **calcules** passent par `set()`, et `{}` sert aux quelques-uns que tu écris à la main.",
+    keyPoints: [
+      '{} n\'accepte que des nombres constants — négatifs compris',
+      'set(a, b, c) prend des variables, des attributs, tout',
+      'Une variable dans {} est une erreur de syntaxe, pas un avertissement',
+      'Trois floats dans les deux cas — seule l\'écriture change',
+    ],
+  },
   'learn-intro-1': {
     inProduction: 'Presque tous les effets Houdini que tu as vus cachent un wrangle quelque part — éparpiller des débris sur un mur qui explose, décaler une foule pour que personne ne bouge pareil, colorer un océan selon la hauteur des vagues. C\'est le chemin le plus court entre une idée et quelque chose à l\'écran.',
     title: "Qu'est-ce que VEX ?",
@@ -73,7 +84,7 @@ export const FR_LEARN_CARDS: Record<string, { title: string; body: string; keyPo
       'vector regroupe 3 floats : {x, y, z}',
       'Les vecteurs ont des composantes .x .y .z',
       'Les couleurs sont aussi des vecteurs : .x=R, .y=G, .z=B',
-      'set(x, y, z) construit un vecteur — identique à {x, y, z}',
+      'set(x, y, z) construit un vecteur depuis des variables — {} ne peut pas',
       'Un seul nombre remplit les 3 : vector v = 1 → {1, 1, 1}',
     ],
   },
@@ -379,6 +390,26 @@ interface ExTranslation {
 }
 
 export const FR_EXERCISES: Record<string, ExTranslation> = {
+  'vec-set-1': {
+    title: 'Un wrangle calcule `float n = rand(@ptnum);`. Quelle ligne compile ?',
+    explanation: 'Seul `set()` accepte une variable. `{}` est un littéral constant que Houdini résout à la compilation : `{n, 0, 0}` et `{@P.y, 0, 0}` sont donc des erreurs de syntaxe, pas des avertissements. Vérifié sur Houdini 22.',
+    choices: ['@Cd = set(n, 0, 0);', '@Cd = {n, 0, 0};', '@Cd = {@P.y, 0, 0};', 'La première et la deuxième'],
+    choiceExplanations: {
+      1: 'n est une variable, et les accolades ne prennent que des constantes — c\'est une erreur de syntaxe.',
+      2: 'Un attribut n\'est pas une constante non plus. Même erreur de syntaxe.',
+      3: 'Seul set() fonctionne — la version avec accolades ne compile pas.',
+    },
+  },
+  'vec-set-2': {
+    title: 'Construis une couleur à partir d\'une valeur calculée',
+    codeLines: [
+      '// height est une variable : les accolades ne compileront pas ici.',
+      'float height = fit(@P.y, -1.0, 1.0, 0.0, 1.0);',
+      '@Cd = ___(height, 0.0, 1.0 - ___);',
+    ],
+    hints: ['La fonction qui construit un vecteur à partir de variables', 'La variable déclarée à la ligne du dessus'],
+    explanation: '`set(height, 0.0, 1.0 - height)` — la première et la troisième case contiennent une variable et un calcul, donc les accolades sont exclues. Les points du bas ressortent bleus, ceux du haut rouges.',
+  },
   // ── intro ──
   'intro-1': {
     title: "Qu'est-ce que VEX, fondamentalement ?",
