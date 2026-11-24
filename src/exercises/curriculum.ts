@@ -168,10 +168,17 @@ export const CURRICULUM: Module[] = [
             title: 'Declare an integer',
             codeLines: [
               '// Declare an integer named "count" with value 42',
-              '___ count = ___;',
+              '___ = ___;',
             ],
-            answers: ['int', '42'],
-            hints: ['Type keyword for whole numbers', 'The value'],
+            answers: [['int count'], '42'],
+            // i@count is real VEX and really does declare an integer called
+            // count — it just makes an attribute instead of a local variable.
+            // Rejecting it would punish the learner who already knows more.
+            altAnswers: [{
+              answers: [['i@count'], '42'],
+              note: 'That works too — but `i@count` creates an integer **attribute** on the geometry, which stays on the points and is readable by every node downstream. `int count` is a local variable: it exists only while this wrangle runs on this point, then disappears. Note there is no space after `i@` — `i@ count` is a syntax error.',
+            }],
+            hints: ['Type keyword for whole numbers, then the name', 'The value'],
             explanation: '`int count = 42;` — the type keyword `int` comes first, then the name, then the value.',
             xp: 15,
           },
@@ -2780,6 +2787,7 @@ function localizeExercise(ex: Exercise): Exercise {
       codeLines: t.codeLines ?? ex.codeLines,
       hints: t.hints ?? ex.hints,
       explanation: t.explanation ?? ex.explanation,
+      altAnswers: ex.altAnswers?.map((a, i) => ({ ...a, note: t.altNotes?.[i] ?? a.note })),
     }
   }
   // code exercise

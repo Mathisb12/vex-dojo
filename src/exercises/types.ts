@@ -78,12 +78,25 @@ export interface MCQExercise {
 // or any number within a numeric range — whichever matches the hint given to the player.
 export type BlankAnswer = string | string[] | { min: number; max: number }
 
+// A whole different way of answering that is also valid VEX, but means
+// something subtly different — accepted, with a note saying what changed.
+// Use this for a real alternative approach (`i@count` instead of `int count`);
+// for equally-correct spellings of the SAME thing (`0.5` / `.5`), put the
+// variants in the blank's own BlankAnswer array instead, which passes silently.
+export interface AltAnswerSet {
+  answers: BlankAnswer[]   // one entry per blank, same order as `answers`
+  note: string             // what is different about answering this way
+}
+
 export interface FillBlankExercise {
   kind: 'fill'
   id: string
   title: string
   codeLines: string[]        // full code with ___ blanks
   answers: BlankAnswer[]      // accepted value(s) for each blank
+  // Valid-but-different answers. Checked only after `answers` fails, so the
+  // taught answer always wins; a match still completes the exercise.
+  altAnswers?: AltAnswerSet[]
   hints: string[]
   explanation: string
   xp: number

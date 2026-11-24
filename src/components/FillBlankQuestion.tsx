@@ -35,6 +35,14 @@ function matchesAnswer(userInput: string, expected: BlankAnswer): boolean {
   return !Number.isNaN(num) && num >= expected.min && num <= expected.max
 }
 
+// Longest spelling this blank accepts, so the box is wide enough to type the
+// answer without it scrolling out of sight. Ranges get a sensible default.
+function widestAnswer(expected: BlankAnswer): number {
+  if (typeof expected === 'string') return expected.length
+  if (Array.isArray(expected)) return Math.max(...expected.map(e => e.length))
+  return 5
+}
+
 // Substitutes user answers into the ___ blanks to build runnable VEX source.
 // Returns null while any blank is still empty (nothing to preview yet).
 function buildPreviewCode(codeLines: string[], answers: string[]): string | null {
@@ -60,9 +68,26 @@ export function FillBlankQuestion({ exercise, icon, onComplete }: Props) {
 
   const blankCount = exercise.answers.length
 
+  // An alternative answer set that the learner matched instead of the taught
+  // one — accepted, but worth a word on what it does differently.
+  const [altNote, setAltNote] = useState<string | null>(null)
+
   const handleCheck = () => {
     const res = exercise.answers.map((expected, i) => matchesAnswer(answers[i], expected))
-    setResults(res)
+    if (res.every(Boolean)) {
+      setAltNote(null)
+      setResults(res)
+      setChecked(true)
+      return
+    }
+    // The taught answer did not match. Before calling it wrong, see whether the
+    // learner wrote a different but genuinely valid VEX answer.
+    const alt = exercise.altAnswers?.find(set =>
+      set.answers.length === exercise.answers.length &&
+      set.answers.every((expected, i) => matchesAnswer(answers[i], expected))
+    )
+    setAltNote(alt?.note ?? null)
+    setResults(alt ? exercise.answers.map(() => true) : res)
     setChecked(true)
   }
 
@@ -120,7 +145,7 @@ export function FillBlankQuestion({ exercise, icon, onComplete }: Props) {
                       const next = [...answers]
                       next[idx] = e.target.value
                       setAnswers(next)
-                      if (checked) { setChecked(false); setResults([]) }
+                      if (checked) { setChecked(false); setResults([]); setAltNote(null) }
                     }}
                     onKeyDown={e => {
                       if (e.key === 'Enter') {
@@ -128,8 +153,9 @@ export function FillBlankQuestion({ exercise, icon, onComplete }: Props) {
                         else handleCheck()
                       }
                     }}
+                    style={{ width: `${Math.max(4, widestAnswer(exercise.answers[idx]) + 3)}ch` }}
                     className={[
-                      'inline-block w-20 text-center font-mono text-sm px-1 py-0.5 mx-1 rounded-full border',
+                      'inline-block text-center font-mono text-sm px-1 py-0.5 mx-1 rounded-full border',
                       'bg-vex-surface focus:outline-none',
                       isCorrect === null ? 'border-vex-orange/50 focus:border-vex-orange text-vex-orange' :
                       isCorrect ? 'border-vex-green text-vex-green bg-vex-green/5' : 'border-vex-red text-vex-red bg-vex-red/5',
@@ -227,6 +253,21 @@ export function FillBlankQuestion({ exercise, icon, onComplete }: Props) {
               {t('fill.blank')} {i + 1} {showHints ? `${t('fill.notRightYet')} ${exercise.hints[i]}` : t('mcq.tryAgain')}
             </div>
           ))}
+        </div>
+      )}
+
+      {/* Valid, but not the answer the lesson was teaching — say what differs
+          instead of silently passing it, so the nuance actually lands. */}
+      {allCorrect && altNote && (
+        <div className="bg-vex-blue/5 border border-vex-blue/30 rounded-xl p-4 flex items-start gap-3 animate-[slideIn_0.3s_ease-out]">
+          <span className="text-vex-blue text-base leading-none mt-0.5 flex-shrink-0">◆</span>
+          <div className="min-w-0">
+            <div className="text-xs text-vex-blue font-mono uppercase tracking-widest mb-1">{t('fill.altAccepted')}</div>
+            <p
+              className="text-vex-text/80 text-sm leading-relaxed text-pretty"
+              dangerouslySetInnerHTML={{ __html: altNote.replace(/\*\*(.+?)\*\*/g, '<strong class="text-vex-text font-semibold">$1</strong>').replace(/`(.+?)`/g, '<code class="bg-black/30 text-vex-blue font-mono text-xs px-1 rounded">$1</code>') }}
+            />
+          </div>
         </div>
       )}
 

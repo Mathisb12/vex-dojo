@@ -73,7 +73,7 @@ export function LearnCardView({ card, onContinue, current, total }: Props) {
             <div className="text-xs text-vex-blue font-mono uppercase tracking-widest mb-1">{t('learn.inProduction')}</div>
             <p
               className="text-vex-text/80 text-sm leading-relaxed text-pretty"
-              dangerouslySetInnerHTML={{ __html: card.inProduction.replace(/`(.+?)`/g, '<code class="bg-black/30 text-vex-blue font-mono text-xs px-1 rounded">$1</code>') }}
+              dangerouslySetInnerHTML={{ __html: card.inProduction.replace(/\*\*(.+?)\*\*/g, '<strong class="text-vex-text font-semibold">$1</strong>').replace(/`(.+?)`/g, '<code class="bg-black/30 text-vex-blue font-mono text-xs px-1 rounded">$1</code>') }}
             />
           </div>
         </div>

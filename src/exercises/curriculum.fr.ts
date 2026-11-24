@@ -375,6 +375,7 @@ interface ExTranslation {
   hints?: string[]
   codeLines?: string[]
   checks?: string[]
+  altNotes?: string[]   // one per altAnswers entry, same order
 }
 
 export const FR_EXERCISES: Record<string, ExTranslation> = {
@@ -426,9 +427,10 @@ export const FR_EXERCISES: Record<string, ExTranslation> = {
     explanation: '`int idx = @ptnum;` copie la valeur de `@ptnum` dans une variable locale que tu as nommée toi-même. Les variables locales (sans `@`) n\'existent que pendant que le wrangle tourne sur ce point — contrairement aux attributs, elles ne sont jamais sauvegardées sur la géométrie.',
   },
   'var-2': {
+    altNotes: ["Ça marche aussi — mais `i@count` crée un **attribut** entier sur la géométrie : il reste sur les points et tous les nœuds en aval peuvent le lire. `int count` est une variable locale : elle n'existe que pendant que ce wrangle tourne sur ce point, puis elle disparaît. Attention, pas d'espace après `i@` — `i@ count` est une erreur de syntaxe."],
     title: 'Déclare un entier',
-    codeLines: ['// Déclare un entier nommé "count" avec la valeur 42', '___ count = ___;'],
-    hints: ['Mot-clé de type pour les nombres entiers', 'La valeur'],
+    codeLines: ['// Déclare un entier nommé "count" avec la valeur 42', '___ = ___;'],
+    hints: ['Mot-clé de type pour les nombres entiers, puis le nom', 'La valeur'],
     explanation: '`int count = 42;` — le mot-clé de type `int` vient d\'abord, puis le nom, puis la valeur.',
   },
   'var-8': {
