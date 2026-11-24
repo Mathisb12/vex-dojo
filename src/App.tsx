@@ -8,6 +8,7 @@ import { KIND_BADGE_STYLE } from './components/KindBadge'
 import { GrainOverlay } from './components/GrainOverlay'
 import { FooterCredits } from './components/FooterCredits'
 import { Playground } from './playground/Playground'
+import { Codex } from './codex/Codex'
 import { buildReviewLesson, dueIds, dueConcepts } from './exercises/review'
 import { ReviewPrompt } from './components/ReviewPrompt'
 import { useProgress } from './hooks/useProgress'
@@ -206,6 +207,8 @@ function Sidebar({
   onClose,
   onOpenPlayground,
   playgroundActive,
+  onOpenCodex,
+  codexActive,
 }: {
   modules: Module[]
   completedIds: Set<string>
@@ -219,6 +222,8 @@ function Sidebar({
   onClose: () => void
   onOpenPlayground: () => void
   playgroundActive: boolean
+  onOpenCodex: () => void
+  codexActive: boolean
 }) {
   const { t, lang, toggleLang } = useLang()
   const tier1Modules = modules.filter(m => m.tier === 1)
@@ -343,6 +348,19 @@ function Sidebar({
           <span>🧪</span>
           <span className="font-semibold">{t('playground.open')}</span>
         </button>
+
+        {/* The reference, right next to the sandbox — try it, or look it up */}
+        <button
+          onClick={onOpenCodex}
+          className={`mt-2 w-full flex items-center gap-2 px-3 py-2 rounded-xl border text-sm transition-colors ${
+            codexActive
+              ? 'border-vex-purple bg-vex-purple/10 text-vex-purple'
+              : 'border-vex-border text-vex-text hover:border-vex-purple/50 hover:text-vex-purple'
+          }`}
+        >
+          <span>📕</span>
+          <span className="font-semibold">{t('codex.open')}</span>
+        </button>
       </div>
 
       {/* Module list */}
@@ -413,6 +431,8 @@ function AppInner() {
   const [desktopCollapsed, setDesktopCollapsed] = useState(false)
   // The sandbox replaces the path view; picking a lesson leaves it.
   const [playgroundOpen, setPlaygroundOpen] = useState(false)
+  // The reference is never gated — looking something up is not a reward.
+  const [codexOpen, setCodexOpen] = useState(false)
   // A review run in progress, frozen at the moment it was started.
   const [reviewLesson, setReviewLesson] = useState<Lesson | null>(null)
 
@@ -431,7 +451,7 @@ function AppInner() {
     dueCount > 0 &&
     !promptDismissed &&
     state.reviewPromptedOn !== new Date().toDateString() &&
-    !activeLesson && !reviewLesson && !playgroundOpen
+    !activeLesson && !reviewLesson && !playgroundOpen && !codexOpen
 
   const totalXP = useMemo(() => getTotalXP(), [])
   const curriculum = useMemo(() => getLocalizedCurriculum(lang), [lang])
@@ -457,12 +477,22 @@ function AppInner() {
   const handleSelectLesson = (lesson: Lesson, moduleId: string) => {
     setActiveLesson({ lesson, moduleId })
     setPlaygroundOpen(false)
+    setCodexOpen(false)
     setReviewLesson(null)
     setSidebarOpen(false)
   }
 
   const handleOpenPlayground = () => {
     setPlaygroundOpen(true)
+    setCodexOpen(false)
+    setActiveLesson(null)
+    setReviewLesson(null)
+    setSidebarOpen(false)
+  }
+
+  const handleOpenCodex = () => {
+    setCodexOpen(true)
+    setPlaygroundOpen(false)
     setActiveLesson(null)
     setReviewLesson(null)
     setSidebarOpen(false)
@@ -482,6 +512,7 @@ function AppInner() {
   const handleStartReview = () => {
     setPromptDismissed(true)
     markReviewPrompted()
+    setCodexOpen(false)
     const lesson = buildReviewLesson(curriculum, state.records, t('review.title'), t('review.subtitle'))
     if (!lesson) return
     setReviewLesson(lesson)
@@ -531,6 +562,8 @@ function AppInner() {
           onClose={closeSidebar}
           onOpenPlayground={handleOpenPlayground}
           playgroundActive={playgroundOpen && !activeLessonLocalized}
+          onOpenCodex={handleOpenCodex}
+          codexActive={codexOpen && !activeLessonLocalized}
         />
       </div>
 
@@ -577,6 +610,8 @@ function AppInner() {
               onComplete={handleCompleteExercise}
               onBack={() => setActiveLesson(null)}
             />
+          ) : codexOpen ? (
+            <Codex />
           ) : playgroundOpen ? (
             <Playground />
           ) : (
@@ -585,6 +620,7 @@ function AppInner() {
               completedIds={state.completedExercises}
               onSelectLesson={handleSelectLesson}
               onOpenPlayground={handleOpenPlayground}
+              onOpenCodex={handleOpenCodex}
               onStartReview={handleStartReview}
               dueCount={dueCount}
             />

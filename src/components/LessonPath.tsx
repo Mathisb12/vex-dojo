@@ -22,6 +22,7 @@ export function LessonPath({
   completedIds,
   onSelectLesson,
   onOpenPlayground,
+  onOpenCodex,
   onStartReview,
   dueCount,
 }: {
@@ -29,6 +30,7 @@ export function LessonPath({
   completedIds: Set<string>
   onSelectLesson: (lesson: Lesson, moduleId: string) => void
   onOpenPlayground: () => void
+  onOpenCodex: () => void
   onStartReview: () => void
   dueCount: number
 }) {
@@ -161,6 +163,31 @@ export function LessonPath({
               <p className="text-vex-muted text-sm leading-relaxed text-pretty">{t('playground.cta.body')}</p>
             </div>
             <span className="text-vex-blue text-sm font-semibold flex-shrink-0 self-center hidden sm:block group-hover:translate-x-0.5 transition-transform">
+              →
+            </span>
+          </div>
+        </button>
+
+        {/* The reference, sitting beside the sandbox: one is for trying things,
+            the other for looking them up. Neither is ever locked. */}
+        <button
+          onClick={onOpenCodex}
+          className="w-full text-left mb-8 group rounded-2xl border border-vex-purple/30 bg-gradient-to-br from-vex-purple/10 to-vex-blue/5 p-4 sm:p-5 hover:border-vex-purple/60 transition-colors"
+        >
+          <div className="flex items-start gap-3 sm:gap-4">
+            <div className="w-10 h-10 rounded-xl bg-vex-purple/15 border border-vex-purple/30 flex items-center justify-center flex-shrink-0 text-lg">
+              📕
+            </div>
+            <div className="min-w-0 flex-1">
+              <div className="text-vex-purple text-[11px] font-mono font-semibold uppercase tracking-widest mb-1">
+                {t('codex.ctaEyebrow')}
+              </div>
+              <h2 className="text-vex-text font-bold text-base sm:text-lg leading-tight mb-1">
+                {t('codex.ctaTitle')}
+              </h2>
+              <p className="text-vex-muted text-sm leading-relaxed text-pretty">{t('codex.ctaBody')}</p>
+            </div>
+            <span className="text-vex-purple text-sm font-semibold flex-shrink-0 self-center hidden sm:block group-hover:translate-x-0.5 transition-transform">
               →
             </span>
           </div>
