@@ -71,6 +71,12 @@ class BreakSignal { }
 class ContinueSignal { }
 class ReturnSignal { constructor(public value: VexValue) { } }
 
+// VEX ships a few named constants; both spellings verified on Houdini 22.0.429.
+const VEX_CONSTANTS: Record<string, number> = {
+  PI: Math.PI,
+  M_PI: Math.PI,
+}
+
 class Environment {
   private vars = new Map<string, VexValue>()
   constructor(private parent: Environment | null = null) { }
@@ -78,6 +84,11 @@ class Environment {
   get(name: string): VexValue {
     if (this.vars.has(name)) return this.vars.get(name)!
     if (this.parent) return this.parent.get(name)
+    // VEX ships a handful of named constants. PI reads far better than a typed
+    // 3.14159, so an exercise that accepts it has to be able to run it.
+    // Both spellings verified against Houdini 22.0.429.
+    const konst = VEX_CONSTANTS[name]
+    if (konst !== undefined) return mkFloat(konst)
     throw new Error(`Undefined variable '${name}'`)
   }
 

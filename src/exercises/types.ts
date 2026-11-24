@@ -76,7 +76,12 @@ export interface MCQExercise {
 
 // A blank accepts either an exact string, one of several alternatives,
 // or any number within a numeric range — whichever matches the hint given to the player.
-export type BlankAnswer = string | string[] | { min: number; max: number }
+export type BlankAnswer =
+  | string
+  | string[]
+  // A numeric range, plus any named constants that evaluate into it —
+  // PI is a better answer than typing 3.14159, so it has to be accepted.
+  | { min: number; max: number; also?: string[] }
 
 // A whole different way of answering that is also valid VEX, but means
 // something subtly different — accepted, with a note saying what changed.

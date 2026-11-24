@@ -30,7 +30,8 @@ function matchesAnswer(userInput: string, expected: BlankAnswer): boolean {
   const input = userInput.trim().toLowerCase()
   if (typeof expected === 'string') return matchesSingle(input, expected.trim().toLowerCase())
   if (Array.isArray(expected)) return expected.some(e => matchesSingle(input, e.trim().toLowerCase()))
-  // numeric range
+  // numeric range, or one of the named constants that lands inside it
+  if (expected.also?.some(e => input === e.trim().toLowerCase())) return true
   const num = parseFloat(input)
   return !Number.isNaN(num) && num >= expected.min && num <= expected.max
 }
@@ -40,7 +41,7 @@ function matchesAnswer(userInput: string, expected: BlankAnswer): boolean {
 function widestAnswer(expected: BlankAnswer): number {
   if (typeof expected === 'string') return expected.length
   if (Array.isArray(expected)) return Math.max(...expected.map(e => e.length))
-  return 5
+  return Math.max(5, ...(expected.also ?? []).map(e => e.length))
 }
 
 // Substitutes user answers into the ___ blanks to build runnable VEX source.

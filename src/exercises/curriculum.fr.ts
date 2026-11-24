@@ -465,15 +465,17 @@ export const FR_EXERCISES: Record<string, ExTranslation> = {
     explanation: '`int count = 42;` — le mot-clé de type `int` vient d\'abord, puis le nom, puis la valeur.',
   },
   'var-8': {
+    codeLines: ['// Déclare une string nommée "label" avec le texte "tip"', '___ = ___;'],
+    hints: ['Mot-clé de type pour le texte, puis le nom', 'La valeur texte — n\'oublie pas les guillemets'],
+    altNotes: ["Valide aussi — `s@label` crée un **attribut** string sur la géométrie au lieu d'une variable locale. Note le préfixe `s@` : un `@label` nu serait un float, donc les strings doivent toujours annoncer leur type.",],
     title: 'Déclare une string',
-    codeLines: ['// Déclare une string nommée "label" avec le texte "tip"', '___ label = ___;'],
-    hints: ['Mot-clé de type pour le texte', 'La valeur texte — n\'oublie pas les guillemets'],
     explanation: '`string label = "tip";` — les strings contiennent du texte et doivent être entourées de guillemets `"..."`.',
   },
   'var-5': {
+    codeLines: ['// Déclare un float nommé "speed" avec la valeur 2.5', '___ = ___;'],
+    hints: ['Mot-clé de type pour les nombres à virgule, puis le nom', 'La valeur'],
+    altNotes: ["Du VEX valide — mais `f@speed` écrit un **attribut** float sur la géométrie, qui survit à ce nœud et peut être lu en aval. `float speed` est une variable locale qui disparaît quand le wrangle en a fini avec ce point.",],
     title: 'Déclare un float',
-    codeLines: ['// Déclare un float nommé "speed" avec la valeur 2.5', '___ speed = ___;'],
-    hints: ['Mot-clé de type pour les nombres décimaux', 'La valeur'],
     explanation: '`float speed = 2.5;` — `float` est le type pour les nombres décimaux, comme `int` pour les entiers.',
   },
   'var-3': {
@@ -558,6 +560,7 @@ export const FR_EXERCISES: Record<string, ExTranslation> = {
     explanation: '`@Cd.x = 1;` écrit uniquement le canal rouge via la notation par point — pas besoin de réécrire tout le vecteur avec `{}`.',
   },
   'attr-7': {
+    altNotes: ["Ça crée aussi un attribut float — un `@` nu vaut **float** par défaut en VEX. `f@` le dit explicitement, ce qui compte dès que quelqu'un relit ton code et doit deviner si `@result` est un float, un int ou un vecteur.",],
     title: 'Fais persister une valeur pour de vrai',
     codeLines: [
       '// "scratch" est une variable locale — elle disparaît dès que ce wrangle se termine.',
@@ -585,6 +588,7 @@ export const FR_EXERCISES: Record<string, ExTranslation> = {
     choices: ['Modifie la valeur "amplitude" partout où elle est utilisée dans le code', 'Change seulement la valeur affichée dans le viewport, pas le code réel', 'Renomme le channel partout où il est utilisé', 'N\'a aucun effet jusqu\'à ce que tu retapes le code manuellement'],
   },
   'params-2': {
+    altNotes: ["`ch()` compile aussi ici. La différence, c'est que `chf()` s'engage à renvoyer un **float**, alors que `ch()` laisse le type se déduire du contexte — ce qui passe sur cette ligne, mais te retombe dessus le jour où le paramètre est un vecteur ou un int.",],
     title: 'Lis un paramètre float',
     codeLines: [
       '// Lis un paramètre "frequency" au lieu de coder un nombre en dur',
