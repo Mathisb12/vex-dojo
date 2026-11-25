@@ -32,7 +32,7 @@ export default {
           'text-secondary': '#c9d1d9',
           muted: '#8b949e',
           'muted-2': '#6e7681',
-          'muted-3': '#56606b',
+          'muted-3': '#7d8691',
           'muted-4': '#475059',
           'muted-5': '#3d444d',
           // editor/panel surfaces, darkest first
@@ -44,10 +44,10 @@ export default {
       },
       boxShadow: {
         'vex-card': '0 12px 30px -18px rgba(0,0,0,.8)',
-        'vex-card-active': '0 18px 50px -22px rgba(249,115,22,.4), 0 8px 24px -16px rgba(0,0,0,.8)',
-        'vex-glow-node': '0 0 16px rgba(249,115,22,.6)',
-        'vex-glow-purple': '0 0 16px rgba(168,85,247,.6)',
-        'vex-glow-logo': '0 6px 18px -6px rgba(249,115,22,.7)',
+        'vex-card-active': '0 18px 50px -22px rgba(0,0,0,.75), 0 8px 24px -16px rgba(0,0,0,.8)',
+        'vex-glow-node': '0 3px 12px -3px rgba(0,0,0,.85)',
+        'vex-glow-purple': '0 3px 12px -3px rgba(0,0,0,.85)',
+        'vex-glow-logo': '0 6px 18px -6px rgba(0,0,0,.7)',
         'vex-panel': '0 18px 50px -24px rgba(0,0,0,.8)',
       },
       animation: {

@@ -87,15 +87,15 @@ export function LessonPath({
       <div className="max-w-[780px] mx-auto">
         <div className="flex items-start justify-between mb-8 gap-4">
           <div>
-            <div className="text-vex-orange text-xs font-mono font-semibold uppercase tracking-widest mb-2">
-              {t('sidebar.programLabel')} · {chapterCount} {t('path.chapters')}
-            </div>
+            {/* No tracked kicker above the heading: the heading carries its own
+                weight, and the chapter count belongs with the progress figure. */}
             <h1 className="text-3xl font-extrabold text-vex-text mb-2 tracking-tight">{t('path.title')}</h1>
-            <p className="text-vex-muted text-base max-w-md">{t('path.subtitle')}</p>
+            <p className="text-vex-muted text-base max-w-md text-pretty">{t('path.subtitle')}</p>
           </div>
           <div className="text-right flex-shrink-0">
             <div className="text-3xl font-bold text-vex-text font-mono">{donePct}%</div>
             <div className="text-vex-muted text-xs">{t('path.completed')}</div>
+            <div className="text-vex-muted-3 text-xs mt-1">{chapterCount} {t('path.chapters')}</div>
           </div>
         </div>
 

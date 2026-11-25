@@ -32,11 +32,11 @@ export function FooterCredits() {
         <a href={INSTAGRAM_URL} target="_blank" rel="noopener noreferrer" className={linkCls}>
           Instagram
         </a>
-        <span className="text-vex-muted-4">·</span>
+        <span className="text-vex-muted-3">·</span>
         <a href={LINKEDIN_URL} target="_blank" rel="noopener noreferrer" className={linkCls}>
           LinkedIn
         </a>
-        <span className="text-vex-muted-4">·</span>
+        <span className="text-vex-muted-3">·</span>
         <button
           onClick={copyDiscord}
           title={`Discord: ${DISCORD_HANDLE}`}
