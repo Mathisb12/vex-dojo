@@ -238,7 +238,10 @@ function Sidebar({
     const modTotal = mod.lessons.flatMap(l => l.exercises).length
 
     return (
-      <div key={mod.id} className={`mb-4 ${moduleLocked ? 'opacity-50 pointer-events-none select-none' : ''}`}>
+      <div key={mod.id} // A locked module is still a thing the learner is working towards, so its
+      // name has to stay readable. A blanket opacity took it to 2.4:1; the lock
+      // icon and the muted palette already say it is closed.
+      className={`mb-4 ${moduleLocked ? 'pointer-events-none select-none' : ''}`}>
         <div className="flex items-center gap-2 px-4 py-1.5">
           <span className="flex-shrink-0"><Icon name={moduleLocked ? '🔒' : mod.icon} size={15} /></span>
           <span className="text-vex-text font-semibold text-sm">{mod.title}</span>
