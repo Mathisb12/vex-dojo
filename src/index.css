@@ -9,7 +9,7 @@
 body {
   background-color: #0d1117;
   color: #e6edf3;
-  font-family: 'Inter', system-ui, sans-serif;
+  font-family: 'IBM Plex Sans', system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
   margin: 0;
 }
@@ -42,3 +42,17 @@ body {
 }
 
 .animate-pop { animation: popIn 0.35s ease-out; }
+
+/* A control drawn smaller than the 44px touch floor keeps its look and gets an
+   invisible hit area around it, so a thumb lands on it without the header
+   growing on desktop. */
+.tap-target { position: relative; }
+.tap-target::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: max(100%, 44px);
+  height: max(100%, 44px);
+}

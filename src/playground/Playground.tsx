@@ -10,6 +10,7 @@ import type { PointShape } from '../exercises/types'
 import { useLang } from '../i18n/LanguageContext'
 import type { UIKey } from '../i18n/ui'
 import { RECIPES } from './recipes'
+import { Icon } from '../components/Icon'
 
 const SHAPES: PointShape[] = ['sphere', 'grid', 'random']
 const SHAPE_LABEL: Record<PointShape, UIKey> = {
@@ -134,7 +135,7 @@ export function Playground() {
                 }`}
               >
                 <div className="flex items-center gap-2 mb-1">
-                  <span className="text-base">{r.icon}</span>
+                  <Icon name={r.icon} size={16} className="text-vex-orange flex-shrink-0" />
                   <span className="text-vex-text font-semibold text-sm">{r.title[lang]}</span>
                 </div>
                 <div className="text-vex-muted text-xs leading-snug text-pretty">{r.blurb[lang]}</div>
@@ -165,7 +166,7 @@ export function Playground() {
                 theme="vs-dark"
                 options={{
                   fontSize: 13,
-                  fontFamily: 'JetBrains Mono, monospace',
+                  fontFamily: 'IBM Plex Mono, ui-monospace, monospace',
                   minimap: { enabled: false },
                   scrollBeyondLastLine: false,
                   wordWrap: 'on',

@@ -1,6 +1,7 @@
 import { useLang } from '../i18n/LanguageContext'
 import { KindBadge, type StepKind } from './KindBadge'
 import type { UIKey } from '../i18n/ui'
+import { Icon } from './Icon'
 
 type Accent = 'orange' | 'purple'
 
@@ -86,7 +87,7 @@ export function LessonTimeline({ items }: { items: TimelineItem[] }) {
                   <ModuleMarker accent={item.accent} />
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="text-xl">{item.icon}</span>
+                  <Icon name={item.icon} size={20} className="text-vex-text/80" />
                   <h2 className="text-vex-text font-bold text-[18px]">{item.title}</h2>
                 </div>
               </div>
@@ -126,7 +127,7 @@ export function LessonTimeline({ items }: { items: TimelineItem[] }) {
                           : 'border-vex-border-soft bg-vex-panel-2 text-vex-muted-3'
                     }`}
                   >
-                    {item.icon}
+                    <Icon name={item.icon} size={17} />
                   </span>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1">
@@ -136,7 +137,7 @@ export function LessonTimeline({ items }: { items: TimelineItem[] }) {
                     <div className="text-vex-text font-bold text-base truncate">{item.title}</div>
                   </div>
                   {locked ? (
-                    <span className="text-vex-muted-3 text-lg flex-shrink-0">🔒</span>
+                    <Icon name="🔒" size={17} className="text-vex-muted-3 flex-shrink-0" />
                   ) : (
                     <span
                       className={`text-xs font-semibold px-3 py-1.5 rounded-lg whitespace-nowrap flex-shrink-0 ${

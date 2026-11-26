@@ -18,7 +18,9 @@ export function FooterCredits() {
     }).catch(() => { /* clipboard unavailable — no feedback to give */ })
   }
 
-  const linkCls = 'hover:text-vex-orange transition-colors'
+  // Side-by-side targets in a footer row: the look stays, the hit area
+  // grows to the 44px floor so a thumb does not land between two of them.
+  const linkCls = 'tap-target hover:text-vex-orange transition-colors'
 
   return (
     <div className="px-3 pb-3 text-center">

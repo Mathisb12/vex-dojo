@@ -39,7 +39,7 @@ export function ChannelSliders({ params, values, onChange, hint, time }: Props) 
             <button
               onClick={time.onTogglePlay}
               title={time.playing ? 'Pause' : 'Play'}
-              className={`w-7 h-7 rounded-lg border flex items-center justify-center text-xs transition-colors ${
+              className={`tap-target w-7 h-7 rounded-lg border flex items-center justify-center text-xs transition-colors ${
                 time.playing
                   ? 'border-vex-orange bg-vex-orange/15 text-vex-orange'
                   : 'border-vex-border text-vex-muted hover:border-vex-orange/50 hover:text-vex-orange'

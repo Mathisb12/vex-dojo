@@ -23,14 +23,14 @@ export function RampDiagram() {
       <line x1="80" y1="95" x2="366" y2="95" stroke="#56606b" strokeWidth="1" strokeDasharray="4 3" />
 
       {/* Axis labels */}
-      <text x="80" y="168" fontFamily="JetBrains Mono, monospace" fontSize="10" fill="#8b949e">pos = 0</text>
-      <text x="520" y="168" fontFamily="JetBrains Mono, monospace" fontSize="10" fill="#8b949e" textAnchor="end">pos = 1</text>
-      <text x="366" y="168" fontFamily="JetBrains Mono, monospace" fontSize="10" fill="#fbbf24" textAnchor="middle">pos = 0.65</text>
+      <text x="80" y="168" fontFamily="IBM Plex Mono, ui-monospace, monospace" fontSize="10" fill="#8b949e">pos = 0</text>
+      <text x="520" y="168" fontFamily="IBM Plex Mono, ui-monospace, monospace" fontSize="10" fill="#8b949e" textAnchor="end">pos = 1</text>
+      <text x="366" y="168" fontFamily="IBM Plex Mono, ui-monospace, monospace" fontSize="10" fill="#fbbf24" textAnchor="middle">pos = 0.65</text>
 
-      <text x="60" y="64" fontFamily="JetBrains Mono, monospace" fontSize="10" fill="#8b949e" textAnchor="end">1</text>
-      <text x="60" y="152" fontFamily="JetBrains Mono, monospace" fontSize="10" fill="#8b949e" textAnchor="end">0</text>
+      <text x="60" y="64" fontFamily="IBM Plex Mono, ui-monospace, monospace" fontSize="10" fill="#8b949e" textAnchor="end">1</text>
+      <text x="60" y="152" fontFamily="IBM Plex Mono, ui-monospace, monospace" fontSize="10" fill="#8b949e" textAnchor="end">0</text>
 
-      <text x="390" y="92" fontFamily="JetBrains Mono, monospace" fontSize="11" fill="#fbbf24">
+      <text x="390" y="92" fontFamily="IBM Plex Mono, ui-monospace, monospace" fontSize="11" fill="#fbbf24">
         chramp(&quot;falloff&quot;, 0.65) → 0.65
       </text>
     </svg>

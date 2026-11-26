@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react'
 import { useLang } from '../i18n/LanguageContext'
+import { Icon } from './Icon'
 
 interface Props {
   dueCount: number
@@ -39,7 +40,7 @@ export function ReviewPrompt({ dueCount, concepts, onStart, onSkip }: Props) {
       <div className="w-full max-w-md bg-vex-surface border border-vex-orange/40 rounded-2xl shadow-vex-panel p-6 flex flex-col gap-4">
         <div className="flex items-start gap-3">
           <div className="w-11 h-11 rounded-xl bg-vex-orange/15 border border-vex-orange/30 flex items-center justify-center flex-shrink-0 text-xl">
-            🔁
+            <Icon name="🔁" size={21} />
           </div>
           <div className="min-w-0">
             <div className="text-vex-orange text-[11px] font-mono font-semibold uppercase tracking-widest mb-1">
@@ -73,13 +74,13 @@ export function ReviewPrompt({ dueCount, concepts, onStart, onSkip }: Props) {
           <button
             ref={startRef}
             onClick={onStart}
-            className="flex-1 px-5 py-2.5 bg-vex-orange text-black font-bold rounded-xl hover:bg-vex-orange/90 transition-colors text-sm"
+            className="flex-1 inline-flex items-center justify-center min-h-[44px] px-5 bg-vex-orange text-black font-bold rounded-xl hover:bg-vex-orange/90 transition-colors text-sm"
           >
             {t('review.start')}
           </button>
           <button
             onClick={onSkip}
-            className="px-4 py-2.5 text-vex-muted hover:text-vex-text border border-vex-border hover:border-vex-muted rounded-xl transition-colors text-sm"
+            className="inline-flex items-center justify-center min-h-[44px] px-4 text-vex-muted hover:text-vex-text border border-vex-border hover:border-vex-muted rounded-xl transition-colors text-sm"
           >
             {t('review.skip')}
           </button>

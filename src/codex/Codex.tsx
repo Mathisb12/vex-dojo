@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react'
 import { useLang } from '../i18n/LanguageContext'
 import { CODEX, CODEX_CATEGORIES, codexHaystack, type CodexCat, type CodexFn } from './entries'
+import { Icon } from '../components/Icon'
 
 /** Highlights the matched run of characters so a search result explains itself. */
 function Mark({ text, q }: { text: string; q: string }) {
@@ -151,7 +152,7 @@ export function Codex() {
                     : 'border-vex-border text-vex-muted hover:text-vex-text hover:border-vex-muted-4'
                 }`}
               >
-                <span className="mr-1 opacity-70">{c.icon}</span>{c.label}
+                <Icon name={c.icon} size={13} className="mr-1.5 inline-block align-[-2px] opacity-80" />{c.label}
               </button>
             ))}
           </div>
@@ -163,7 +164,7 @@ export function Codex() {
           grouped.map(({ cat: c, fns }) => (
             <section key={c.id} className="flex flex-col gap-3">
               <div className="flex items-baseline gap-2 border-b border-vex-border-soft pb-2">
-                <span className="text-vex-orange text-sm">{c.icon}</span>
+                <Icon name={c.icon} size={15} className="text-vex-orange flex-shrink-0" />
                 <h2 className="text-vex-text font-bold text-base">{c.label}</h2>
                 <span className="text-vex-muted-2 text-xs">{c.blurb}</span>
               </div>

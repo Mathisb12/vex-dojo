@@ -4,8 +4,8 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        sans: ['Inter', 'system-ui', 'sans-serif'],
-        mono: ['JetBrains Mono', 'monospace'],
+        sans: ['IBM Plex Sans', 'system-ui', 'sans-serif'],
+        mono: ['IBM Plex Mono', 'ui-monospace', 'monospace'],
       },
       colors: {
         vex: {
@@ -23,15 +23,15 @@ export default {
           'green-dark': '#16a34a',
           red: '#ef4444',
           'red-dim': '#7f1d1d',
-          blue: '#3b82f6',
+          blue: '#478af7',
           'blue-light': '#79c0ff',
-          purple: '#a855f7',
+          purple: '#ac5ef7',
           'purple-dark': '#7c3aed',
           'purple-light': '#c084fc',
           text: '#e6edf3',
           'text-secondary': '#c9d1d9',
           muted: '#8b949e',
-          'muted-2': '#6e7681',
+          'muted-2': '#777e89',
           'muted-3': '#7d8691',
           'muted-4': '#475059',
           'muted-5': '#3d444d',

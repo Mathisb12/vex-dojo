@@ -16,6 +16,7 @@ import { getLocalizedCurriculum, getTotalXP } from './exercises/curriculum'
 import type { Exercise, Lesson, LearnCard, Module } from './exercises/types'
 import { isModuleComplete, isModuleLocked, isLessonLocked } from './exercises/locks'
 import { LanguageProvider, useLang } from './i18n/LanguageContext'
+import { Icon } from './components/Icon'
 
 // ─── XP Display ──────────────────────────────────────────────────────────────
 
@@ -25,7 +26,7 @@ function XPBar({ xp, total }: { xp: number; total: number }) {
   return (
     <div className="flex flex-col gap-1.5">
       <div className="flex items-center justify-between text-xs">
-        <span className="text-vex-orange font-bold">⚡ {xp} XP</span>
+        <span className="text-vex-orange font-bold inline-flex items-center gap-1"><Icon name="⚡" size={13} /> {xp} XP</span>
         <span className="text-vex-muted">{total} {t('app.totalXp')}</span>
       </div>
       <div className="bg-vex-surface border border-vex-border rounded-full h-2">
@@ -132,7 +133,7 @@ function LessonPlayer({
     <div className="flex flex-col h-full">
       {/* Top bar */}
       <div className="flex items-center gap-3 px-4 py-3 border-b border-vex-border">
-        <button onClick={onBack} className="text-vex-muted hover:text-vex-text transition-colors text-sm flex-shrink-0">
+        <button onClick={onBack} className="tap-target text-vex-muted hover:text-vex-text transition-colors text-sm flex-shrink-0">
           {t('app.back')}
         </button>
         <span className="w-8 h-8 rounded-lg border border-vex-orange/30 bg-vex-orange/10 text-vex-orange flex items-center justify-center text-sm flex-shrink-0">
@@ -144,7 +145,7 @@ function LessonPlayer({
         </div>
         {streak > 0 && (
           <span className="hidden sm:inline-flex items-center gap-1 px-2 py-1 rounded-full border border-vex-orange/30 bg-vex-orange/10 text-vex-orange text-xs font-semibold flex-shrink-0">
-            🔥 {streak}
+            <Icon name="🔥" size={13} /> {streak}
           </span>
         )}
         <div className="flex items-center gap-2 ml-auto sm:w-44 flex-shrink-0">
@@ -164,7 +165,7 @@ function LessonPlayer({
         {celebrating && (
           <div className="fixed inset-0 pointer-events-none flex items-center justify-center z-50">
             <div className="text-6xl animate-pop">
-              {stepIdx < allSteps.length - 1 ? '🔥' : '🎉'}
+              <Icon name={stepIdx < allSteps.length - 1 ? '🔥' : '🎉'} size={15} />
             </div>
           </div>
         )}
@@ -239,7 +240,7 @@ function Sidebar({
     return (
       <div key={mod.id} className={`mb-4 ${moduleLocked ? 'opacity-50 pointer-events-none select-none' : ''}`}>
         <div className="flex items-center gap-2 px-4 py-1.5">
-          <span>{moduleLocked ? '🔒' : mod.icon}</span>
+          <span className="flex-shrink-0"><Icon name={moduleLocked ? '🔒' : mod.icon} size={15} /></span>
           <span className="text-vex-text font-semibold text-sm">{mod.title}</span>
           <span className="ml-auto text-vex-muted text-xs">{modDone}/{modTotal}</span>
         </div>
@@ -254,7 +255,7 @@ function Sidebar({
                 key={lesson.id}
                 disabled={lessonLocked}
                 onClick={() => !lessonLocked && onSelectLesson(lesson, mod.id)}
-                className={`w-full text-left px-3 py-2.5 rounded-xl border transition-all duration-150 text-sm ${
+                className={`w-full text-left px-3 py-2.5 min-h-[44px] rounded-xl border transition-all duration-150 text-sm ${
                   lessonLocked
                     ? 'border-vex-border bg-vex-surface/40 text-vex-muted cursor-not-allowed'
                     : complete
@@ -265,7 +266,7 @@ function Sidebar({
                 }`}
               >
                 <div className="flex items-center gap-2">
-                  <span>{lessonLocked ? '🔒' : lesson.icon}</span>
+                  <span className="flex-shrink-0"><Icon name={lessonLocked ? '🔒' : lesson.icon} size={15} /></span>
                   <span className="flex-1 truncate">{lesson.title}</span>
                   <span className={`text-xs ${complete ? 'text-vex-green' : 'text-vex-muted'}`}>
                     {lessonLocked ? '' : complete ? '✓' : `${done}/${total}`}
@@ -301,14 +302,14 @@ function Sidebar({
             <button
               onClick={() => lang !== 'fr' && toggleLang()}
               title="Passer en français"
-              className={`px-2 py-0.5 rounded-md transition-colors ${lang === 'fr' ? 'bg-vex-orange text-black' : 'text-vex-muted hover:text-vex-orange'}`}
+              className={`tap-target px-2 py-0.5 rounded-md transition-colors ${lang === 'fr' ? 'bg-vex-orange text-black' : 'text-vex-muted hover:text-vex-orange'}`}
             >
               FR
             </button>
             <button
               onClick={() => lang !== 'en' && toggleLang()}
               title="Switch to English"
-              className={`px-2 py-0.5 rounded-md transition-colors ${lang === 'en' ? 'bg-vex-orange text-black' : 'text-vex-muted hover:text-vex-orange'}`}
+              className={`tap-target px-2 py-0.5 rounded-md transition-colors ${lang === 'en' ? 'bg-vex-orange text-black' : 'text-vex-muted hover:text-vex-orange'}`}
             >
               EN
             </button>
@@ -317,16 +318,16 @@ function Sidebar({
             onClick={onClose}
             aria-label="Hide sidebar"
             title={t('sidebar.hide')}
-            className="w-8 h-8 rounded-lg border border-vex-border text-vex-muted hover:text-vex-orange hover:border-vex-orange/50 transition-colors flex-shrink-0"
+            className="tap-target w-8 h-8 rounded-lg border border-vex-border text-vex-muted hover:text-vex-orange hover:border-vex-orange/50 transition-colors flex-shrink-0"
           >
-            ✕
+            <Icon name="✕" size={15} />
           </button>
         </div>
 
         <div className="flex items-center gap-2 mb-3">
           {streak > 0 && (
             <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full border border-vex-orange/30 bg-vex-orange/10 text-vex-orange text-xs font-semibold">
-              🔥 {streak}
+              <Icon name="🔥" size={13} /> {streak}
             </span>
           )}
           <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full border border-vex-purple/30 bg-vex-purple/10 text-vex-purple text-xs font-semibold">
@@ -339,26 +340,26 @@ function Sidebar({
         {/* Sandbox — never locked, so there's always somewhere to just play */}
         <button
           onClick={onOpenPlayground}
-          className={`mt-3 w-full flex items-center gap-2 px-3 py-2 rounded-xl border text-sm transition-colors ${
+          className={`mt-3 w-full flex items-center gap-2 px-3 min-h-[44px] rounded-xl border text-sm transition-colors ${
             playgroundActive
               ? 'border-vex-orange bg-vex-orange/10 text-vex-orange'
               : 'border-vex-border text-vex-text hover:border-vex-orange/50 hover:text-vex-orange'
           }`}
         >
-          <span>🧪</span>
+          <Icon name="🧪" size={16} />
           <span className="font-semibold">{t('playground.open')}</span>
         </button>
 
         {/* The reference, right next to the sandbox — try it, or look it up */}
         <button
           onClick={onOpenCodex}
-          className={`mt-2 w-full flex items-center gap-2 px-3 py-2 rounded-xl border text-sm transition-colors ${
+          className={`mt-2 w-full flex items-center gap-2 px-3 min-h-[44px] rounded-xl border text-sm transition-colors ${
             codexActive
               ? 'border-vex-purple bg-vex-purple/10 text-vex-purple'
               : 'border-vex-border text-vex-text hover:border-vex-purple/50 hover:text-vex-purple'
           }`}
         >
-          <span>📕</span>
+          <Icon name="📕" size={16} />
           <span className="font-semibold">{t('codex.open')}</span>
         </button>
       </div>
@@ -384,7 +385,7 @@ function Sidebar({
 
         {tier2Locked ? (
           <div className="mx-3 p-3 rounded-xl border border-vex-purple/20 bg-vex-purple/5 text-center">
-            <div className="text-2xl mb-1">🔒</div>
+            <div className="mb-1 flex justify-center"><Icon name="🔒" size={22} /></div>
             <div className="text-vex-muted text-xs">
               {t('tier.2.unlockAt')} <span className="text-vex-purple font-semibold">{t('tier.1.full')}</span> {t('tier.2.toUnlock')}
               {' '}({tier1Modules.filter(m => isModuleComplete(m, completedIds)).length}/{tier1Modules.length})
@@ -408,7 +409,7 @@ function Sidebar({
       <div className="px-3 py-3 border-t border-vex-border">
         <button
           onClick={onReset}
-          className="w-full px-3 py-2 rounded-lg border border-vex-border text-vex-muted hover:border-vex-red/50 hover:text-vex-red text-xs transition-colors"
+          className="w-full inline-flex items-center justify-center min-h-[44px] px-3 rounded-lg border border-vex-border text-vex-muted hover:border-vex-red/50 hover:text-vex-red text-xs transition-colors"
         >
           {t('app.resetProgress')}
         </button>
@@ -574,9 +575,9 @@ function AppInner() {
           <button
             onClick={openSidebar}
             aria-label="Menu"
-            className="w-9 h-9 rounded-lg border border-vex-border text-vex-muted hover:text-vex-orange hover:border-vex-orange/50 transition-colors text-lg leading-none"
+            className="tap-target w-9 h-9 rounded-lg border border-vex-border text-vex-muted hover:text-vex-orange hover:border-vex-orange/50 transition-colors text-lg leading-none"
           >
-            ☰
+            <Icon name="☰" size={17} />
           </button>
           <span className="w-7 h-7 rounded-lg bg-vex-orange flex items-center justify-center text-black font-bold text-sm">@</span>
           <span className="text-vex-text font-bold text-sm">VEX Dojo</span>

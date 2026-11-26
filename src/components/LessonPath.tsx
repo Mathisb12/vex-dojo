@@ -5,6 +5,7 @@ import { getAllExercises } from '../exercises/curriculum'
 import { isLessonComplete, isModuleLocked, isLessonLocked } from '../exercises/locks'
 import { LessonTimeline, type TimelineItem } from './LessonTimeline'
 import type { StepKind } from './KindBadge'
+import { Icon } from './Icon'
 
 // Badge reflects what the lesson is mostly testing, not whether it opens with
 // a theory card — nearly every lesson has at least one, so that would make
@@ -108,7 +109,7 @@ export function LessonPath({
           >
             <div className="flex items-center gap-3 sm:gap-4">
               <div className="w-10 h-10 rounded-xl bg-vex-orange/15 border border-vex-orange/30 flex items-center justify-center flex-shrink-0 text-lg">
-                🔁
+                <Icon name="🔁" size={19} />
               </div>
               <div className="min-w-0 flex-1">
                 <div className="text-vex-orange text-[11px] font-mono font-semibold uppercase tracking-widest mb-1">
@@ -127,7 +128,7 @@ export function LessonPath({
           <div className="w-full mb-4 rounded-2xl border border-vex-border bg-vex-surface/40 p-4 sm:p-5">
             <div className="flex items-start gap-3 sm:gap-4">
               <div className="w-10 h-10 rounded-xl bg-vex-surface border border-vex-border flex items-center justify-center flex-shrink-0 text-lg opacity-60">
-                🔁
+                <Icon name="🔁" size={19} />
               </div>
               <div className="min-w-0">
                 <div className="text-vex-muted text-[11px] font-mono font-semibold uppercase tracking-widest mb-1">
@@ -151,7 +152,7 @@ export function LessonPath({
         >
           <div className="flex items-start gap-3 sm:gap-4">
             <div className="w-10 h-10 rounded-xl bg-vex-blue/15 border border-vex-blue/30 flex items-center justify-center flex-shrink-0 text-lg">
-              🧪
+              <Icon name="🧪" size={19} />
             </div>
             <div className="min-w-0 flex-1">
               <div className="text-vex-blue text-[11px] font-mono font-semibold uppercase tracking-widest mb-1">
@@ -176,7 +177,7 @@ export function LessonPath({
         >
           <div className="flex items-start gap-3 sm:gap-4">
             <div className="w-10 h-10 rounded-xl bg-vex-purple/15 border border-vex-purple/30 flex items-center justify-center flex-shrink-0 text-lg">
-              📕
+              <Icon name="📕" size={19} />
             </div>
             <div className="min-w-0 flex-1">
               <div className="text-vex-purple text-[11px] font-mono font-semibold uppercase tracking-widest mb-1">

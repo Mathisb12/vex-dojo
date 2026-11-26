@@ -2,6 +2,7 @@ import type { LearnCard } from '../exercises/types'
 import { useLang } from '../i18n/LanguageContext'
 import { WrangleParamDiagram } from './WrangleParamDiagram'
 import { RampDiagram } from './RampDiagram'
+import { Icon } from './Icon'
 
 const VISUAL_COMPONENTS: Partial<Record<NonNullable<LearnCard['visual']>, () => JSX.Element>> = {
   'wrangle-params': WrangleParamDiagram,
@@ -40,7 +41,7 @@ export function LearnCardView({ card, onContinue, current, total }: Props) {
       {/* Header */}
       <div className="flex items-start gap-3">
         <div className="w-10 h-10 rounded-xl bg-vex-orange/10 border border-vex-orange/30 flex items-center justify-center flex-shrink-0">
-          <span className="text-vex-orange text-lg">📘</span>
+          <Icon name="📘" size={19} className="text-vex-orange" />
         </div>
         <div>
           <div className="text-xs text-vex-orange font-mono uppercase tracking-widest mb-0.5">
@@ -68,7 +69,7 @@ export function LearnCardView({ card, onContinue, current, total }: Props) {
       {/* "So what" — where this shows up in a real shot */}
       {card.inProduction && (
         <div className="bg-vex-blue/5 border border-vex-blue/25 rounded-xl p-4 flex items-start gap-3">
-          <span className="text-vex-blue text-base leading-none mt-0.5 flex-shrink-0">🎬</span>
+          <Icon name="🎬" size={16} className="text-vex-blue mt-0.5 flex-shrink-0" />
           <div className="min-w-0">
             <div className="text-xs text-vex-blue font-mono uppercase tracking-widest mb-1">{t('learn.inProduction')}</div>
             <p
@@ -118,7 +119,7 @@ export function LearnCardView({ card, onContinue, current, total }: Props) {
           <ul className="flex flex-col gap-1.5">
             {card.keyPoints.map((pt, i) => (
               <li key={i} className="flex items-start gap-2 text-sm">
-                <span className="text-vex-orange flex-shrink-0 mt-0.5">✦</span>
+                <Icon name="✦" size={13} className="text-vex-orange flex-shrink-0 mt-1" />
                 <span
                   className="text-vex-text/80 text-pretty"
                   dangerouslySetInnerHTML={{ __html: pt.replace(/`(.+?)`/g, '<code class="bg-black/30 text-vex-orange font-mono text-xs px-1 rounded">$1</code>') }}
@@ -132,7 +133,7 @@ export function LearnCardView({ card, onContinue, current, total }: Props) {
       {/* Continue */}
       <button
         onClick={onContinue}
-        className="self-start px-6 py-2.5 bg-vex-orange text-black font-bold rounded-xl hover:bg-vex-orange/90 transition-colors text-sm"
+        className="self-start inline-flex items-center justify-center min-h-[44px] px-6 bg-vex-orange text-black font-bold rounded-xl hover:bg-vex-orange/90 transition-colors text-sm"
       >
         {t('common.gotIt')}
       </button>
